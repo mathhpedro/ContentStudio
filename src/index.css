@@ -1,0 +1,25 @@
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; }
+#root { height: 100%; }
+body { font-family: 'Hanken Grotesk', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+::selection { background: #B8BCC4; color: #08090B; }
+
+@keyframes pcsFade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes pcsPop { from { opacity: 0; transform: scale(.97); } to { opacity: 1; transform: none; } }
+@keyframes pcsSlide { from { opacity: 0; max-height: 0; } to { opacity: 1; max-height: 240px; } }
+@keyframes pcsPulse { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
+
+.pcs-int { transition: transform .16s ease, box-shadow .2s ease, background .16s ease, border-color .16s ease, filter .16s ease; }
+.pcs-btn { transition: filter .15s ease, transform .12s ease, background .15s ease, border-color .15s ease; cursor: pointer; }
+.pcs-btn:hover { filter: brightness(1.08); }
+.pcs-btn:active { transform: translateY(1px); }
+.pcs-card:hover { transform: translateY(-2px); }
+.pcs-day:hover { border-color: rgba(150,155,164,.45) !important; }
+.pcs-drag-over { outline: 2px dashed #B8BCC4 !important; outline-offset: -4px; }
+.pcs-scroll::-webkit-scrollbar { width: 9px; height: 9px; }
+.pcs-scroll::-webkit-scrollbar-thumb { background: rgba(150,155,164,.32); border-radius: 8px; }
+.pcs-scroll::-webkit-scrollbar-track { background: transparent; }
+textarea, input { font-family: inherit; }
+.pcs-ver:hover { border-color: rgba(150,155,164,.5) !important; }
