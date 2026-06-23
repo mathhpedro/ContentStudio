@@ -1,5 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
+:root {
+  /* Fluid / spring easings used across the liquid-glass UI */
+  --pcs-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --pcs-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; height: 100%; }
 #root { height: 100%; }
@@ -10,12 +16,22 @@ body { font-family: 'Hanken Grotesk', system-ui, sans-serif; -webkit-font-smooth
 @keyframes pcsPop { from { opacity: 0; transform: scale(.97); } to { opacity: 1; transform: none; } }
 @keyframes pcsSlide { from { opacity: 0; max-height: 0; } to { opacity: 1; max-height: 240px; } }
 @keyframes pcsPulse { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
+/* Slow drift of the ambient gradient field — gives the glass something to refract */
+@keyframes pcsDrift {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  33%  { transform: translate3d(-3%, 2%, 0) scale(1.05); }
+  66%  { transform: translate3d(2%, -2%, 0) scale(1.02); }
+  100% { transform: translate3d(0, 0, 0) scale(1); }
+}
+/* Specular sheen sweep used on hover of glass surfaces */
+@keyframes pcsSheen { from { transform: translateX(-120%); } to { transform: translateX(120%); } }
+@keyframes pcsViewIn { from { opacity: 0; transform: translateY(14px) scale(.985); } to { opacity: 1; transform: none; } }
 
-.pcs-int { transition: transform .16s ease, box-shadow .2s ease, background .16s ease, border-color .16s ease, filter .16s ease; }
-.pcs-btn { transition: filter .15s ease, transform .12s ease, background .15s ease, border-color .15s ease; cursor: pointer; }
-.pcs-btn:hover { filter: brightness(1.08); }
-.pcs-btn:active { transform: translateY(1px); }
-.pcs-card:hover { transform: translateY(-2px); }
+.pcs-int { transition: transform .28s var(--pcs-spring), box-shadow .3s var(--pcs-ease), background .24s var(--pcs-ease), border-color .24s var(--pcs-ease), filter .2s var(--pcs-ease); will-change: transform; }
+.pcs-btn { transition: filter .18s var(--pcs-ease), transform .2s var(--pcs-spring), background .2s var(--pcs-ease), border-color .2s var(--pcs-ease), box-shadow .2s var(--pcs-ease); cursor: pointer; }
+.pcs-btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
+.pcs-btn:active { transform: translateY(1px) scale(.98); }
+.pcs-card:hover { transform: translateY(-3px) scale(1.012); }
 .pcs-day:hover { border-color: rgba(150,155,164,.45) !important; }
 .pcs-drag-over { outline: 2px dashed #B8BCC4 !important; outline-offset: -4px; }
 .pcs-scroll::-webkit-scrollbar { width: 9px; height: 9px; }
@@ -23,3 +39,34 @@ body { font-family: 'Hanken Grotesk', system-ui, sans-serif; -webkit-font-smooth
 .pcs-scroll::-webkit-scrollbar-track { background: transparent; }
 textarea, input { font-family: inherit; }
 .pcs-ver:hover { border-color: rgba(150,155,164,.5) !important; }
+
+/* ---- Liquid glass surface: translucent panel with a specular top edge + drifting refraction ---- */
+.pcs-glass { position: relative; isolation: isolate; }
+.pcs-glass::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0) 42%);
+  opacity: .9; z-index: 0;
+}
+/* moving sheen — sweeps once on hover */
+.pcs-sheen { position: relative; overflow: hidden; }
+.pcs-sheen > .pcs-sheen-bar {
+  content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 45%; pointer-events: none; z-index: 1;
+  background: linear-gradient(105deg, transparent, rgba(255,255,255,0.16) 45%, rgba(255,255,255,0.28) 50%, rgba(255,255,255,0.16) 55%, transparent);
+  transform: translateX(-150%); opacity: 0;
+}
+.pcs-sheen:hover > .pcs-sheen-bar { opacity: 1; animation: pcsSheen .9s var(--pcs-ease); }
+
+/* sliding "liquid" tab indicator */
+.pcs-tab-ind { transition: transform .42s var(--pcs-spring), width .42s var(--pcs-spring), background .25s var(--pcs-ease); will-change: transform, width; }
+
+/* ---- View Transitions: fluid morph/crossfade between Calendar <-> Generation ---- */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(pcs-view) { animation: pcsViewOut .32s var(--pcs-ease) both; }
+  ::view-transition-new(pcs-view) { animation: pcsViewIn .42s var(--pcs-ease) both; }
+}
+@keyframes pcsViewOut { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(-10px) scale(.99); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .pcs-int, .pcs-btn, .pcs-card, .pcs-tab-ind { transition: none !important; }
+  .pcs-sheen:hover > .pcs-sheen-bar { animation: none; }
+}
