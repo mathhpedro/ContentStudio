@@ -2,7 +2,6 @@
 // with realtime, and the Claude proxy (Edge Function) call.
 
 import { supabase } from './supabaseClient';
-import { loadPosts as lsPosts, loadStyle as lsStyle } from './store';
 import type { Post } from './data';
 
 export interface SessionInfo {
@@ -12,7 +11,7 @@ export interface SessionInfo {
   role: 'owner' | 'writer' | 'viewer';
 }
 
-// ---------- auth ----------
+// ---------- access (shared team code, no email) ----------
 export async function getUser() {
   const { data } = await supabase.auth.getUser();
   return data.user || null;
@@ -21,19 +20,34 @@ export function onAuthChange(cb: (signedIn: boolean) => void) {
   const { data } = supabase.auth.onAuthStateChange((_e, session) => cb(!!session));
   return () => data.subscription.unsubscribe();
 }
-export async function sendOtp(email: string) {
-  const { error } = await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: true } });
+// Ensure we have a session. No email — everyone signs in anonymously; the team
+// access code (verified server-side by the `gate` function) is what grants access.
+async function ensureSession() {
+  const { data } = await supabase.auth.getSession();
+  if (data.session) return;
+  const { error } = await supabase.auth.signInAnonymously();
   if (error) throw new Error(error.message);
 }
-export async function verifyOtp(email: string, token: string) {
-  const { error } = await supabase.auth.verifyOtp({ email, token, type: 'email' });
-  if (error) throw new Error(error.message);
+// Enter with the shared team code. The edge function checks it against the
+// server-only value and, on success, makes this session a member of the shared
+// workspace. Returns the workspace id.
+export async function enterWithCode(code: string): Promise<string> {
+  await ensureSession();
+  const { data, error } = await supabase.functions.invoke('gate', { body: { code: code.trim() } });
+  if (error) {
+    let msg = 'Could not verify the access code';
+    try { const ctx = (error as any).context; if (ctx && typeof ctx.json === 'function') { const j = await ctx.json(); msg = j.error || msg; } } catch { /* ignore */ }
+    throw new Error(msg);
+  }
+  if (data && data.error) throw new Error(data.error);
+  const wsId = data && data.workspaceId;
+  if (!wsId) throw new Error('Access denied');
+  setActiveWs(wsId);
+  return wsId;
 }
 export async function signOut() { await supabase.auth.signOut(); }
 
-// The workspace the user is currently looking at (per-browser). Lets a user who
-// belongs to several workspaces (e.g. their own + one they joined by invite) land
-// in the right one, and makes "join by code" switch to the joined workspace.
+// The active workspace, remembered per browser.
 const ACTIVE_WS_KEY = 'pragma.activeWorkspace';
 function getActiveWs(): string | null { try { return localStorage.getItem(ACTIVE_WS_KEY); } catch { return null; } }
 function setActiveWs(id: string) { try { localStorage.setItem(ACTIVE_WS_KEY, id); } catch { /* ignore */ } }
@@ -59,58 +73,26 @@ function postToRow(p: Post, ws: string): any {
 }
 
 // ---------- workspace bootstrap ----------
+// In the shared-code model the gate function already made this session a member
+// of the shared workspace. If there's no membership yet, the user hasn't entered
+// a valid code — signal NOT_GATED so the UI shows the access screen.
+export const NOT_GATED = 'NOT_GATED';
+
 export async function bootstrap(): Promise<SessionInfo> {
   const user = await getUser();
-  if (!user) throw new Error('Not signed in');
+  if (!user) throw new Error(NOT_GATED);
   const email = user.email || '';
 
   const { data: mems, error: memErr } = await supabase
     .from('members').select('workspace_id, role, created_at').eq('user_id', user.id)
     .order('created_at', { ascending: true });
   if (memErr) throw new Error(memErr.message);
+  if (!mems || !mems.length) throw new Error(NOT_GATED);
 
-  if (mems && mems.length) {
-    const active = getActiveWs();
-    const chosen = (active && mems.find((m: any) => m.workspace_id === active)) || mems[0];
-    setActiveWs(chosen.workspace_id);
-    return { uid: user.id, email, workspaceId: chosen.workspace_id, role: chosen.role };
-  }
-
-  // first run for this user → create a workspace + owner membership, import local data once
-  const { data: ws, error: wsErr } = await supabase
-    .from('workspaces').insert({ name: (email.split('@')[0] || 'My') + "'s Studio", owner: user.id })
-    .select('id').single();
-  if (wsErr) throw new Error(wsErr.message);
-  const workspaceId = ws.id as string;
-
-  const { error: insErr } = await supabase.from('members')
-    .insert({ workspace_id: workspaceId, user_id: user.id, email, role: 'owner' });
-  if (insErr) throw new Error(insErr.message);
-
-  await importLocal(workspaceId);
-  setActiveWs(workspaceId);
-  return { uid: user.id, email, workspaceId, role: 'owner' };
-}
-
-async function importLocal(ws: string) {
-  const local = lsPosts();
-  if (local && local.length) {
-    const rows = local.map((p) => postToRow({ ...p, id: crypto.randomUUID() }, ws));
-    await supabase.from('posts').upsert(rows);
-  }
-  const style = lsStyle();
-  if (style) await supabase.from('style_profiles').upsert({ workspace_id: ws, style, updated_at: new Date().toISOString() });
-}
-
-export async function joinWorkspace(workspaceId: string): Promise<void> {
-  const user = await getUser();
-  if (!user) throw new Error('Not signed in');
-  const id = workspaceId.trim();
-  const { error } = await supabase.from('members')
-    .insert({ workspace_id: id, user_id: user.id, email: user.email, role: 'writer' });
-  // Already a member → still switch to it. Otherwise surface the error.
-  if (error && !/duplicate key|already (a )?member|violates unique/i.test(error.message)) throw new Error(error.message);
-  setActiveWs(id);
+  const active = getActiveWs();
+  const chosen = (active && mems.find((m: any) => m.workspace_id === active)) || mems[0];
+  setActiveWs(chosen.workspace_id);
+  return { uid: user.id, email, workspaceId: chosen.workspace_id, role: chosen.role };
 }
 
 // ---------- data ----------
