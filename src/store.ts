@@ -17,7 +17,9 @@ function write(key: string, value: any) {
 
 export function loadSettings(): Settings {
   const s = read(K_SETTINGS) || {};
-  return { apiKey: s.apiKey || '', model: s.model || DEFAULT_MODEL, webSearch: s.webSearch !== false };
+  // Migrate the previous default (Claude Opus) to the new default (Gemini free tier).
+  const model = (s.model && s.model !== 'claude-opus-4-8') ? s.model : DEFAULT_MODEL;
+  return { apiKey: s.apiKey || '', model, webSearch: s.webSearch !== false };
 }
 export function saveSettings(s: Settings) { write(K_SETTINGS, s); }
 

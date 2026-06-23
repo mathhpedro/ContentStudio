@@ -26,12 +26,15 @@ function webFetchTool(model: string) {
 }
 
 export const MODELS = [
-  { id: 'claude-opus-4-8', label: 'Claude Opus 4.8 — most capable' },
-  { id: 'claude-sonnet-4-6', label: 'Claude Sonnet 4.6 — fast & balanced' },
-  { id: 'claude-haiku-4-5', label: 'Claude Haiku 4.5 — fastest' },
+  { id: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash — free tier, fast' },
+  { id: 'gemini-2.5-flash-lite', label: 'Gemini 2.5 Flash-Lite — free tier, highest limits' },
+  { id: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro — most capable (paid)' },
+  { id: 'claude-opus-4-8', label: 'Claude Opus 4.8 — paid (Anthropic)' },
+  { id: 'claude-sonnet-4-6', label: 'Claude Sonnet 4.6 — paid (Anthropic)' },
 ];
 
-export const DEFAULT_MODEL = 'claude-opus-4-8';
+
+export const DEFAULT_MODEL = 'gemini-2.5-flash';
 
 const API_URL = 'https://api.anthropic.com/v1/messages';
 

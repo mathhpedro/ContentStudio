@@ -1,10 +1,13 @@
-// Supabase Edge Function: secure proxy to the Anthropic Messages API.
-// Verifies the caller's Supabase session, then calls Claude with the
-// server-side ANTHROPIC_API_KEY. Supports optional web search grounding and
-// fetching a reference URL (web_fetch) to base content on an existing post.
+// Supabase Edge Function: text generation proxy.
+// Verifies the caller's Supabase session, then routes to Gemini (default, free
+// tier for Flash) or Anthropic by model id. Supports web-search grounding and
+// reading a reference URL.
 //
-// Deploy:  supabase functions deploy generate
-//          supabase secrets set ANTHROPIC_API_KEY=sk-ant-...
+// Secrets:
+//   GEMINI_API_KEY        — Gemini text + (shared with) image
+//   GEMINI_TEXT_API_KEY   — optional: a no-billing key just for free text
+//   ANTHROPIC_API_KEY     — only needed if a claude-* model is selected
+//   Deploy:  supabase functions deploy generate
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
@@ -13,16 +16,66 @@ const cors = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
+function json(obj: unknown, status = 200) {
+  return new Response(JSON.stringify(obj), { status, headers: { ...cors, 'content-type': 'application/json' } });
+}
 
+// ---- Anthropic (paid) ----
 const MODERN = ['claude-opus-4-8', 'claude-opus-4-7', 'claude-opus-4-6', 'claude-sonnet-4-6'];
-function webSearchTool(model: string) {
-  return { type: MODERN.includes(model) ? 'web_search_20260209' : 'web_search_20250305', name: 'web_search', max_uses: 4 };
+function aWebSearch(model: string) { return { type: MODERN.includes(model) ? 'web_search_20260209' : 'web_search_20250305', name: 'web_search', max_uses: 4 }; }
+function aWebFetch(model: string) { return { type: MODERN.includes(model) ? 'web_fetch_20260209' : 'web_fetch_20250910', name: 'web_fetch', max_uses: 4 }; }
+function aText(content: any[]): string { return (content || []).filter((b: any) => b.type === 'text').map((b: any) => b.text).join('\n').trim(); }
+
+async function callAnthropic(model: string, system: string, user: string, maxTokens: number, search: boolean, fetchUrl: string) {
+  const apiKey = Deno.env.get('ANTHROPIC_API_KEY');
+  if (!apiKey) return { error: 'Server is missing ANTHROPIC_API_KEY', status: 500 };
+  const tools: any[] = [];
+  if (search) tools.push(aWebSearch(model));
+  if (fetchUrl) tools.push(aWebFetch(model));
+  const messages: any[] = [{ role: 'user', content: user }];
+  let last = '';
+  for (let i = 0; i < 5; i++) {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({ model, max_tokens: maxTokens, system, messages, ...(tools.length ? { tools } : {}) }),
+    });
+    if (!res.ok) { let m = 'Claude request failed (HTTP ' + res.status + ')'; try { const j = await res.json(); m = j?.error?.message || m; } catch { /* */ } return { error: m, status: res.status }; }
+    const data = await res.json();
+    const t = aText(data.content); if (t) last = t;
+    if (data.stop_reason === 'pause_turn') { messages.push({ role: 'assistant', content: data.content }); continue; }
+    return { text: t || last };
+  }
+  return { text: last };
 }
-function webFetchTool(model: string) {
-  return { type: MODERN.includes(model) ? 'web_fetch_20260209' : 'web_fetch_20250910', name: 'web_fetch', max_uses: 4 };
-}
-function blocksToText(content: any[]): string {
-  return (content || []).filter((b: any) => b.type === 'text').map((b: any) => b.text).join('\n').trim();
+
+// ---- Gemini (free tier for Flash) ----
+async function callGemini(model: string, system: string, user: string, maxTokens: number, search: boolean, fetchUrl: string) {
+  const apiKey = Deno.env.get('GEMINI_TEXT_API_KEY') || Deno.env.get('GEMINI_API_KEY');
+  if (!apiKey) return { error: 'Server is missing GEMINI_API_KEY', status: 500 };
+  const tools: any[] = [];
+  if (fetchUrl) tools.push({ url_context: {} });
+  if (search) tools.push({ google_search: {} });
+  const genConfig: any = { maxOutputTokens: Math.max(maxTokens, 2048) };
+  // Disable "thinking" on Flash so the token budget goes to the answer (faster, cheaper, reliable JSON).
+  if (model.includes('flash')) genConfig.thinkingConfig = { thinkingBudget: 0 };
+  const body: any = {
+    systemInstruction: { parts: [{ text: system }] },
+    contents: [{ role: 'user', parts: [{ text: user }] }],
+    generationConfig: genConfig,
+    ...(tools.length ? { tools } : {}),
+  };
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'x-goog-api-key': apiKey },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) { let m = 'Gemini request failed (HTTP ' + res.status + ')'; try { const j = await res.json(); m = j?.error?.message || m; } catch { /* */ } return { error: m, status: res.status }; }
+  const data = await res.json();
+  const cand = (data.candidates || [])[0];
+  const text = ((cand?.content?.parts) || []).filter((p: any) => typeof p.text === 'string').map((p: any) => p.text).join('\n').trim();
+  if (!text) return { error: 'No text returned (possibly blocked or empty)', status: 502 };
+  return { text };
 }
 
 Deno.serve(async (req) => {
@@ -33,49 +86,25 @@ Deno.serve(async (req) => {
   const token = auth.replace(/^Bearer\s+/i, '');
   if (!token) return json({ error: 'Missing auth token' }, 401);
 
-  const supabase = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_ANON_KEY')!,
-    { global: { headers: { Authorization: auth } } },
-  );
+  const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, { global: { headers: { Authorization: auth } } });
   const { data: userData, error: userErr } = await supabase.auth.getUser(token);
   if (userErr || !userData?.user) return json({ error: 'Not authenticated' }, 401);
-
-  const apiKey = Deno.env.get('ANTHROPIC_API_KEY');
-  if (!apiKey) return json({ error: 'Server is missing ANTHROPIC_API_KEY' }, 500);
 
   let body: any;
   try { body = await req.json(); } catch { return json({ error: 'Invalid JSON body' }, 400); }
   const { system, user, model: rawModel, max_tokens, search, fetch_url } = body || {};
   if (!user) return json({ error: 'Missing "user" prompt' }, 400);
-  const model = rawModel || 'claude-opus-4-8';
-  const tools: any[] = [];
-  if (search) tools.push(webSearchTool(model));
-  if (fetch_url) tools.push(webFetchTool(model));
-  const toolsArg = tools.length ? tools : undefined;
 
-  const messages: any[] = [{ role: 'user', content: user }];
-  let lastText = '';
-  for (let i = 0; i < 5; i++) {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({ model, max_tokens: max_tokens || 4096, system, messages, ...(toolsArg ? { tools: toolsArg } : {}) }),
-    });
-    if (!res.ok) {
-      let msg = 'Claude request failed (HTTP ' + res.status + ')';
-      try { const j = await res.json(); msg = j?.error?.message || msg; } catch { /* ignore */ }
-      return json({ error: msg }, res.status);
-    }
-    const data = await res.json();
-    const text = blocksToText(data.content);
-    if (text) lastText = text;
-    if (data.stop_reason === 'pause_turn') { messages.push({ role: 'assistant', content: data.content }); continue; }
-    return json({ text: text || lastText });
-  }
-  return json({ text: lastText });
+  // Route by model id. Default to Gemini Flash (free tier).
+  let model = rawModel || 'gemini-2.5-flash';
+  const isClaude = String(model).startsWith('claude');
+  if (!isClaude && !String(model).startsWith('gemini')) model = 'gemini-2.5-flash';
+  const maxTokens = max_tokens || 4096;
+
+  const out = isClaude
+    ? await callAnthropic(model, system, user, maxTokens, !!search, fetch_url || '')
+    : await callGemini(model, system || '', user, maxTokens, !!search, fetch_url || '');
+
+  if ((out as any).error) return json({ error: (out as any).error }, (out as any).status || 500);
+  return json({ text: (out as any).text || '' });
 });
-
-function json(obj: unknown, status = 200) {
-  return new Response(JSON.stringify(obj), { status, headers: { ...cors, 'content-type': 'application/json' } });
-}
