@@ -317,31 +317,47 @@ export async function generateBrief(
 }
 
 // ---- art-directed image prompt for an approved post ----
-// Claude reads the post and writes a single photographic, editorial prompt that
-// avoids the generic "AI render" look. Returns the prompt text only.
+// Reads the post, extracts its ONE concrete idea, and writes a vivid, specific
+// photojournalistic prompt — a real scene from the relevant industry that
+// embodies the argument, not generic business stock.
 export async function generateImagePrompt(
   settings: Settings,
   post: { topic: string; angle: string },
   postText: string,
 ): Promise<string> {
-  const system = 'You are an art director writing a prompt for a photoreal image model. Return ONLY the prompt text — no quotes, no preamble, no explanation.';
-  const user = [
-    'Write ONE image-generation prompt for the illustration of a LinkedIn thought-leadership post.',
-    '',
-    'It MUST read like a real editorial / documentary photograph or a tasteful real-world still life —',
-    'NOT a glossy 3D render, NOT corporate clip-art, NOT a neon "futuristic AI" cliché, NOT obviously AI-made.',
-    'Be concrete and specific: real subject, real setting, composition, focal length, natural lighting, mood,',
-    'texture and depth of field — the kind of brief a photographer could shoot.',
-    'It must be visually relevant to the post’s actual idea (a metaphor or a real scene from the industry it discusses).',
-    'Strictly avoid: any text, letters, words, numbers, logos, watermarks, charts, infographics, UI; and any company or brand name.',
-    '',
-    `Post topic: ${post.topic}`,
-    `Angle: ${post.angle}`,
-    `Post text:\n"""\n${postText}\n"""`,
-    '',
-    'Return only the prompt, about 40–70 words.',
+  const system = [
+    'You are a photo editor at a serious business magazine (think the photography in The Economist,',
+    'Bloomberg Businessweek or the FT Weekend) commissioning ONE photograph to run with an article.',
+    'You return ONLY the final image-generation prompt — no quotes, no preamble, no explanation.',
   ].join('\n');
-  const out = await callClaude(settings, { system, user, maxTokens: 500 });
+  const user = [
+    'Commission ONE photograph for the article below. Work in this order, but output only the final prompt:',
+    '1. Identify the article’s single concrete idea or tension (e.g. "raise price vs defend volume",',
+    '   "a decision no one owns", "stock sitting in a warehouse while sales chase growth").',
+    '2. Translate it into ONE specific, real, grounded scene from the actual industry it discusses',
+    '   (consumer goods / banking / retail / agribusiness / logistics): a real place, a real moment, real',
+    '   objects and people doing real work — a scene a photojournalist could actually shoot today. It should',
+    '   give the viewer a PERSPECTIVE on the idea, like a literal moment or a tangible visual metaphor.',
+    '3. Write it as a rich, specific photographic brief.',
+    '',
+    'The photo MUST feel real and editorial — shot on a real camera, candid, unstaged, with natural',
+    'imperfection. Specify concretely: the setting and what is happening, the main subject, time of day and',
+    'light (e.g. early-morning warehouse light, overcast loading dock, fluorescent back office), camera and',
+    'lens (e.g. 35mm or 50mm, shallow depth of field), framing, texture and mood.',
+    '',
+    'HARD AVOID (these read as generic AI/stock and are forbidden): glowing blue networks, circuit boards,',
+    'robots, humanoid AI, holograms, floating data/particles, brains, lightbulbs, glowing chess pieces,',
+    'handshakes, generic glass skylines, people pointing at floating dashboards, anything neon-futuristic.',
+    'Also NO text, letters, numbers, logos, watermarks, charts, infographics or screens with UI; and NO',
+    'company or brand names anywhere.',
+    '',
+    `Article topic: ${post.topic}`,
+    `Angle: ${post.angle}`,
+    `Article text:\n"""\n${postText}\n"""`,
+    '',
+    'Return only the final prompt — one vivid paragraph, ~50–90 words.',
+  ].join('\n');
+  const out = await callClaude(settings, { system, user, maxTokens: 700 });
   return (out || '').trim().replace(/^["']+|["']+$/g, '').trim();
 }
 
