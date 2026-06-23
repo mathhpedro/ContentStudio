@@ -65,18 +65,32 @@ const rows: [string, string, string, string, string, string, string | null][] = 
   ['2026-06-30', 'The week after the demo', 'What separates the 6% from everyone else', 'opinion', 'Draft', 'Medium', 'new'],
 ];
 
+// Current month anchor — the calendar always shows "today" in the present month/year,
+// and the seeded posts are rebased onto it (preserving day-of-month) so content stays visible.
+export function monthAnchor() {
+  const now = new Date();
+  const y = now.getFullYear(), m = now.getMonth();
+  return { y, m, mm: String(m + 1).padStart(2, '0'), dim: new Date(y, m + 1, 0).getDate(), today: now.getDate() };
+}
+
 export function makePosts(): Post[] {
-  return rows.map((r, i) => ({
-    id: 'p' + i, date: r[0], topic: r[1], angle: r[2], format: r[3], status: r[4], priority: r[5], change: r[6],
-    scheduledFor: null, versions: null, activeVer: 0,
-  }));
+  const { y, mm, dim } = monthAnchor();
+  return rows.map((r, i) => {
+    const day = Math.min(parseInt(r[0].split('-')[2], 10), dim);
+    const date = `${y}-${mm}-${String(day).padStart(2, '0')}`;
+    return {
+      id: 'p' + i, date, topic: r[1], angle: r[2], format: r[3], status: r[4], priority: r[5], change: r[6],
+      scheduledFor: null, versions: null, activeVer: 0,
+    };
+  });
 }
 
 export function NOW() { return new Date().toISOString(); }
 
 export function rel(ts: string | null | undefined) {
   if (!ts) return 'just now';
-  const d = new Date(ts), now = new Date('2026-06-22T09:00:00'); let s = Math.floor((+now - +d) / 1000);
+  const d = new Date(ts), now = new Date(); let s = Math.floor((+now - +d) / 1000);
+  if (s < 0) s = 0;
   if (s < 60) return 'just now'; if (s < 3600) return Math.floor(s / 60) + 'm ago';
   if (s < 86400) return Math.floor(s / 3600) + 'h ago'; const days = Math.floor(s / 86400);
   if (days < 7) return days + 'd ago';
@@ -204,4 +218,73 @@ export function regen(post: Post, vi: number, count: number) {
   ];
   const set = banks[vi % 3];
   return set[count % set.length];
+}
+
+// ===== topic briefs =====
+// Plain-language explainers for the topics in active rotation this week.
+// Keyed by post id (see the rows order in makePosts).
+export interface TopicBrief {
+  summary: string;
+  why: string;
+  points: string[];
+}
+
+export const TOPIC_BRIEFS: Record<string, TopicBrief> = {
+  p15: {
+    summary: 'Most enterprise AI does not stall on accuracy — it stalls because no single person owns the output once it reaches production.',
+    why: 'Until a named owner can answer for what the model produces, no one will stake a real workflow on it, so pilots never ship.',
+    points: [
+      'Name one human owner for every AI-driven decision, with authority to change the workflow when the model slips.',
+      '“The team owns it” means no one does — accountability has to land on a person.',
+      'This is an org-chart problem, not a model problem. Fix it before scaling.',
+    ],
+  },
+  p16: {
+    summary: 'Production AI quietly degrades over time. A retraining loop keeps it improving on a cadence instead of rotting after launch.',
+    why: 'A model that was excellent at launch drifts as the world changes. Without a loop, you are shipping decay you cannot see.',
+    points: [
+      'Treat retraining as a standing operating routine, not a one-off project.',
+      'Monitor live inputs and outputs — not just the accuracy you measured on day one.',
+      'Improvement should never require a fresh procurement cycle.',
+    ],
+  },
+  p17: {
+    summary: 'AI-assisted (“vibe”) coding can be fast and production-grade at the same time — speed and rigor are not opposites.',
+    why: 'Velocity without tests, review, and ownership creates fragile systems. The goal is to keep the guardrails while moving quickly.',
+    points: [
+      'Keep tests, types, and code review even when generating fast.',
+      'Treat AI output as a draft to verify, not a finished artifact.',
+      'Velocity only counts if the result survives production.',
+    ],
+  },
+  p18: {
+    summary: 'AI is reshaping business-process outsourcing by replacing high-volume work unit by unit, not all at once.',
+    why: 'The economics shift from headcount to per-unit output, which changes how the work is priced, scaled, and governed.',
+    points: [
+      'Measure per-unit output against headcount, not seats filled.',
+      'Migrate volume work incrementally, each slice with an owner and an exception path.',
+      'Quality control and governance decide whether it actually scales.',
+    ],
+  },
+  p19: {
+    summary: 'The real work starts after the demo: monitoring, retraining, and keeping scope under control.',
+    why: 'Demos prove capability. Governance is what keeps AI accountable, safe, and improving once it is live.',
+    points: [
+      'Define a failure path before launch — not after the first incident.',
+      'Control scope creep: every new use of the model needs its own owner.',
+      'Governance = monitoring + retraining + clear accountability.',
+    ],
+  },
+};
+
+// Posts that make up "this week's focus" — the freshly refreshed topics that fall in the
+// current week (Monday–Sunday containing today), in date order.
+export function weekFocus(posts: Post[]): Post[] {
+  const now = new Date();
+  const monday = new Date(now); monday.setDate(now.getDate() - ((now.getDay() + 6) % 7)); monday.setHours(0, 0, 0, 0);
+  const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6); sunday.setHours(23, 59, 59, 999);
+  return posts
+    .filter((p) => p.change)
+    .filter((p) => { const d = new Date(p.date + 'T00:00:00'); return d >= monday && d <= sunday; })
+    .sort((a, b) => a.date.localeCompare(b.date));
 }
