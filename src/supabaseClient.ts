@@ -9,7 +9,9 @@ const url = (import.meta.env.VITE_SUPABASE_URL as string | undefined)
 const anon = (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined)
   || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZhdGNpZ3Bibmd1ZWJqb3FpdmFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxOTQyNzEsImV4cCI6MjA5Nzc3MDI3MX0.DQcl5KEndBZMhrDh3IXVnYbH7cUSDHftBKSq2yW5hGA';
 
-export const hasSupabase = !!(url && anon);
+// Collaborative mode (login + shared workspace) is OFF by default — the site is
+// open with no login. Turn it on only by building with VITE_COLLAB=1.
+export const hasSupabase = import.meta.env.VITE_COLLAB === '1' && !!(url && anon);
 
 export const supabase: SupabaseClient = createClient(url, anon, {
   auth: { persistSession: true, autoRefreshToken: true },
