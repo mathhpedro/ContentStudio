@@ -47,6 +47,8 @@ export default class App extends React.Component<AppProps, any> {
       genBusy: false, agendaBusy: false, verBusy: null, briefBusy: null, planBusy: null,
       newPost: { topic: '', angle: '', format: 'opinion', priority: 'Medium' },
       joinId: '',
+      viewYM: (() => { const a = monthAnchor(); return { y: a.y, m: a.m }; })(),
+      allFilter: { status: 'All', format: 'All', q: '' },
     };
     this._tid = 0;
     this.tabRefs = {};
@@ -189,6 +191,49 @@ export default class App extends React.Component<AppProps, any> {
   setStatus(id: string, s: string) { const posts = this.state.posts.map((p: Post) => p.id === id ? { ...p, status: s } : p); this.setState({ posts }); this.persist(posts); this.toast('Status → ' + s); }
   setActiveVer(i: number) { const p = this.post(this.state.selectedId)!; p.activeVer = i; this.forceUpdate(); this.persist(); }
   movePost(id: string, date: string) { const posts = this.state.posts.map((p: Post) => p.id === id ? { ...p, date } : p); this.setState({ posts }); this.persist(posts); }
+  shiftMonth(delta: number) { const { y, m } = this.state.viewYM; const d = new Date(y, m + delta, 1); fluid(() => this.setState({ viewYM: { y: d.getFullYear(), m: d.getMonth() } })); }
+  goToday() { const a = monthAnchor(); fluid(() => this.setState({ viewYM: { y: a.y, m: a.m } })); }
+
+  // ---------- backup / export / import ----------
+  exportData() {
+    const payload = {
+      app: 'pragma-content-studio', version: 1, exportedAt: NOW(),
+      posts: this.state.posts, style: this.state.styleProfile,
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const stamp = new Date().toISOString().slice(0, 10);
+    a.href = url; a.download = 'pragma-content-studio-' + stamp + '.json';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    this.toast('Backup downloaded ⤓');
+  }
+  importData(file: File, mode: 'replace' | 'merge') {
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const data = JSON.parse(String(reader.result || '{}'));
+        const incoming: Post[] = Array.isArray(data.posts) ? data.posts : [];
+        if (!incoming.length && typeof data.style !== 'string') { this.toast('Nothing to import in that file'); return; }
+        let posts: Post[];
+        if (mode === 'merge') {
+          const byId: Record<string, Post> = {};
+          [...this.state.posts, ...incoming].forEach((p) => { if (p && p.id) byId[p.id] = p; });
+          posts = Object.keys(byId).map((k) => byId[k]);
+        } else {
+          posts = incoming;
+        }
+        const style = typeof data.style === 'string' && data.style.length ? data.style : this.state.styleProfile;
+        const selectedId = posts.find((p) => p.id === this.state.selectedId) ? this.state.selectedId : (posts[0] ? posts[0].id : null);
+        this.setState({ posts, styleProfile: style, selectedId, modal: null });
+        this.persist(posts);
+        if (style !== this.state.styleProfile) { if (this.props.persistence) this.props.persistence.saveStyle(style).catch(() => {}); else saveStyle(style); }
+        this.toast('Imported ' + incoming.length + ' posts ✓');
+      } catch (e: any) { this.toast('Import failed — invalid file'); }
+    };
+    reader.readAsText(file);
+  }
   setStyle(v: string) { this.setState({ styleProfile: v }); }
   saveStyleProfile() {
     if (this.props.persistence) { this.props.persistence.saveStyle(this.state.styleProfile).then(() => this.toast('Writing style saved')).catch((e: any) => this.toast('Save failed — ' + (e.message || e))); }
@@ -378,9 +423,10 @@ export default class App extends React.Component<AppProps, any> {
         this.renderHeader(),
         h('div', { key: this.state.tab, style: { viewTransitionName: 'pcs-view', animation: 'pcsViewIn .42s var(--pcs-ease) both' } as any },
           this.state.tab === 'calendar' ? this.renderCalendar()
-            : this.state.tab === 'topics' ? this.renderTopics()
-              : this.state.tab === 'analytics' ? this.renderAnalytics()
-                : this.renderGenerator()),
+            : this.state.tab === 'all' ? this.renderAllPosts()
+              : this.state.tab === 'topics' ? this.renderTopics()
+                : this.state.tab === 'analytics' ? this.renderAnalytics()
+                  : this.renderGenerator()),
       ),
       this.renderModal(),
       this.renderToast(),
@@ -448,7 +494,7 @@ export default class App extends React.Component<AppProps, any> {
               backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
             }
           }),
-          Tab('calendar', 'Post Calendar'), Tab('topics', 'Topic Briefs'), Tab('generate', 'Content Generation'), Tab('analytics', 'Analytics')),
+          Tab('calendar', 'Calendar'), Tab('all', 'All Posts'), Tab('topics', 'Topic Briefs'), Tab('generate', 'Generation'), Tab('analytics', 'Analytics')),
         h('div', { style: { flex: 1 } }),
         // connect-to-Claude status / button
         h('button', {
@@ -474,24 +520,40 @@ export default class App extends React.Component<AppProps, any> {
   renderCalendar() {
     const C = this.C;
     const visible = this.state.posts;
-    // Anchor the grid to the real current month/year, with today driven by the actual date.
-    const { y, m, dim, today } = monthAnchor();
+    // Grid is anchored to the month the user is viewing; "today" only lights up in the real current month.
+    const { y, m } = this.state.viewYM;
+    const anchor = monthAnchor();
+    const isCur = y === anchor.y && m === anchor.m;
+    const today = isCur ? anchor.today : -1;
+    const dim = new Date(y, m + 1, 0).getDate();
     const monthName = new Date(y, m, 1).toLocaleDateString('en-US', { month: 'long' });
     const firstJs = new Date(y, m, 1).getDay(); // 0=Sun..6=Sat
     const first = firstJs === 0 ? 7 : firstJs;  // Monday-based offset (1=Mon..7=Sun)
     const cells: (number | null)[] = []; for (let i = 0; i < first - 1; i++) cells.push(null); for (let d = 1; d <= dim; d++) cells.push(d);
     while (cells.length % 7 !== 0) cells.push(null);
-    const byDay: any = {}; visible.forEach((p: Post) => { const dd = this.fmtDay(p.date); (byDay[dd] = byDay[dd] || []).push(p); });
+    // Only place posts that actually fall in the viewed month/year.
+    const monthPosts = visible.filter((p: Post) => { const pp = (p.date || '').split('-'); return parseInt(pp[0], 10) === y && parseInt(pp[1], 10) === m + 1; });
+    const byDay: any = {}; monthPosts.forEach((p: Post) => { const dd = this.fmtDay(p.date); (byDay[dd] = byDay[dd] || []).push(p); });
     const wd = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const navBtn = (gly: string, fn: () => void, title: string) => h('button', {
+      className: 'pcs-btn', onClick: fn, title,
+      style: { width: '32px', height: '32px', borderRadius: '9px', border: '1px solid ' + C.border, background: C.dark ? 'rgba(255,255,255,0.05)' : 'rgba(8,9,11,0.04)', color: C.text, fontSize: '15px', display: 'grid', placeItems: 'center', lineHeight: 1 },
+    }, gly);
 
     return h('div', { style: { animation: 'pcsFade .4s ease', paddingTop: '14px' } },
       // title row
       h('div', { style: { display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '20px', flexWrap: 'wrap', marginBottom: '18px' } },
         h('div', {},
           h('div', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '11px', letterSpacing: '0.16em', color: C.faint, textTransform: 'uppercase', marginBottom: '8px' } }, 'Editorial Calendar'),
-          h('h1', { style: { margin: 0, fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '34px', letterSpacing: '-0.03em', color: C.heading } },
-            monthName + ' ' + y,
-            h('span', { style: { marginLeft: '12px', fontSize: '17px', fontWeight: 500, color: C.dim, letterSpacing: '-0.01em' } }, visible.length + ' planned'),
+          h('div', { style: { display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' } },
+            h('h1', { style: { margin: 0, fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '34px', letterSpacing: '-0.03em', color: C.heading } },
+              monthName + ' ' + y,
+              h('span', { style: { marginLeft: '12px', fontSize: '17px', fontWeight: 500, color: C.dim, letterSpacing: '-0.01em' } }, monthPosts.length + (monthPosts.length === 1 ? ' post' : ' posts')),
+            ),
+            h('div', { style: { display: 'flex', alignItems: 'center', gap: '6px' } },
+              navBtn('‹', () => this.shiftMonth(-1), 'Previous month'),
+              isCur ? null : this.Btn('Today', () => this.goToday(), { variant: 'soft', sm: true }),
+              navBtn('›', () => this.shiftMonth(1), 'Next month')),
           ),
         ),
         h('div', { style: { display: 'flex', gap: '9px', alignItems: 'center' } },
@@ -548,7 +610,7 @@ export default class App extends React.Component<AppProps, any> {
       key: key, className: 'pcs-day pcs-int pcs-glass',
       onDragOver: (e: any) => { e.preventDefault(); e.currentTarget.classList.add('pcs-drag-over'); },
       onDragLeave: (e: any) => e.currentTarget.classList.remove('pcs-drag-over'),
-      onDrop: (e: any) => { e.preventDefault(); e.currentTarget.classList.remove('pcs-drag-over'); const id = e.dataTransfer.getData('text'); if (id) { const a = monthAnchor(); this.movePost(id, a.y + '-' + a.mm + '-' + String(d).padStart(2, '0')); } },
+      onDrop: (e: any) => { e.preventDefault(); e.currentTarget.classList.remove('pcs-drag-over'); const id = e.dataTransfer.getData('text'); if (id) { const { y, m } = this.state.viewYM; this.movePost(id, y + '-' + String(m + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0')); } },
       style: {
         minHeight: '150px', maxHeight: '320px', display: 'flex', flexDirection: 'column', borderRadius: '14px',
         ...this.glass({ blur: 14, soft: weekend }),
@@ -602,6 +664,82 @@ export default class App extends React.Component<AppProps, any> {
         }
       }, p.topic),
       this.StatusBadge(p.status),
+    );
+  }
+
+  // ---------- all posts (management view) ----------
+  renderAllPosts() {
+    const C = this.C;
+    const f = this.state.allFilter;
+    const statuses = ['All', 'Draft', 'In Review', 'Approved', 'Published'];
+    const formats: string[] = ['All', ...Array.from(new Set((this.state.posts as Post[]).map((p) => p.format)))];
+    const q = (f.q || '').trim().toLowerCase();
+    const rows = this.state.posts
+      .filter((p: Post) => f.status === 'All' || p.status === f.status)
+      .filter((p: Post) => f.format === 'All' || p.format === f.format)
+      .filter((p: Post) => !q || (p.topic + ' ' + p.angle).toLowerCase().includes(q))
+      .sort((a: Post, b: Post) => (b.date || '').localeCompare(a.date || ''));
+    const setF = (patch: any) => this.setState({ allFilter: { ...f, ...patch } });
+    const chip = (label: string, on: boolean, fn: () => void) => h('button', {
+      key: label, className: 'pcs-btn', onClick: fn,
+      style: {
+        fontFamily: "'Sora',sans-serif", fontWeight: 600, fontSize: '12px', padding: '6px 11px', borderRadius: '999px',
+        border: '1px solid ' + (on ? (C.dark ? C.accent : '#16181D') : C.border),
+        background: on ? (C.dark ? 'rgba(184,188,196,0.16)' : '#16181D') : 'transparent',
+        color: on ? (C.dark ? C.heading : '#fff') : C.dim,
+      },
+    }, label);
+
+    return h('div', { style: { animation: 'pcsFade .4s ease', paddingTop: '14px' } },
+      h('div', { style: { display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '20px', flexWrap: 'wrap', marginBottom: '18px' } },
+        h('div', {},
+          h('div', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '11px', letterSpacing: '0.16em', color: C.faint, textTransform: 'uppercase', marginBottom: '8px' } }, 'All Posts'),
+          h('h1', { style: { margin: 0, fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '34px', letterSpacing: '-0.03em', color: C.heading } },
+            'Every post',
+            h('span', { style: { marginLeft: '12px', fontSize: '17px', fontWeight: 500, color: C.dim } }, rows.length + ' of ' + this.state.posts.length))),
+        h('div', { style: { display: 'flex', gap: '9px', alignItems: 'center', flexWrap: 'wrap' } },
+          this.Btn('Export backup', () => this.exportData(), { variant: 'soft', sm: true, icon: '⤓' }),
+          this.Btn('Import', () => this.setState({ modal: { type: 'import' } }), { variant: 'soft', sm: true, icon: '⤒' }),
+          this.Btn('New post', () => this.setState({ modal: { type: 'newpost' } }), { variant: 'primary', sm: true, icon: '+' })),
+      ),
+      // filters
+      h('div', { style: { display: 'flex', gap: '14px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '16px' } },
+        h('input', {
+          type: 'text', value: f.q, placeholder: 'Search topics…',
+          onChange: (e: any) => setF({ q: e.target.value }),
+          style: { flex: '1 1 220px', minWidth: '180px', padding: '9px 12px', borderRadius: '10px', border: '1px solid ' + C.border, background: C.dark ? 'rgba(0,0,0,0.22)' : '#fff', color: C.text, fontFamily: 'inherit', fontSize: '13.5px', boxSizing: 'border-box' },
+        }),
+        h('div', { style: { display: 'flex', gap: '6px', flexWrap: 'wrap' } }, statuses.map((s) => chip(s, f.status === s, () => setF({ status: s })))),
+        formats.length > 2 ? h('div', { style: { display: 'flex', gap: '6px', flexWrap: 'wrap' } }, formats.map((ff) => chip(ff === 'All' ? 'All formats' : ff, f.format === ff, () => setF({ format: ff })))) : null,
+      ),
+      rows.length
+        ? h('div', { style: { display: 'flex', flexDirection: 'column', gap: '10px' } }, rows.map((p: Post) => this.renderAllRow(p)))
+        : h('div', { className: 'pcs-glass', style: { borderRadius: '16px', padding: '40px 24px', textAlign: 'center', ...this.glass({ blur: 22 }) } },
+          h('p', { style: { margin: 0, fontSize: '14px', color: C.dim, position: 'relative', zIndex: 1 } },
+            this.state.posts.length ? 'No posts match these filters.' : 'No posts yet — plan a week from the calendar or create one.')),
+    );
+  }
+
+  renderAllRow(p: Post) {
+    const C = this.C; const v = (p.versions || [])[p.activeVer || 0];
+    const nVers = (p.versions || []).length;
+    const eng = p.metrics ? this.engagement(p) : null;
+    return h('div', {
+      key: p.id, className: 'pcs-card pcs-int pcs-glass', onClick: () => this.openPost(p.id),
+      style: { cursor: 'pointer', borderRadius: '14px', padding: '15px 18px', display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap', ...this.glass({ blur: 18 }) },
+    },
+      h('div', { style: { flex: '1 1 320px', minWidth: 0, position: 'relative', zIndex: 1 } },
+        h('div', { style: { display: 'flex', alignItems: 'center', gap: '9px', marginBottom: '5px', flexWrap: 'wrap' } },
+          this.FormatTag(p.format),
+          h('span', { style: { width: '3px', height: '3px', borderRadius: '50%', background: C.faint } }),
+          h('span', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '11px', color: C.faint } }, this.fmtLong(p.date))),
+        h('div', { style: { fontFamily: "'Sora',sans-serif", fontWeight: 600, fontSize: '15px', letterSpacing: '-0.01em', color: C.heading, lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }, p.topic),
+        v && v.hook ? h('div', { style: { fontSize: '12.5px', color: C.dim, marginTop: '3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }, v.hook) : null),
+      h('div', { style: { display: 'flex', alignItems: 'center', gap: '14px', position: 'relative', zIndex: 1, flexShrink: 0 } },
+        nVers ? h('span', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '11px', color: C.faint } }, nVers + (nVers === 1 ? ' version' : ' versions')) : h('span', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '11px', color: C.faint } }, 'no drafts'),
+        eng != null ? h('span', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '11px', color: C.dim } }, '⚡ ' + eng) : null,
+        this.StatusBadge(p.status),
+        h('span', { style: { color: C.faint, fontSize: '15px' } }, '→')),
     );
   }
 
@@ -1111,6 +1249,28 @@ export default class App extends React.Component<AppProps, any> {
     );
   }
 
+  renderImportModal(close: () => void) {
+    const C = this.C;
+    const pick = (mode: 'replace' | 'merge') => {
+      const inp = document.createElement('input');
+      inp.type = 'file'; inp.accept = 'application/json,.json';
+      inp.onchange = () => { const file = inp.files && inp.files[0]; if (file) this.importData(file, mode); };
+      inp.click();
+    };
+    return h('div', { style: { padding: '26px' } },
+      h('div', { style: { fontSize: '28px', marginBottom: '10px' } }, '⤒'),
+      h('h3', { style: { margin: '0 0 6px', fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '20px', letterSpacing: '-0.02em', color: C.heading } }, 'Import a backup'),
+      h('p', { style: { margin: '0 0 18px', fontSize: '13.5px', color: C.dim, lineHeight: 1.55 } },
+        'Restore posts and writing style from a previously exported JSON file. ',
+        h('strong', { style: { color: C.text } }, 'Merge'), ' keeps your current posts and adds/updates by id; ',
+        h('strong', { style: { color: C.text } }, 'Replace'), ' overwrites everything with the file’s contents.'),
+      h('div', { style: { display: 'flex', gap: '9px', justifyContent: 'flex-end', flexWrap: 'wrap' } },
+        this.Btn('Cancel', close, { variant: 'ghost' }),
+        this.Btn('Merge from file', () => pick('merge'), { variant: 'soft', icon: '⤒' }),
+        this.Btn('Replace from file', () => pick('replace'), { variant: 'danger', icon: '⤒' })),
+    );
+  }
+
   renderModal() {
     const m = this.state.modal; if (!m) return null; const C = this.C;
     const close = () => this.setState({ modal: null });
@@ -1130,6 +1290,7 @@ export default class App extends React.Component<AppProps, any> {
 
     if (m.type === 'settings') return shell('480px', this.renderSettingsModal(close));
     if (m.type === 'newpost') return shell('520px', this.renderNewPostModal(close));
+    if (m.type === 'import') return shell('520px', this.renderImportModal(close));
 
     const p = this.post(this.state.selectedId)!; const v = this.getVersions(p)[m.vi];
 
