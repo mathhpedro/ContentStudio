@@ -38,6 +38,7 @@ function rowToPost(r: any): Post {
     status: r.status || 'Draft', priority: r.priority || 'Medium', change: r.change,
     scheduledFor: r.scheduled_for, versions: (r.versions && r.versions.length ? r.versions : null),
     activeVer: r.active_ver || 0, ...(r.brief ? { brief: r.brief } : {}),
+    publishedAt: r.published_at || null, ...(r.metrics ? { metrics: r.metrics } : {}),
   } as Post;
 }
 function postToRow(p: Post, ws: string): any {
@@ -45,6 +46,7 @@ function postToRow(p: Post, ws: string): any {
     id: p.id, workspace_id: ws, date: p.date, topic: p.topic, angle: p.angle, format: p.format,
     status: p.status, priority: p.priority, change: p.change, scheduled_for: p.scheduledFor,
     versions: p.versions || [], active_ver: p.activeVer || 0, brief: (p as any).brief || null,
+    published_at: p.publishedAt || null, metrics: p.metrics || null,
     updated_at: new Date().toISOString(),
   };
 }

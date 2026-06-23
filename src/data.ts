@@ -36,6 +36,9 @@ export interface Post {
   scheduledFor: string | null;
   versions: Version[] | null;
   activeVer: number;
+  brief?: { summary: string; why: string; points: string[] };
+  publishedAt?: string | null;
+  metrics?: { impressions?: number; reactions?: number; comments?: number };
 }
 
 // Current month anchor — the calendar always shows "today" in the present month/year.
