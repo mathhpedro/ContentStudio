@@ -8,11 +8,18 @@ import {
   type Settings,
 } from './anthropic';
 import { loadSettings, saveSettings, loadPosts, savePosts, loadStyle, saveStyle } from './store';
+import { hasSupabase } from './supabaseClient';
 
 const h = React.createElement;
 
-let _pid = 0;
-function newId() { _pid += 1; return 'p' + Date.now().toString(36) + (_pid).toString(36); }
+function newId() {
+  try { return crypto.randomUUID(); } catch { return 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2); }
+}
+
+// Optional collaborative wiring injected by the Supabase Root gate.
+export interface AppSession { email: string; role: string; workspaceId: string; signOut: () => void; joinWorkspace: (id: string) => Promise<void>; }
+export interface AppPersistence { savePosts: (posts: Post[]) => Promise<void>; saveStyle: (s: string) => Promise<void>; loadPosts: () => Promise<Post[]>; subscribe: (cb: () => void) => () => void; }
+export interface AppProps { persistence?: AppPersistence; session?: AppSession; initialPosts?: Post[]; initialStyle?: string; }
 
 // Fluid view morph: use the View Transitions API when available so switching
 // between Calendar and Generation crossfades/morphs instead of cutting.
@@ -25,33 +32,47 @@ function fluid(apply: () => void) {
   }
 }
 
-export default class App extends React.Component<{}, any> {
+export default class App extends React.Component<AppProps, any> {
   _tid: any;
+  _unsub: (() => void) | null = null;
 
-  constructor(props: {}) {
+  constructor(props: AppProps) {
     super(props);
-    const posts = loadPosts() || [];
+    const posts = props.initialPosts || loadPosts() || [];
     this.state = {
       theme: 'dark', tab: 'calendar', selectedId: posts[0] ? posts[0].id : null,
-      posts, styleProfile: loadStyle(), settings: loadSettings(),
+      posts, styleProfile: props.initialStyle != null ? props.initialStyle : loadStyle(), settings: loadSettings(),
       editingVer: null, draft: '', modal: null,
       toast: null, styleOpen: false, whyOpen: {}, indL: 0, indW: 0,
       genBusy: false, agendaBusy: false, verBusy: null, briefBusy: null,
       newPost: { topic: '', angle: '', format: 'opinion', priority: 'Medium' },
+      joinId: '',
     };
     this._tid = 0;
     this.tabRefs = {};
   }
 
   // ---------- persistence ----------
-  persist(posts?: Post[]) { savePosts(posts || this.state.posts); }
-  get connected() { return !!(this.state.settings && this.state.settings.apiKey); }
+  persist(posts?: Post[]) {
+    const data = posts || this.state.posts;
+    if (this.props.persistence) { this.props.persistence.savePosts(data).catch((e: any) => this.toast('Save failed — ' + (e.message || e))); }
+    else savePosts(data);
+  }
+  get connected() { return hasSupabase ? true : !!(this.state.settings && this.state.settings.apiKey); }
   saveSettings(s: Settings) { saveSettings(s); this.setState({ settings: s }); }
 
   tabRefs: Record<string, HTMLElement | null>;
 
-  componentDidMount() { this.syncTab(); window.addEventListener('resize', this.syncTab); }
-  componentWillUnmount() { window.removeEventListener('resize', this.syncTab); }
+  componentDidMount() {
+    this.syncTab(); window.addEventListener('resize', this.syncTab);
+    // realtime: when a teammate changes posts, reload from the shared store
+    if (this.props.persistence) {
+      this._unsub = this.props.persistence.subscribe(() => {
+        this.props.persistence!.loadPosts().then((posts) => this.setState({ posts })).catch(() => {});
+      });
+    }
+  }
+  componentWillUnmount() { window.removeEventListener('resize', this.syncTab); if (this._unsub) this._unsub(); }
   componentDidUpdate(_p: {}, prev: any) {
     if (prev.tab !== this.state.tab || prev.theme !== this.state.theme) this.syncTab();
   }
@@ -169,7 +190,10 @@ export default class App extends React.Component<{}, any> {
   setActiveVer(i: number) { const p = this.post(this.state.selectedId)!; p.activeVer = i; this.forceUpdate(); this.persist(); }
   movePost(id: string, date: string) { const posts = this.state.posts.map((p: Post) => p.id === id ? { ...p, date } : p); this.setState({ posts }); this.persist(posts); }
   setStyle(v: string) { this.setState({ styleProfile: v }); }
-  saveStyleProfile() { saveStyle(this.state.styleProfile); this.toast('Writing style saved'); }
+  saveStyleProfile() {
+    if (this.props.persistence) { this.props.persistence.saveStyle(this.state.styleProfile).then(() => this.toast('Writing style saved')).catch((e: any) => this.toast('Save failed — ' + (e.message || e))); }
+    else { saveStyle(this.state.styleProfile); this.toast('Writing style saved'); }
+  }
 
   getVersions(post: Post): Version[] { return post.versions || []; }
 
@@ -379,7 +403,7 @@ export default class App extends React.Component<{}, any> {
           }
         },
           h('span', { style: { width: '7px', height: '7px', borderRadius: '50%', background: this.connected ? SEM.success : C.faint } }),
-          this.connected ? 'Claude connected' : 'Connect Claude'),
+          this.props.session ? (this.props.session.email || 'Account') : (this.connected ? 'Claude connected' : 'Connect Claude')),
         // theme toggle
         h('div', { style: { display: 'flex', gap: '2px', padding: '3px', borderRadius: '10px', background: C.dark ? 'rgba(0,0,0,0.25)' : 'rgba(8,9,11,0.05)' } },
           ThemeBtn('light', '☀'), ThemeBtn('dark', '☽')),
@@ -818,6 +842,36 @@ export default class App extends React.Component<{}, any> {
       width: '100%', borderRadius: '11px', padding: '11px 13px', background: C.input, border: '1px solid ' + C.border,
       color: C.text, fontSize: '13.5px', fontFamily: "'JetBrains Mono',monospace", outline: 'none',
     };
+    // Collaborative mode (Supabase): account + workspace, model; no API key (it's server-side).
+    if (hasSupabase && this.props.session) {
+      const s = this.props.session;
+      const saveModel = () => { this.saveSettings({ apiKey: '', model: d.model || DEFAULT_MODEL }); this.toast('Saved'); };
+      return h('div', { style: { padding: '26px' } },
+        h('div', { style: { display: 'flex', alignItems: 'center', gap: '9px', marginBottom: '6px' } },
+          h('span', { style: { fontSize: '20px' } }, '✦'),
+          h('h3', { style: { margin: 0, fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '20px', letterSpacing: '-0.02em', color: C.heading } }, 'Account & workspace')),
+        h('p', { style: { margin: '0 0 16px', fontSize: '13px', color: C.dim, lineHeight: 1.5 } },
+          'Signed in as ', h('strong', { style: { color: C.text } }, s.email), ' · role ', h('strong', { style: { color: C.text } }, s.role), '. Generation runs through your team key on the server.'),
+        h('label', { style: { display: 'block', fontFamily: "'Sora',sans-serif", fontWeight: 600, fontSize: '12px', color: C.heading, marginBottom: '6px' } }, 'Invite your writer — share this workspace ID'),
+        h('div', { style: { display: 'flex', gap: '8px' } },
+          h('input', { value: s.workspaceId, readOnly: true, onFocus: (e: any) => e.target.select(), style: { ...inputStyle, fontSize: '11.5px' } }),
+          this.Btn('Copy', () => { try { navigator.clipboard.writeText(s.workspaceId); this.toast('Workspace ID copied'); } catch { /* */ } }, { variant: 'soft', sm: true })),
+        h('div', { style: { fontSize: '11px', color: C.faint, margin: '6px 0 16px' } }, 'She signs in, then pastes this ID under “Join a workspace”.'),
+        h('label', { style: { display: 'block', fontFamily: "'Sora',sans-serif", fontWeight: 600, fontSize: '12px', color: C.heading, marginBottom: '6px' } }, 'Join a workspace (writer)'),
+        h('div', { style: { display: 'flex', gap: '8px' } },
+          h('input', { value: this.state.joinId, placeholder: 'paste workspace ID', onChange: (e: any) => this.setState({ joinId: e.target.value }), style: { ...inputStyle, fontSize: '11.5px' } }),
+          this.Btn('Join', () => { const id = (this.state.joinId || '').trim(); if (!id) return; s.joinWorkspace(id).then(() => { this.toast('Joined — reloading'); setTimeout(() => location.reload(), 600); }).catch((e: any) => this.toast('Join failed — ' + (e.message || e))); }, { variant: 'soft', sm: true })),
+        h('label', { style: { display: 'block', fontFamily: "'Sora',sans-serif", fontWeight: 600, fontSize: '12px', color: C.heading, margin: '16px 0 6px' } }, 'Model'),
+        h('select', { value: d.model, onChange: (e: any) => set({ model: e.target.value }), style: { ...inputStyle, fontFamily: "'Hanken Grotesk',sans-serif" } },
+          MODELS.map((mo) => h('option', { key: mo.id, value: mo.id }, mo.label))),
+        h('div', { style: { display: 'flex', gap: '9px', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px' } },
+          this.Btn('Sign out', () => s.signOut(), { variant: 'ghost' }),
+          h('div', { style: { display: 'flex', gap: '9px' } },
+            this.Btn('Close', close, { variant: 'ghost' }),
+            this.Btn('Save', () => { saveModel(); this.setState({ modal: null }); }, { variant: 'primary', icon: '✓' })),
+        ),
+      );
+    }
     return h('div', { style: { padding: '26px' } },
       h('div', { style: { display: 'flex', alignItems: 'center', gap: '9px', marginBottom: '6px' } },
         h('span', { style: { fontSize: '20px' } }, '✦'),
