@@ -91,17 +91,40 @@ function extractJson(text: string): any {
   return JSON.parse(t);
 }
 
+// Shared "no-branding" rule — applied to every generation surface so no company,
+// product or coined term (including the author's own) ever appears in the content.
+const NO_BRAND_RULE = 'NEVER name or imply any specific company, product, brand, platform, vendor, consultancy, client or coined/proprietary term — including the author’s own company. Write as an independent operator’s point of view, with no company names anywhere in the text.';
+
 function styleSystem(style: string): string {
   return [
-    "You are Pragma's content engine. You write LinkedIn-style thought-leadership posts",
-    'for a B2B consultancy focused on AI execution and operating models.',
+    'You write LinkedIn-style thought-leadership posts on ENTERPRISE DECISION OPERATIONS:',
+    'the high-stakes trade-offs between commercial (growth — volume, price, share, promotion, speed)',
+    'and operations (control — capacity, cost, risk, service level, stability) in decision-heavy',
+    'industries: consumer goods, banking/finance, retail and agribusiness.',
     '',
-    "Follow this writing-style profile precisely:",
+    'Write from this point of view:',
+    '- The bottleneck was never the intelligence — it is the operating model. Most enterprises now use AI,',
+    '  yet only a minority see a measurable impact on earnings. The gap is how decisions get made, owned',
+    '  and learned from — not how smart the models are.',
+    '- The most valuable, least-owned decision in the enterprise is the trade-off between revenue and the',
+    '  constraint. It is usually resolved late, by whoever shouts loudest, and owned by no one — and margin',
+    '  leaks in that gap.',
+    '- Treat the DECISION as the unit of work: frame the constraint, model the trade-off, make the call,',
+    '  drive it to implementation, and measure the result against the counterfactual (what would have',
+    '  happened otherwise) — not plan-vs-actuals.',
+    '- Intelligence commoditizes; judgment compounds. The Theory of Constraints is the operating lens.',
+    '- Value should be proven in P&L terms and earned on outcomes.',
+    '',
+    'Follow this voice/style profile precisely:',
     '"""',
     style,
     '"""',
     '',
-    'Always return ONLY valid JSON — no prose, no markdown fences, no commentary.',
+    'HARD RULES:',
+    '- ' + NO_BRAND_RULE,
+    '- Ground claims in concrete, verifiable specifics (figures, named workflows, real scenarios) without',
+    '  attributing them to a named organization.',
+    '- Always return ONLY valid JSON — no prose, no markdown fences, no commentary.',
   ].join('\n');
 }
 
@@ -123,6 +146,7 @@ export async function generateVersions(
     'Storytelling / situation-complication-resolution, and Proof & specificity / numbered claims).',
     'Body is 110–200 words and ends with one sharp question. The hook is a single strong opening line.',
     settings.webSearch ? 'Use web search to ground the post in recent, specific facts or figures; only cite numbers you can verify, and weave them in naturally (no link dumps).' : '',
+    NO_BRAND_RULE,
     '',
     'Return JSON exactly in this shape:',
     '{"versions":[{"label":"A","hook":"...","body":"...","method":"<short name> — <one line>","methodNote":"why this structure works","why":"why it drives engagement"},{"label":"B",...},{"label":"C",...}]}',
@@ -132,7 +156,7 @@ export async function generateVersions(
   const arr = (parsed.versions || []).slice(0, 3);
   return arr.map((v: any, i: number) => ({
     label: v.label || ['A', 'B', 'C'][i] || String(i + 1),
-    approved: false, editor: 'Pragma AI', ts: NOW(),
+    approved: false, editor: 'AI draft', ts: NOW(),
     hook: v.hook || '', method: v.method || 'Generated', methodNote: v.methodNote || '',
     why: v.why || '', body: v.body || '', history: [], regenCount: 0,
   }));
@@ -156,6 +180,7 @@ export async function regenerateVersion(
     '',
     'Body is 110–200 words and ends with one sharp question.',
     settings.webSearch ? 'Use web search to ground it in recent, specific facts; cite only verifiable figures.' : '',
+    NO_BRAND_RULE,
     'Return JSON exactly: {"hook":"...","body":"...","method":"<short name> — <one line>","methodNote":"...","why":"..."}',
   ].filter(Boolean).join('\n');
   const text = await callClaude(settings, { system: styleSystem(style), user, maxTokens: 2048, search: settings.webSearch });
@@ -173,14 +198,27 @@ export async function generateWeeklyAgenda(
   weekLabel: string,
 ): Promise<AgendaItem[]> {
   const system = [
-    "You are Pragma's editorial strategist for a B2B AI-execution consultancy.",
-    'Themes in rotation: the AI execution gap, accountability/ownership of AI outputs, operating models,',
-    'forward-deployed engineering, outcome-based pricing, governance after the demo, and synthetic workforce economics.',
+    'You are an editorial strategist for a thought-leadership voice in ENTERPRISE DECISION OPERATIONS —',
+    'the commercial × operations trade-off in consumer goods, banking/finance, retail and agribusiness.',
+    'Themes in rotation:',
+    '- the unowned gap between commercial (growth) and operations (control), where margin quietly leaks;',
+    '- decision-driven vs process-driven organizations — making the decision the unit of work;',
+    '- concrete trade-off calls: raise price vs defend volume; run a promotion supply can’t cover; protect',
+    '  the big customer vs the many small ones; grow the loan book vs protect net interest income under a',
+    '  rate scenario; ship now at a worse freight rate vs wait for the window; kill an SKU vs bleed cost-to-serve;',
+    '- revenue growth management (pricing, price-pack, trade & promotion, cost-to-serve) and S&OP / IBP;',
+    '- the AI operating model vs buying more AI tools (most adopt AI, few see earnings impact);',
+    '- intelligence commoditizes while judgment compounds; the Theory of Constraints as operating lens;',
+    '- outcome-based economics and measuring value against the counterfactual, not plan-vs-actuals;',
+    '- why now: rate volatility and regulatory pressure in finance, negative-ROI promotions in consumer',
+    '  goods, omnichannel markdown and working-capital cycles in retail.',
+    '- ' + NO_BRAND_RULE,
     'Always return ONLY valid JSON.',
   ].join('\n');
   const user = [
     `Propose a weekly editorial agenda of ${count} LinkedIn posts for the week of ${weekLabel}.`,
-    'Spread them Monday–Friday. Vary the formats and priorities. Keep topics sharp and specific.',
+    'Spread them Monday–Friday. Vary the formats, industries and priorities. Keep topics sharp and specific',
+    'to the decision-operations thesis above — concrete trade-offs, not generic “AI strategy”.',
     '',
     settings.webSearch ? 'Use web search to anchor topics in this week’s real developments, announcements, or data.' : '',
     'Return JSON exactly:',
@@ -200,7 +238,12 @@ export async function generateBrief(
   settings: Settings,
   post: Post,
 ): Promise<{ summary: string; why: string; points: string[] }> {
-  const system = 'You explain B2B AI strategy topics in plain language for busy executives. Return ONLY valid JSON.';
+  const system = [
+    'You explain enterprise decision-operations topics in plain language for busy executives —',
+    'the commercial × operations trade-offs in consumer goods, banking/finance, retail and agribusiness.',
+    NO_BRAND_RULE,
+    'Return ONLY valid JSON.',
+  ].join('\n');
   const user = [
     'Write a short brief explaining this topic.',
     `Topic: ${post.topic}`,

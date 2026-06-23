@@ -271,7 +271,7 @@ export default class App extends React.Component<AppProps, any> {
   saveEdit(vi: number) {
     const p = this.post(this.state.selectedId)!; const vers = this.getVersions(p); const v = vers[vi];
     if (this.state.draft !== v.body) {
-      v.history = [{ body: v.body, hook: v.hook, editor: v.editor || 'Pragma AI', ts: v.ts, label: 'v' + (v.history.length + 1) }, ...v.history];
+      v.history = [{ body: v.body, hook: v.hook, editor: v.editor || 'AI draft', ts: v.ts, label: 'v' + (v.history.length + 1) }, ...v.history];
       v.body = this.state.draft; v.editor = 'You'; v.ts = NOW();
     }
     this.setState({ editingVer: null, draft: '' }); this.persist(); this.toast('Saved — new version logged');
@@ -283,7 +283,7 @@ export default class App extends React.Component<AppProps, any> {
   }
   revert(vi: number, hi: number) {
     const p = this.post(this.state.selectedId)!; const v = this.getVersions(p)[vi]; const snap = v.history[hi];
-    v.history = [{ body: v.body, hook: v.hook, editor: v.editor || 'Pragma AI', ts: v.ts, label: 'pre-revert' }, ...v.history];
+    v.history = [{ body: v.body, hook: v.hook, editor: v.editor || 'AI draft', ts: v.ts, label: 'pre-revert' }, ...v.history];
     v.body = snap.body; v.hook = snap.hook!; v.editor = 'You (revert)'; v.ts = NOW();
     this.setState({ modal: null }); this.persist(); this.toast('Reverted to ' + snap.label);
   }
@@ -317,9 +317,9 @@ export default class App extends React.Component<AppProps, any> {
     this.setState({ verBusy: vi });
     try {
       const alt = await regenerateVersion(this.state.settings, p, this.state.styleProfile, { label: v.label, hook: v.hook }, this.perfSummary());
-      v.history = [{ body: v.body, hook: v.hook, editor: v.editor || 'Pragma AI', ts: v.ts, label: 'v' + (v.history.length + 1) }, ...v.history];
+      v.history = [{ body: v.body, hook: v.hook, editor: v.editor || 'AI draft', ts: v.ts, label: 'v' + (v.history.length + 1) }, ...v.history];
       v.body = alt.body; v.hook = alt.hook; v.method = alt.method || v.method; v.methodNote = alt.methodNote || v.methodNote; v.why = alt.why || v.why;
-      v.editor = 'Pragma AI'; v.ts = NOW(); v.regenCount = (v.regenCount || 0) + 1;
+      v.editor = 'AI draft'; v.ts = NOW(); v.regenCount = (v.regenCount || 0) + 1;
       this.setState({ verBusy: null }); this.persist(); this.toast('Regenerated — fresh draft');
     } catch (e: any) { this.setState({ verBusy: null }); this.toast('Regenerate failed — ' + (e.message || e)); }
   }
@@ -1174,7 +1174,7 @@ export default class App extends React.Component<AppProps, any> {
           h('div', { style: { fontSize: '12.5px', color: C.dim, lineHeight: 1.56, marginBottom: '10px' } }, v.methodNote),
           h('div', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '9.5px', letterSpacing: '0.1em', textTransform: 'uppercase', color: C.faint, marginBottom: '4px' } }, 'Why it engages'),
           h('div', { style: { fontSize: '12.5px', color: C.dim, lineHeight: 1.56, marginBottom: '8px' } }, v.why),
-          h('div', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '10px', color: C.faint } }, 'Last edit · ' + (v.editor || 'Pragma AI') + ' · ' + rel(v.ts))) : null,
+          h('div', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '10px', color: C.faint } }, 'Last edit · ' + (v.editor || 'AI draft') + ' · ' + rel(v.ts))) : null,
       ),
       // controls
       h('div', { style: { display: 'flex', gap: '7px', padding: '13px 15px', borderTop: '1px solid ' + C.borderSoft, flexWrap: 'wrap', marginTop: '10px' } },
@@ -1264,7 +1264,7 @@ export default class App extends React.Component<AppProps, any> {
       h('h3', { style: { margin: '0 0 4px', fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '20px', letterSpacing: '-0.02em', color: C.heading } }, 'New post'),
       h('p', { style: { margin: 0, fontSize: '13px', color: C.dim } }, 'Add a topic to today. Generate drafts from it in Content Generation.'),
       label('Topic'),
-      h('input', { value: np.topic, autoFocus: true, placeholder: 'e.g. The accountability gap', onChange: (e: any) => set({ topic: e.target.value }), style: inputStyle }),
+      h('input', { value: np.topic, autoFocus: true, placeholder: 'e.g. Raise price to defend margin — or hold to defend volume?', onChange: (e: any) => set({ topic: e.target.value }), style: inputStyle }),
       label('Angle'),
       h('input', { value: np.angle, placeholder: 'One line on the take', onChange: (e: any) => set({ angle: e.target.value }), style: inputStyle }),
       h('div', { style: { display: 'flex', gap: '12px' } },
@@ -1377,7 +1377,7 @@ export default class App extends React.Component<AppProps, any> {
     }
 
     // history + compare
-    const entries = [{ label: 'Current', body: v.body, hook: v.hook, editor: v.editor || 'Pragma AI', ts: v.ts, current: true }, ...v.history];
+    const entries = [{ label: 'Current', body: v.body, hook: v.hook, editor: v.editor || 'AI draft', ts: v.ts, current: true }, ...v.history];
     const sel = Math.min(m.sel || 0, entries.length - 1);
     const selEntry: any = entries[sel];
     // diff: compare selected (older) against current
