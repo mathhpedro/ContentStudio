@@ -675,12 +675,28 @@ export default class App extends React.Component<AppProps, any> {
             h('h2', { style: { margin: 0, fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '19px', letterSpacing: '-0.02em', color: C.heading } },
               vers.length + ' generated versions',
               h('span', { style: { marginLeft: '9px', fontSize: '13px', fontWeight: 500, color: C.dim } }, '— choose one to publish')),
-            this.Btn(this.state.genBusy ? 'Regenerating…' : 'Regenerate all', () => this.generateForSelected(), { variant: 'soft', sm: true, icon: '↻', disabled: this.state.genBusy }),
+            h('div', { style: { display: 'flex', gap: '8px', alignItems: 'center' } },
+              this.renderSearchToggle(),
+              this.Btn(this.state.genBusy ? 'Regenerating…' : 'Regenerate all', () => this.generateForSelected(), { variant: 'soft', sm: true, icon: '↻', disabled: this.state.genBusy })),
           ),
           h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(332px,1fr))', gap: '16px', alignItems: 'start' } },
             vers.map((v, i) => this.renderVersion(p, v, i))))
         : this.renderGeneratePanel(),
     );
+  }
+
+  renderSearchToggle() {
+    const C = this.C; const on = this.state.settings.webSearch !== false;
+    return h('button', {
+      className: 'pcs-btn', onClick: () => this.saveSettings({ ...this.state.settings, webSearch: !on }),
+      title: on ? 'Web search on — posts grounded in recent sources' : 'Web search off',
+      style: {
+        display: 'inline-flex', alignItems: 'center', gap: '6px', fontFamily: "'Sora',sans-serif", fontWeight: 600, fontSize: '12px',
+        padding: '7px 11px', borderRadius: '10px', border: '1px solid ' + (on ? 'rgba(46,139,116,0.4)' : C.border),
+        background: on ? 'rgba(46,139,116,0.14)' : (C.dark ? 'rgba(255,255,255,0.05)' : 'rgba(8,9,11,0.04)'),
+        color: on ? SEM.success : C.dim,
+      },
+    }, '🔎', 'Web search ' + (on ? 'on' : 'off'));
   }
 
   renderGeneratePanel() {
@@ -697,7 +713,8 @@ export default class App extends React.Component<AppProps, any> {
         this.connected
           ? 'Generate three on-brand versions from this topic and your writing style.'
           : 'Connect your Claude account to generate three on-brand versions from this topic.'),
-      h('div', { style: { display: 'flex', gap: '9px', justifyContent: 'center' } },
+      h('div', { style: { display: 'flex', gap: '9px', justifyContent: 'center', alignItems: 'center' } },
+        this.connected ? this.renderSearchToggle() : null,
         this.connected
           ? this.Btn(busy ? 'Working…' : 'Generate 3 versions', () => this.generateForSelected(), { variant: 'primary', icon: '✦', disabled: busy })
           : this.Btn('Connect Claude', () => this.openSettings(), { variant: 'primary' })),

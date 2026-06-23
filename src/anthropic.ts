@@ -12,6 +12,13 @@ import { callEdge } from './backend';
 export interface Settings {
   apiKey: string;
   model: string;
+  webSearch?: boolean;
+}
+
+// Web search server-tool, version chosen per model (dynamic filtering on 4.6+).
+function webSearchTool(model: string) {
+  const modern = ['claude-opus-4-8', 'claude-opus-4-7', 'claude-opus-4-6', 'claude-sonnet-4-6'].includes(model);
+  return { type: modern ? 'web_search_20260209' : 'web_search_20250305', name: 'web_search', max_uses: 4 };
 }
 
 export const MODELS = [
@@ -24,46 +31,54 @@ export const DEFAULT_MODEL = 'claude-opus-4-8';
 
 const API_URL = 'https://api.anthropic.com/v1/messages';
 
+function blocksToText(content: any[]): string {
+  return (content || []).filter((b: any) => b.type === 'text').map((b: any) => b.text).join('\n').trim();
+}
+
 // ---- low-level call ----
 export async function callClaude(
   settings: Settings,
-  opts: { system: string; user: string; maxTokens?: number },
+  opts: { system: string; user: string; maxTokens?: number; search?: boolean },
 ): Promise<string> {
+  const model = (settings && settings.model) || DEFAULT_MODEL;
   // Collaborative mode: go through the Supabase Edge Function (key stays server-side).
   if (hasSupabase) {
-    return callEdge({ system: opts.system, user: opts.user, model: (settings && settings.model) || DEFAULT_MODEL, maxTokens: opts.maxTokens });
+    return callEdge({ system: opts.system, user: opts.user, model, maxTokens: opts.maxTokens, search: opts.search });
   }
   // Local mode: direct browser call with the user's own key.
   if (!settings || !settings.apiKey) {
     throw new Error('Not connected — add your Anthropic API key in Settings.');
   }
-  const res = await fetch(API_URL, {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      'x-api-key': settings.apiKey,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true',
-    },
-    body: JSON.stringify({
-      model: settings.model || DEFAULT_MODEL,
-      max_tokens: opts.maxTokens || 4096,
-      system: opts.system,
-      messages: [{ role: 'user', content: opts.user }],
-    }),
-  });
-  if (!res.ok) {
-    let msg = 'Request failed (HTTP ' + res.status + ')';
-    try { const j = await res.json(); msg = (j && j.error && j.error.message) || msg; } catch { /* ignore */ }
-    if (res.status === 401) msg = 'Invalid API key. Check it in Settings.';
-    throw new Error(msg);
+  const tools = opts.search ? [webSearchTool(model)] : undefined;
+  const messages: any[] = [{ role: 'user', content: opts.user }];
+  let lastText = '';
+  // Server-tool runs may return stop_reason "pause_turn"; re-send to resume.
+  for (let i = 0; i < 5; i++) {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': settings.apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model, max_tokens: opts.maxTokens || 4096, system: opts.system, messages, ...(tools ? { tools } : {}),
+      }),
+    });
+    if (!res.ok) {
+      let msg = 'Request failed (HTTP ' + res.status + ')';
+      try { const j = await res.json(); msg = (j && j.error && j.error.message) || msg; } catch { /* ignore */ }
+      if (res.status === 401) msg = 'Invalid API key. Check it in Settings.';
+      throw new Error(msg);
+    }
+    const data = await res.json();
+    const text = blocksToText(data.content);
+    if (text) lastText = text;
+    if (data.stop_reason === 'pause_turn') { messages.push({ role: 'assistant', content: data.content }); continue; }
+    return text || lastText;
   }
-  const data = await res.json();
-  return (data.content || [])
-    .filter((b: any) => b.type === 'text')
-    .map((b: any) => b.text)
-    .join('\n')
-    .trim();
+  return lastText;
 }
 
 // Pull a JSON object out of a model response, tolerating ```json fences / prose.
@@ -105,11 +120,12 @@ export async function generateVersions(
     'Each version must use a DIFFERENT rhetorical method (e.g. Pyramid Principle / answer-first,',
     'Storytelling / situation-complication-resolution, and Proof & specificity / numbered claims).',
     'Body is 110–200 words and ends with one sharp question. The hook is a single strong opening line.',
+    settings.webSearch ? 'Use web search to ground the post in recent, specific facts or figures; only cite numbers you can verify, and weave them in naturally (no link dumps).' : '',
     '',
     'Return JSON exactly in this shape:',
     '{"versions":[{"label":"A","hook":"...","body":"...","method":"<short name> — <one line>","methodNote":"why this structure works","why":"why it drives engagement"},{"label":"B",...},{"label":"C",...}]}',
-  ].join('\n');
-  const text = await callClaude(settings, { system: styleSystem(style), user, maxTokens: 4096 });
+  ].filter(Boolean).join('\n');
+  const text = await callClaude(settings, { system: styleSystem(style), user, maxTokens: 4096, search: settings.webSearch });
   const parsed = extractJson(text);
   const arr = (parsed.versions || []).slice(0, 3);
   return arr.map((v: any, i: number) => ({
@@ -135,9 +151,10 @@ export async function regenerateVersion(
     `Previous hook (avoid repeating): ${prev.hook}`,
     '',
     'Body is 110–200 words and ends with one sharp question.',
+    settings.webSearch ? 'Use web search to ground it in recent, specific facts; cite only verifiable figures.' : '',
     'Return JSON exactly: {"hook":"...","body":"...","method":"<short name> — <one line>","methodNote":"...","why":"..."}',
-  ].join('\n');
-  const text = await callClaude(settings, { system: styleSystem(style), user, maxTokens: 2048 });
+  ].filter(Boolean).join('\n');
+  const text = await callClaude(settings, { system: styleSystem(style), user, maxTokens: 2048, search: settings.webSearch });
   const v = extractJson(text);
   return { hook: v.hook || '', body: v.body || '', method: v.method || 'Regenerated', methodNote: v.methodNote || '', why: v.why || '' };
 }
@@ -161,11 +178,12 @@ export async function generateWeeklyAgenda(
     `Propose a weekly editorial agenda of ${count} LinkedIn posts for the week of ${weekLabel}.`,
     'Spread them Monday–Friday. Vary the formats and priorities. Keep topics sharp and specific.',
     '',
+    settings.webSearch ? 'Use web search to anchor topics in this week’s real developments, announcements, or data.' : '',
     'Return JSON exactly:',
     '{"agenda":[{"topic":"...","angle":"...","format":"opinion|educational|technical|case study|trend","priority":"High|Medium|Low","dayOffset":0}]}',
     'dayOffset is 0–4 for Monday–Friday.',
-  ].join('\n');
-  const text = await callClaude(settings, { system, user, maxTokens: 2048 });
+  ].filter(Boolean).join('\n');
+  const text = await callClaude(settings, { system, user, maxTokens: 2048, search: settings.webSearch });
   const parsed = extractJson(text);
   return (parsed.agenda || []).map((a: any) => ({
     topic: a.topic || 'Untitled', angle: a.angle || '', format: (a.format || 'opinion'),

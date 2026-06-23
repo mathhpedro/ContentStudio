@@ -134,9 +134,9 @@ export async function addComment(ws: string, postId: string, body: string): Prom
 }
 
 // ---------- Claude proxy ----------
-export async function callEdge(opts: { system: string; user: string; model?: string; maxTokens?: number }): Promise<string> {
+export async function callEdge(opts: { system: string; user: string; model?: string; maxTokens?: number; search?: boolean }): Promise<string> {
   const { data, error } = await supabase.functions.invoke('generate', {
-    body: { system: opts.system, user: opts.user, model: opts.model, max_tokens: opts.maxTokens },
+    body: { system: opts.system, user: opts.user, model: opts.model, max_tokens: opts.maxTokens, search: opts.search },
   });
   if (error) {
     // try to surface the function's JSON error message
