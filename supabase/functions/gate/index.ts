@@ -1,9 +1,9 @@
 // Supabase Edge Function: team access gate.
 // The caller signs in anonymously (client-side), then posts the team access code
 // here. We verify the anonymous session, compare the code against the server-only
-// app_config value, and — only if it matches — add the caller as a member of the
-// shared workspace using the service role. RLS then grants them access to the
-// shared content. The code never reaches the browser bundle.
+// app_config value, and — only if it matches — make the caller a member of every
+// account workspace (Matheus, Vinicius Galera, …) using the service role. RLS then
+// grants them access to the shared content. The code never reaches the browser.
 //
 // Deploy: supabase functions deploy gate
 
@@ -31,7 +31,6 @@ Deno.serve(async (req) => {
   const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
-  // Verify the (anonymous) session.
   const userClient = createClient(url, anonKey, { global: { headers: { Authorization: auth } } });
   const { data: userData, error: userErr } = await userClient.auth.getUser(token);
   if (userErr || !userData?.user) return json({ error: 'Not authenticated' }, 401);
@@ -45,7 +44,7 @@ Deno.serve(async (req) => {
 
   const admin = createClient(url, serviceKey);
   const { data: cfg, error: cfgErr } = await admin
-    .from('app_config').select('key, value').in('key', ['team_access_code', 'shared_workspace_id']);
+    .from('app_config').select('key, value').in('key', ['team_access_code', 'accounts', 'shared_workspace_id']);
   if (cfgErr) return json({ error: 'Server config error' }, 500);
   const map: Record<string, string> = {};
   (cfg || []).forEach((r: any) => { map[r.key] = r.value; });
@@ -53,20 +52,27 @@ Deno.serve(async (req) => {
   if (!map.team_access_code || code !== map.team_access_code) {
     return json({ error: 'Invalid access code' }, 403);
   }
-  const wsId = map.shared_workspace_id;
-  if (!wsId) return json({ error: 'Shared workspace not configured' }, 500);
 
-  // Ensure the shared workspace exists (created lazily, owned by the first caller).
-  const { data: ws } = await admin.from('workspaces').select('id').eq('id', wsId).maybeSingle();
-  if (!ws) {
-    const { error: wsErr } = await admin.from('workspaces').insert({ id: wsId, name: 'Shared Studio', owner: uid });
-    if (wsErr) return json({ error: 'Could not create shared workspace' }, 500);
+  // Account workspaces to provision. Fall back to a single shared workspace.
+  let accounts: { id: string; name: string }[] = [];
+  try { accounts = JSON.parse(map.accounts || '[]'); } catch { accounts = []; }
+  if (!accounts.length && map.shared_workspace_id) {
+    accounts = [{ id: map.shared_workspace_id, name: 'Shared Studio' }];
+  }
+  if (!accounts.length) return json({ error: 'No accounts configured' }, 500);
+
+  for (const acc of accounts) {
+    const { data: ws } = await admin.from('workspaces').select('id, name').eq('id', acc.id).maybeSingle();
+    if (!ws) {
+      const { error: wsErr } = await admin.from('workspaces').insert({ id: acc.id, name: acc.name, owner: uid });
+      if (wsErr) return json({ error: 'Could not create workspace' }, 500);
+    } else if (ws.name !== acc.name) {
+      await admin.from('workspaces').update({ name: acc.name }).eq('id', acc.id);
+    }
+    const { error: memErr } = await admin
+      .from('members').upsert({ workspace_id: acc.id, user_id: uid, email, role: 'writer' }, { onConflict: 'workspace_id,user_id' });
+    if (memErr) return json({ error: 'Could not join workspace' }, 500);
   }
 
-  // Grant membership (idempotent).
-  const { error: memErr } = await admin
-    .from('members').upsert({ workspace_id: wsId, user_id: uid, email, role: 'writer' }, { onConflict: 'workspace_id,user_id' });
-  if (memErr) return json({ error: 'Could not join shared workspace' }, 500);
-
-  return json({ ok: true, workspaceId: wsId });
+  return json({ ok: true, workspaceId: accounts[0].id, accounts });
 });

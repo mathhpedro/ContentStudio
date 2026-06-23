@@ -1,6 +1,7 @@
 // Supabase Edge Function: secure proxy to the Anthropic Messages API.
 // Verifies the caller's Supabase session, then calls Claude with the
-// server-side ANTHROPIC_API_KEY. Supports optional web search grounding.
+// server-side ANTHROPIC_API_KEY. Supports optional web search grounding and
+// fetching a reference URL (web_fetch) to base content on an existing post.
 //
 // Deploy:  supabase functions deploy generate
 //          supabase secrets set ANTHROPIC_API_KEY=sk-ant-...
@@ -13,9 +14,12 @@ const cors = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
+const MODERN = ['claude-opus-4-8', 'claude-opus-4-7', 'claude-opus-4-6', 'claude-sonnet-4-6'];
 function webSearchTool(model: string) {
-  const modern = ['claude-opus-4-8', 'claude-opus-4-7', 'claude-opus-4-6', 'claude-sonnet-4-6'].includes(model);
-  return { type: modern ? 'web_search_20260209' : 'web_search_20250305', name: 'web_search', max_uses: 4 };
+  return { type: MODERN.includes(model) ? 'web_search_20260209' : 'web_search_20250305', name: 'web_search', max_uses: 4 };
+}
+function webFetchTool(model: string) {
+  return { type: MODERN.includes(model) ? 'web_fetch_20260209' : 'web_fetch_20250910', name: 'web_fetch', max_uses: 4 };
 }
 function blocksToText(content: any[]): string {
   return (content || []).filter((b: any) => b.type === 'text').map((b: any) => b.text).join('\n').trim();
@@ -42,10 +46,13 @@ Deno.serve(async (req) => {
 
   let body: any;
   try { body = await req.json(); } catch { return json({ error: 'Invalid JSON body' }, 400); }
-  const { system, user, model: rawModel, max_tokens, search } = body || {};
+  const { system, user, model: rawModel, max_tokens, search, fetch_url } = body || {};
   if (!user) return json({ error: 'Missing "user" prompt' }, 400);
   const model = rawModel || 'claude-opus-4-8';
-  const tools = search ? [webSearchTool(model)] : undefined;
+  const tools: any[] = [];
+  if (search) tools.push(webSearchTool(model));
+  if (fetch_url) tools.push(webFetchTool(model));
+  const toolsArg = tools.length ? tools : undefined;
 
   const messages: any[] = [{ role: 'user', content: user }];
   let lastText = '';
@@ -53,7 +60,7 @@ Deno.serve(async (req) => {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({ model, max_tokens: max_tokens || 4096, system, messages, ...(tools ? { tools } : {}) }),
+      body: JSON.stringify({ model, max_tokens: max_tokens || 4096, system, messages, ...(toolsArg ? { tools: toolsArg } : {}) }),
     });
     if (!res.ok) {
       let msg = 'Claude request failed (HTTP ' + res.status + ')';

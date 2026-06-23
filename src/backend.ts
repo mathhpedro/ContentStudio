@@ -4,11 +4,13 @@
 import { supabase } from './supabaseClient';
 import type { Post } from './data';
 
+export interface Account { id: string; name: string; }
 export interface SessionInfo {
   uid: string;
   email: string;
   workspaceId: string;
   role: 'owner' | 'writer' | 'viewer';
+  accounts: Account[];
 }
 
 // ---------- access (shared team code, no email) ----------
@@ -89,11 +91,23 @@ export async function bootstrap(): Promise<SessionInfo> {
   if (memErr) throw new Error(memErr.message);
   if (!mems || !mems.length) throw new Error(NOT_GATED);
 
+  // Build the account list from the workspaces this session belongs to.
+  const ids = mems.map((m: any) => m.workspace_id);
+  const { data: wss } = await supabase.from('workspaces').select('id, name').in('id', ids);
+  const nameById: Record<string, string> = {};
+  (wss || []).forEach((w: any) => { nameById[w.id] = w.name; });
+  const accounts: Account[] = mems
+    .map((m: any) => ({ id: m.workspace_id, name: nameById[m.workspace_id] || 'Studio' }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
   const active = getActiveWs();
   const chosen = (active && mems.find((m: any) => m.workspace_id === active)) || mems[0];
   setActiveWs(chosen.workspace_id);
-  return { uid: user.id, email, workspaceId: chosen.workspace_id, role: chosen.role };
+  return { uid: user.id, email, workspaceId: chosen.workspace_id, role: chosen.role, accounts };
 }
+
+// Switch the active account workspace (per browser). Caller reloads to apply.
+export function switchAccount(id: string) { setActiveWs(id); }
 
 // ---------- data ----------
 export async function fetchPosts(ws: string): Promise<Post[]> {
@@ -138,9 +152,9 @@ export async function addComment(ws: string, postId: string, body: string): Prom
 }
 
 // ---------- Claude proxy ----------
-export async function callEdge(opts: { system: string; user: string; model?: string; maxTokens?: number; search?: boolean }): Promise<string> {
+export async function callEdge(opts: { system: string; user: string; model?: string; maxTokens?: number; search?: boolean; fetchUrl?: string }): Promise<string> {
   const { data, error } = await supabase.functions.invoke('generate', {
-    body: { system: opts.system, user: opts.user, model: opts.model, max_tokens: opts.maxTokens, search: opts.search },
+    body: { system: opts.system, user: opts.user, model: opts.model, max_tokens: opts.maxTokens, search: opts.search, fetch_url: opts.fetchUrl },
   });
   if (error) {
     // try to surface the function's JSON error message

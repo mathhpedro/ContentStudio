@@ -5,7 +5,7 @@ import './index.css';
 import { hasSupabase } from './supabaseClient';
 import {
   bootstrap, fetchPosts, fetchStyle, savePosts, saveStyle, subscribePosts, deletePosts,
-  signOut, onAuthChange, enterWithCode, NOT_GATED, type SessionInfo,
+  signOut, onAuthChange, enterWithCode, switchAccount, NOT_GATED, type SessionInfo,
 } from './backend';
 import type { Post } from './data';
 
@@ -118,6 +118,8 @@ function Root() {
   };
   const sessionProp = {
     email: session!.email, role: session!.role, workspaceId: ws,
+    accounts: session!.accounts, accountId: ws,
+    switchAccount: (id: string) => { if (id !== ws) { switchAccount(id); location.reload(); } },
     signOut: () => { signOut().then(() => location.reload()); },
     joinWorkspace: (_id: string) => Promise.resolve(),
   };

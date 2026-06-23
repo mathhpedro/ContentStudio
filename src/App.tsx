@@ -17,7 +17,8 @@ function newId() {
 }
 
 // Optional collaborative wiring injected by the Supabase Root gate.
-export interface AppSession { email: string; role: string; workspaceId: string; signOut: () => void; joinWorkspace: (id: string) => Promise<void>; }
+export interface Account { id: string; name: string; }
+export interface AppSession { email: string; role: string; workspaceId: string; accounts?: Account[]; accountId?: string; switchAccount?: (id: string) => void; signOut: () => void; joinWorkspace: (id: string) => Promise<void>; }
 export interface AppPersistence { savePosts: (posts: Post[]) => Promise<void>; saveStyle: (s: string) => Promise<void>; loadPosts: () => Promise<Post[]>; subscribe: (cb: () => void) => () => void; deletePosts?: (ids: string[]) => Promise<void>; }
 export interface AppProps { persistence?: AppPersistence; session?: AppSession; initialPosts?: Post[]; initialStyle?: string; }
 
@@ -49,6 +50,7 @@ export default class App extends React.Component<AppProps, any> {
       joinId: '',
       viewYM: (() => { const a = monthAnchor(); return { y: a.y, m: a.m }; })(),
       allFilter: { status: 'All', format: 'All', q: '' },
+      refUrl: '',
     };
     this._tid = 0;
     this.tabRefs = {};
@@ -195,6 +197,7 @@ export default class App extends React.Component<AppProps, any> {
   fmtDay(d: string) { return parseInt(d.split('-')[2], 10); }
   fmtLong(d: string) { const dt = new Date(d + 'T00:00:00'); return dt.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }); }
   post(id: string): Post | undefined { return this.state.posts.find((p: Post) => p.id === id); }
+  activeAccountName(): string { const s = this.props.session; if (!s || !s.accounts) return ''; const a = s.accounts.find((x) => x.id === s.accountId); return a ? a.name : ''; }
   toast(msg: string) { this.setState({ toast: msg }); clearTimeout(this._tid); this._tid = setTimeout(() => this.setState({ toast: null }), 2200); }
 
   // ---------- actions ----------
@@ -304,7 +307,7 @@ export default class App extends React.Component<AppProps, any> {
     const p = this.post(this.state.selectedId)!;
     this.setState({ genBusy: true });
     try {
-      const vers = await generateVersions(this.state.settings, p, this.state.styleProfile, this.perfSummary());
+      const vers = await generateVersions(this.state.settings, p, this.state.styleProfile, this.perfSummary(), this.state.refUrl);
       p.versions = vers; p.activeVer = 0;
       this.setState({ posts: [...this.state.posts], genBusy: false }); this.persist();
       this.toast('Generated 3 versions');
@@ -316,7 +319,7 @@ export default class App extends React.Component<AppProps, any> {
     if (!v) return;
     this.setState({ verBusy: vi });
     try {
-      const alt = await regenerateVersion(this.state.settings, p, this.state.styleProfile, { label: v.label, hook: v.hook }, this.perfSummary());
+      const alt = await regenerateVersion(this.state.settings, p, this.state.styleProfile, { label: v.label, hook: v.hook }, this.perfSummary(), this.state.refUrl);
       v.history = [{ body: v.body, hook: v.hook, editor: v.editor || 'AI draft', ts: v.ts, label: 'v' + (v.history.length + 1) }, ...v.history];
       v.body = alt.body; v.hook = alt.hook; v.method = alt.method || v.method; v.methodNote = alt.methodNote || v.methodNote; v.why = alt.why || v.why;
       v.editor = 'AI draft'; v.ts = NOW(); v.regenCount = (v.regenCount || 0) + 1;
@@ -450,7 +453,8 @@ export default class App extends React.Component<AppProps, any> {
             : this.state.tab === 'all' ? this.renderAllPosts()
               : this.state.tab === 'topics' ? this.renderTopics()
                 : this.state.tab === 'analytics' ? this.renderAnalytics()
-                  : this.renderGenerator()),
+                  : this.state.tab === 'accounts' ? this.renderAccounts()
+                    : this.renderGenerator()),
       ),
       this.renderModal(),
       this.renderToast(),
@@ -518,7 +522,8 @@ export default class App extends React.Component<AppProps, any> {
               backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
             }
           }),
-          Tab('calendar', 'Calendar'), Tab('all', 'All Posts'), Tab('topics', 'Topic Briefs'), Tab('generate', 'Generation'), Tab('analytics', 'Analytics')),
+          Tab('calendar', 'Calendar'), Tab('all', 'All Posts'), Tab('topics', 'Topic Briefs'), Tab('generate', 'Generation'), Tab('analytics', 'Analytics'),
+          (this.props.session && this.props.session.accounts && this.props.session.accounts.length > 1) ? Tab('accounts', 'Accounts') : null),
         h('div', { style: { flex: 1 } }),
         // connect-to-Claude status / button
         h('button', {
@@ -533,7 +538,7 @@ export default class App extends React.Component<AppProps, any> {
           }
         },
           h('span', { style: { width: '7px', height: '7px', borderRadius: '50%', background: this.connected ? SEM.success : C.faint } }),
-          this.props.session ? (this.props.session.email || 'Shared studio') : (this.connected ? 'Claude connected' : 'Connect Claude')),
+          this.props.session ? (this.activeAccountName() || this.props.session.email || 'Shared studio') : (this.connected ? 'Claude connected' : 'Connect Claude')),
         // theme toggle
         h('div', { style: { display: 'flex', gap: '2px', padding: '3px', borderRadius: '10px', background: C.dark ? 'rgba(0,0,0,0.25)' : 'rgba(8,9,11,0.05)' } },
           ThemeBtn('light', '☀'), ThemeBtn('dark', '☽')),
@@ -867,6 +872,47 @@ export default class App extends React.Component<AppProps, any> {
     );
   }
 
+  // ---------- accounts (switch shared workspace) ----------
+  renderAccounts() {
+    const C = this.C; const s = this.props.session;
+    const accounts = (s && s.accounts) || [];
+    const activeId = (s && s.accountId) || '';
+    return h('div', { style: { animation: 'pcsFade .4s ease', paddingTop: '14px' } },
+      h('div', { style: { marginBottom: '20px' } },
+        h('div', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '11px', letterSpacing: '0.16em', color: C.faint, textTransform: 'uppercase', marginBottom: '8px' } }, 'Accounts'),
+        h('h1', { style: { margin: 0, fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '34px', letterSpacing: '-0.03em', color: C.heading } }, 'Switch account'),
+        h('p', { style: { margin: '8px 0 0', fontSize: '15px', color: C.dim, lineHeight: 1.55, maxWidth: '680px' } },
+          'Each account is a separate studio — its own calendar, drafts, history and analytics. Pick whose content you’re working on. Everyone shares the same Claude on the server.'),
+      ),
+      h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: '16px', alignItems: 'start' } },
+        accounts.map((a) => {
+          const on = a.id === activeId;
+          return h('div', {
+            key: a.id, className: 'pcs-glass', style: {
+              borderRadius: '18px', padding: '24px', ...this.glass({ blur: 24 }),
+              border: '1px solid ' + (on ? (C.dark ? C.accent : '#16181D') : C.surfBorder),
+            },
+          },
+            h('div', { style: { display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px', position: 'relative', zIndex: 1 } },
+              h('span', {
+                style: {
+                  width: '44px', height: '44px', borderRadius: '12px', display: 'grid', placeItems: 'center', flexShrink: 0,
+                  background: C.dark ? 'rgba(184,188,196,0.16)' : '#16181D', color: C.dark ? C.accent : '#fff',
+                  fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '18px',
+                },
+              }, (a.name || '?').charAt(0).toUpperCase()),
+              h('div', { style: { flex: 1, minWidth: 0 } },
+                h('div', { style: { fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '18px', letterSpacing: '-0.02em', color: C.heading } }, a.name),
+                h('div', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '10.5px', color: C.faint, marginTop: '2px' } }, on ? 'Active now' : 'Separate calendar & history')),
+              on ? this.Pill('Active', SEM.success, { bg: 'rgba(46,139,116,0.16)', fg: SEM.success, dot: SEM.success }) : null),
+            on
+              ? this.Btn('You’re here', () => {}, { variant: 'soft', sm: true, disabled: true, style: { width: '100%', justifyContent: 'center' } })
+              : this.Btn('Switch to ' + a.name, () => { if (s && s.switchAccount) s.switchAccount(a.id); }, { variant: 'primary', sm: true, icon: '→', style: { width: '100%', justifyContent: 'center' } }),
+          );
+        })),
+    );
+  }
+
   // ---------- analytics ----------
   renderAnalytics() {
     const C = this.C;
@@ -1015,7 +1061,8 @@ export default class App extends React.Component<AppProps, any> {
             h('h2', { style: { margin: 0, fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '19px', letterSpacing: '-0.02em', color: C.heading } },
               vers.length + ' generated versions',
               h('span', { style: { marginLeft: '9px', fontSize: '13px', fontWeight: 500, color: C.dim } }, '— choose one to publish')),
-            h('div', { style: { display: 'flex', gap: '8px', alignItems: 'center' } },
+            h('div', { style: { display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' } },
+              this.renderRefUrl(),
               this.renderSearchToggle(),
               this.Btn(this.state.genBusy ? 'Regenerating…' : 'Regenerate all', () => this.generateForSelected(), { variant: 'soft', sm: true, icon: '↻', disabled: this.state.genBusy })),
           ),
@@ -1023,6 +1070,24 @@ export default class App extends React.Component<AppProps, any> {
             vers.map((v, i) => this.renderVersion(p, v, i))))
         : this.renderGeneratePanel(),
     );
+  }
+
+  // Optional reference-post URL: Claude fetches it and builds on its substance.
+  renderRefUrl(opt: any = {}) {
+    const C = this.C; const v = this.state.refUrl || '';
+    return h('div', { style: { display: 'flex', alignItems: 'center', gap: '7px', flex: opt.grow ? '1 1 260px' : '0 1 320px', minWidth: '200px' } },
+      h('span', { title: 'Base the post on an existing post', style: { fontSize: '14px' } }, '🔗'),
+      h('input', {
+        type: 'url', value: v, placeholder: 'Reference post URL (optional)', spellCheck: false,
+        onChange: (e: any) => this.setState({ refUrl: e.target.value }),
+        style: {
+          flex: 1, padding: '7px 11px', borderRadius: '10px',
+          border: '1px solid ' + (v ? 'rgba(46,139,116,0.4)' : C.border),
+          background: v ? 'rgba(46,139,116,0.10)' : (C.dark ? 'rgba(255,255,255,0.05)' : 'rgba(8,9,11,0.04)'),
+          color: C.text, fontFamily: "'Hanken Grotesk',sans-serif", fontSize: '12.5px', outline: 'none', boxSizing: 'border-box',
+        },
+      }),
+      v ? h('button', { className: 'pcs-btn', title: 'Clear', onClick: () => this.setState({ refUrl: '' }), style: { border: 'none', background: 'transparent', color: C.faint, fontSize: '14px', lineHeight: 1, padding: '2px 4px' } }, '✕') : null);
   }
 
   renderSearchToggle() {
@@ -1051,9 +1116,10 @@ export default class App extends React.Component<AppProps, any> {
         busy ? 'Generating with Claude…' : 'No drafts yet'),
       h('p', { style: { margin: '0 auto 18px', maxWidth: '460px', fontSize: '14px', color: C.dim, lineHeight: 1.55 } },
         this.connected
-          ? 'Generate three on-brand versions from this topic and your writing style.'
+          ? 'Generate three on-brand versions from this topic and your writing style. Optionally paste a reference post to build on.'
           : 'Connect your Claude account to generate three on-brand versions from this topic.'),
-      h('div', { style: { display: 'flex', gap: '9px', justifyContent: 'center', alignItems: 'center' } },
+      this.connected ? h('div', { style: { display: 'flex', justifyContent: 'center', marginBottom: '14px' } }, this.renderRefUrl({ grow: true })) : null,
+      h('div', { style: { display: 'flex', gap: '9px', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap' } },
         this.connected ? this.renderSearchToggle() : null,
         this.connected
           ? this.Btn(busy ? 'Working…' : 'Generate 3 versions', () => this.generateForSelected(), { variant: 'primary', icon: '✦', disabled: busy })

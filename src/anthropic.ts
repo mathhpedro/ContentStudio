@@ -16,9 +16,13 @@ export interface Settings {
 }
 
 // Web search server-tool, version chosen per model (dynamic filtering on 4.6+).
+const MODERN_TOOLS = ['claude-opus-4-8', 'claude-opus-4-7', 'claude-opus-4-6', 'claude-sonnet-4-6'];
 function webSearchTool(model: string) {
-  const modern = ['claude-opus-4-8', 'claude-opus-4-7', 'claude-opus-4-6', 'claude-sonnet-4-6'].includes(model);
-  return { type: modern ? 'web_search_20260209' : 'web_search_20250305', name: 'web_search', max_uses: 4 };
+  return { type: MODERN_TOOLS.includes(model) ? 'web_search_20260209' : 'web_search_20250305', name: 'web_search', max_uses: 4 };
+}
+// Web fetch server-tool — lets Claude read a specific URL (a reference post).
+function webFetchTool(model: string) {
+  return { type: MODERN_TOOLS.includes(model) ? 'web_fetch_20260209' : 'web_fetch_20250910', name: 'web_fetch', max_uses: 4 };
 }
 
 export const MODELS = [
@@ -38,18 +42,21 @@ function blocksToText(content: any[]): string {
 // ---- low-level call ----
 export async function callClaude(
   settings: Settings,
-  opts: { system: string; user: string; maxTokens?: number; search?: boolean },
+  opts: { system: string; user: string; maxTokens?: number; search?: boolean; fetchUrl?: string },
 ): Promise<string> {
   const model = (settings && settings.model) || DEFAULT_MODEL;
   // Collaborative mode: go through the Supabase Edge Function (key stays server-side).
   if (hasSupabase) {
-    return callEdge({ system: opts.system, user: opts.user, model, maxTokens: opts.maxTokens, search: opts.search });
+    return callEdge({ system: opts.system, user: opts.user, model, maxTokens: opts.maxTokens, search: opts.search, fetchUrl: opts.fetchUrl });
   }
   // Local mode: direct browser call with the user's own key.
   if (!settings || !settings.apiKey) {
     throw new Error('Not connected — add your Anthropic API key in Settings.');
   }
-  const tools = opts.search ? [webSearchTool(model)] : undefined;
+  const toolList: any[] = [];
+  if (opts.search) toolList.push(webSearchTool(model));
+  if (opts.fetchUrl) toolList.push(webFetchTool(model));
+  const tools = toolList.length ? toolList : undefined;
   const messages: any[] = [{ role: 'user', content: opts.user }];
   let lastText = '';
   // Server-tool runs may return stop_reason "pause_turn"; re-send to resume.
@@ -134,13 +141,16 @@ export async function generateVersions(
   post: { topic: string; angle: string; format: string },
   style: string,
   perfHint?: string,
+  refUrl?: string,
 ): Promise<Version[]> {
+  const ref = (refUrl || '').trim();
   const user = [
     'Create 3 distinct versions of a single post.',
     `Topic: ${post.topic}`,
     `Angle: ${post.angle}`,
     `Format: ${post.format}`,
     perfHint ? `\nPerformance signals from past posts: ${perfHint}\nLean into what has worked, without copying.` : '',
+    ref ? `\nReference post: ${ref}\nUse web fetch to read it, then build on its substance, argument and angle — adapt it into our voice and thesis. Do NOT copy it verbatim and do NOT name any company mentioned in it.` : '',
     '',
     'Each version must use a DIFFERENT rhetorical method (e.g. Pyramid Principle / answer-first,',
     'Storytelling / situation-complication-resolution, and Proof & specificity / numbered claims).',
@@ -151,7 +161,7 @@ export async function generateVersions(
     'Return JSON exactly in this shape:',
     '{"versions":[{"label":"A","hook":"...","body":"...","method":"<short name> — <one line>","methodNote":"why this structure works","why":"why it drives engagement"},{"label":"B",...},{"label":"C",...}]}',
   ].filter(Boolean).join('\n');
-  const text = await callClaude(settings, { system: styleSystem(style), user, maxTokens: 4096, search: settings.webSearch });
+  const text = await callClaude(settings, { system: styleSystem(style), user, maxTokens: 4096, search: settings.webSearch, fetchUrl: ref || undefined });
   const parsed = extractJson(text);
   const arr = (parsed.versions || []).slice(0, 3);
   return arr.map((v: any, i: number) => ({
@@ -169,7 +179,9 @@ export async function regenerateVersion(
   style: string,
   prev: { label: string; hook: string },
   perfHint?: string,
+  refUrl?: string,
 ): Promise<{ hook: string; body: string; method: string; methodNote: string; why: string }> {
+  const ref = (refUrl || '').trim();
   const user = [
     `Write a FRESH alternative for version ${prev.label} of this post — clearly different from the previous take.`,
     `Topic: ${post.topic}`,
@@ -177,13 +189,14 @@ export async function regenerateVersion(
     `Format: ${post.format}`,
     `Previous hook (avoid repeating): ${prev.hook}`,
     perfHint ? `Performance signals from past posts: ${perfHint}` : '',
+    ref ? `Reference post: ${ref}\nUse web fetch to read it and build on its substance in our voice; do not copy it verbatim or name any company in it.` : '',
     '',
     'Body is 110–200 words and ends with one sharp question.',
     settings.webSearch ? 'Use web search to ground it in recent, specific facts; cite only verifiable figures.' : '',
     NO_BRAND_RULE,
     'Return JSON exactly: {"hook":"...","body":"...","method":"<short name> — <one line>","methodNote":"...","why":"..."}',
   ].filter(Boolean).join('\n');
-  const text = await callClaude(settings, { system: styleSystem(style), user, maxTokens: 2048, search: settings.webSearch });
+  const text = await callClaude(settings, { system: styleSystem(style), user, maxTokens: 2048, search: settings.webSearch, fetchUrl: ref || undefined });
   const v = extractJson(text);
   return { hook: v.hook || '', body: v.body || '', method: v.method || 'Regenerated', methodNote: v.methodNote || '', why: v.why || '' };
 }
