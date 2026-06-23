@@ -1,11 +1,18 @@
 import React from 'react';
 import { flushSync } from 'react-dom';
 import {
-  SEM, DEFAULT_STYLE, AUTHORED, makePosts, makeVersions, regen,
-  NOW, rel, lcsDiff, monthAnchor, weekFocus, TOPIC_BRIEFS, type Post, type Version,
+  SEM, NOW, rel, lcsDiff, monthAnchor, weekFocus, type Post, type Version,
 } from './data';
+import {
+  MODELS, DEFAULT_MODEL, generateVersions, regenerateVersion, generateWeeklyAgenda, generateBrief,
+  type Settings,
+} from './anthropic';
+import { loadSettings, saveSettings, loadPosts, savePosts, loadStyle, saveStyle } from './store';
 
 const h = React.createElement;
+
+let _pid = 0;
+function newId() { _pid += 1; return 'p' + Date.now().toString(36) + (_pid).toString(36); }
 
 // Fluid view morph: use the View Transitions API when available so switching
 // between Calendar and Generation crossfades/morphs instead of cutting.
@@ -23,14 +30,23 @@ export default class App extends React.Component<{}, any> {
 
   constructor(props: {}) {
     super(props);
+    const posts = loadPosts() || [];
     this.state = {
-      theme: 'dark', tab: 'calendar', selectedId: 'p15',
-      posts: makePosts(), styleProfile: DEFAULT_STYLE, editingVer: null, draft: '', modal: null,
+      theme: 'dark', tab: 'calendar', selectedId: posts[0] ? posts[0].id : null,
+      posts, styleProfile: loadStyle(), settings: loadSettings(),
+      editingVer: null, draft: '', modal: null,
       toast: null, styleOpen: false, whyOpen: {}, indL: 0, indW: 0,
+      genBusy: false, agendaBusy: false, verBusy: null, briefBusy: null,
+      newPost: { topic: '', angle: '', format: 'opinion', priority: 'Medium' },
     };
     this._tid = 0;
     this.tabRefs = {};
   }
+
+  // ---------- persistence ----------
+  persist(posts?: Post[]) { savePosts(posts || this.state.posts); }
+  get connected() { return !!(this.state.settings && this.state.settings.apiKey); }
+  saveSettings(s: Settings) { saveSettings(s); this.setState({ settings: s }); }
 
   tabRefs: Record<string, HTMLElement | null>;
 
@@ -143,22 +159,19 @@ export default class App extends React.Component<{}, any> {
   fmtDay(d: string) { return parseInt(d.split('-')[2], 10); }
   fmtLong(d: string) { const dt = new Date(d + 'T00:00:00'); return dt.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }); }
   post(id: string): Post | undefined { return this.state.posts.find((p: Post) => p.id === id); }
-  weekPosts() { return this.state.posts.filter((p: Post) => ['2026-06-22', '2026-06-23', '2026-06-24', '2026-06-25', '2026-06-26'].includes(p.date) && p.change); }
-  getVersions(post: Post): Version[] {
-    if (post.versions) return post.versions;
-    const v = AUTHORED[post.id] || makeVersions(post);
-    post.versions = v; return v;
-  }
   toast(msg: string) { this.setState({ toast: msg }); clearTimeout(this._tid); this._tid = setTimeout(() => this.setState({ toast: null }), 2200); }
 
   // ---------- actions ----------
   setTheme(t: string) { fluid(() => this.setState({ theme: t })); }
   setTab(t: string) { fluid(() => this.setState({ tab: t })); }
   openPost(id: string) { fluid(() => this.setState({ tab: 'generate', selectedId: id, editingVer: null })); }
-  setStatus(id: string, s: string) { const posts = this.state.posts.map((p: Post) => p.id === id ? { ...p, status: s } : p); this.setState({ posts }); this.toast('Status → ' + s); }
-  setActiveVer(i: number) { const p = this.post(this.state.selectedId)!; p.activeVer = i; this.forceUpdate(); }
-  movePost(id: string, date: string) { const posts = this.state.posts.map((p: Post) => p.id === id ? { ...p, date } : p); this.setState({ posts }); }
+  setStatus(id: string, s: string) { const posts = this.state.posts.map((p: Post) => p.id === id ? { ...p, status: s } : p); this.setState({ posts }); this.persist(posts); this.toast('Status → ' + s); }
+  setActiveVer(i: number) { const p = this.post(this.state.selectedId)!; p.activeVer = i; this.forceUpdate(); this.persist(); }
+  movePost(id: string, date: string) { const posts = this.state.posts.map((p: Post) => p.id === id ? { ...p, date } : p); this.setState({ posts }); this.persist(posts); }
   setStyle(v: string) { this.setState({ styleProfile: v }); }
+  saveStyleProfile() { saveStyle(this.state.styleProfile); this.toast('Writing style saved'); }
+
+  getVersions(post: Post): Version[] { return post.versions || []; }
 
   startEdit(vi: number) { const p = this.post(this.state.selectedId)!; const v = this.getVersions(p)[vi]; this.setState({ editingVer: vi, draft: v.body }); }
   cancelEdit() { this.setState({ editingVer: null, draft: '' }); }
@@ -168,28 +181,93 @@ export default class App extends React.Component<{}, any> {
       v.history = [{ body: v.body, hook: v.hook, editor: v.editor || 'Pragma AI', ts: v.ts, label: 'v' + (v.history.length + 1) }, ...v.history];
       v.body = this.state.draft; v.editor = 'You'; v.ts = NOW();
     }
-    this.setState({ editingVer: null, draft: '' }); this.toast('Saved — new version logged');
-  }
-  regenerate(vi: number) {
-    const p = this.post(this.state.selectedId)!; const vers = this.getVersions(p); const v = vers[vi];
-    v.history = [{ body: v.body, hook: v.hook, editor: v.editor || 'Pragma AI', ts: v.ts, label: 'v' + (v.history.length + 1) }, ...v.history];
-    const alt = regen(p, vi, v.regenCount || 0); v.body = alt.body; v.hook = alt.hook; v.editor = 'Pragma AI'; v.ts = NOW(); v.regenCount = (v.regenCount || 0) + 1;
-    this.forceUpdate(); this.toast('Regenerated — fresh draft');
+    this.setState({ editingVer: null, draft: '' }); this.persist(); this.toast('Saved — new version logged');
   }
   approve(vi: number) {
     const p = this.post(this.state.selectedId)!; const vers = this.getVersions(p);
     vers.forEach((v, i) => v.approved = (i === vi)); p.activeVer = vi; p.status = 'Approved';
-    this.setState({ posts: [...this.state.posts] }); this.toast('Approved ✓');
+    this.setState({ posts: [...this.state.posts] }); this.persist(); this.toast('Approved ✓');
   }
   revert(vi: number, hi: number) {
     const p = this.post(this.state.selectedId)!; const v = this.getVersions(p)[vi]; const snap = v.history[hi];
     v.history = [{ body: v.body, hook: v.hook, editor: v.editor || 'Pragma AI', ts: v.ts, label: 'pre-revert' }, ...v.history];
     v.body = snap.body; v.hook = snap.hook!; v.editor = 'You (revert)'; v.ts = NOW();
-    this.setState({ modal: null }); this.toast('Reverted to ' + snap.label);
+    this.setState({ modal: null }); this.persist(); this.toast('Reverted to ' + snap.label);
   }
   schedule(vi: number) {
     const p = this.post(this.state.selectedId)!; this.approve(vi); p.scheduledFor = p.date; p.status = 'Approved';
-    this.setState({ modal: null, posts: [...this.state.posts] }); this.toast('Scheduled for ' + this.fmtLong(p.date));
+    this.setState({ modal: null, posts: [...this.state.posts] }); this.persist(); this.toast('Scheduled for ' + this.fmtLong(p.date));
+  }
+
+  // ---------- Claude-powered actions ----------
+  needsConnection(): boolean {
+    if (this.connected) return false;
+    this.openSettings();
+    this.toast('Connect your Claude account first');
+    return true;
+  }
+  async generateForSelected() {
+    if (this.needsConnection()) return;
+    const p = this.post(this.state.selectedId)!;
+    this.setState({ genBusy: true });
+    try {
+      const vers = await generateVersions(this.state.settings, p, this.state.styleProfile);
+      p.versions = vers; p.activeVer = 0;
+      this.setState({ posts: [...this.state.posts], genBusy: false }); this.persist();
+      this.toast('Generated 3 versions');
+    } catch (e: any) { this.setState({ genBusy: false }); this.toast('Generation failed — ' + (e.message || e)); }
+  }
+  async regenerate(vi: number) {
+    if (this.needsConnection()) return;
+    const p = this.post(this.state.selectedId)!; const vers = this.getVersions(p); const v = vers[vi];
+    if (!v) return;
+    this.setState({ verBusy: vi });
+    try {
+      const alt = await regenerateVersion(this.state.settings, p, this.state.styleProfile, { label: v.label, hook: v.hook });
+      v.history = [{ body: v.body, hook: v.hook, editor: v.editor || 'Pragma AI', ts: v.ts, label: 'v' + (v.history.length + 1) }, ...v.history];
+      v.body = alt.body; v.hook = alt.hook; v.method = alt.method || v.method; v.methodNote = alt.methodNote || v.methodNote; v.why = alt.why || v.why;
+      v.editor = 'Pragma AI'; v.ts = NOW(); v.regenCount = (v.regenCount || 0) + 1;
+      this.setState({ verBusy: null }); this.persist(); this.toast('Regenerated — fresh draft');
+    } catch (e: any) { this.setState({ verBusy: null }); this.toast('Regenerate failed — ' + (e.message || e)); }
+  }
+  async runRefreshAgenda() {
+    if (this.needsConnection()) return;
+    this.setState({ agendaBusy: true });
+    try {
+      const { y, m } = monthAnchor();
+      const monday = this.mondayOfThisWeek();
+      const weekLabel = new Date(y, m, monday.getDate()).toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+      const items = await generateWeeklyAgenda(this.state.settings, this.state.styleProfile, 5, weekLabel + ' (this week)');
+      const made: Post[] = items.map((a) => {
+        const d = new Date(monday); d.setDate(monday.getDate() + a.dayOffset);
+        const date = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        return { id: newId(), date, topic: a.topic, angle: a.angle, format: a.format, status: 'Draft', priority: a.priority, change: 'new', scheduledFor: null, versions: null, activeVer: 0 };
+      });
+      const posts = [...made, ...this.state.posts];
+      this.setState({ posts, agendaBusy: false }); this.persist(posts);
+      this.toast(made.length + ' topics added for this week');
+    } catch (e: any) { this.setState({ agendaBusy: false }); this.toast('Agenda failed — ' + (e.message || e)); }
+  }
+  async genBrief(id: string) {
+    if (this.needsConnection()) return;
+    const p = this.post(id)!; this.setState({ briefBusy: id });
+    try {
+      const b = await generateBrief(this.state.settings, p);
+      (p as any).brief = b;
+      this.setState({ posts: [...this.state.posts], briefBusy: null }); this.persist();
+    } catch (e: any) { this.setState({ briefBusy: null }); this.toast('Brief failed — ' + (e.message || e)); }
+  }
+  mondayOfThisWeek(): Date { const now = new Date(); const d = new Date(now); d.setDate(now.getDate() - ((now.getDay() + 6) % 7)); d.setHours(0, 0, 0, 0); return d; }
+  createPost() {
+    const np = this.state.newPost;
+    if (!np.topic.trim()) { this.toast('Add a topic'); return; }
+    const a = monthAnchor();
+    const date = a.y + '-' + a.mm + '-' + String(a.today).padStart(2, '0');
+    const post: Post = { id: newId(), date, topic: np.topic.trim(), angle: np.angle.trim(), format: np.format, status: 'Draft', priority: np.priority, change: 'new', scheduledFor: null, versions: null, activeVer: 0 };
+    const posts = [post, ...this.state.posts];
+    this.setState({ posts, modal: null, newPost: { topic: '', angle: '', format: 'opinion', priority: 'Medium' } });
+    this.persist(posts);
+    this.openPost(post.id);
   }
 
   // ---------- render ----------
@@ -288,6 +366,20 @@ export default class App extends React.Component<{}, any> {
           }),
           Tab('calendar', 'Post Calendar'), Tab('topics', 'Topic Briefs'), Tab('generate', 'Content Generation')),
         h('div', { style: { flex: 1 } }),
+        // connect-to-Claude status / button
+        h('button', {
+          className: 'pcs-btn', onClick: () => this.openSettings(),
+          title: this.connected ? 'Claude connected' : 'Connect your Claude account',
+          style: {
+            display: 'inline-flex', alignItems: 'center', gap: '7px', fontFamily: "'Sora',sans-serif", fontWeight: 600,
+            fontSize: '12.5px', padding: '8px 13px', borderRadius: '10px', marginRight: '8px',
+            border: '1px solid ' + (this.connected ? 'rgba(46,139,116,0.4)' : C.border),
+            background: this.connected ? 'rgba(46,139,116,0.14)' : (C.dark ? 'rgba(255,255,255,0.06)' : 'rgba(8,9,11,0.05)'),
+            color: this.connected ? SEM.success : C.text,
+          }
+        },
+          h('span', { style: { width: '7px', height: '7px', borderRadius: '50%', background: this.connected ? SEM.success : C.faint } }),
+          this.connected ? 'Claude connected' : 'Connect Claude'),
         // theme toggle
         h('div', { style: { display: 'flex', gap: '2px', padding: '3px', borderRadius: '10px', background: C.dark ? 'rgba(0,0,0,0.25)' : 'rgba(8,9,11,0.05)' } },
           ThemeBtn('light', '☀'), ThemeBtn('dark', '☽')),
@@ -297,7 +389,7 @@ export default class App extends React.Component<{}, any> {
 
   renderCalendar() {
     const C = this.C;
-    const visible = this.state.posts.filter((p: Post) => p.status === 'Approved' || p.status === 'Published');
+    const visible = this.state.posts;
     // Anchor the grid to the real current month/year, with today driven by the actual date.
     const { y, m, dim, today } = monthAnchor();
     const monthName = new Date(y, m, 1).toLocaleDateString('en-US', { month: 'long' });
@@ -315,8 +407,12 @@ export default class App extends React.Component<{}, any> {
           h('div', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '11px', letterSpacing: '0.16em', color: C.faint, textTransform: 'uppercase', marginBottom: '8px' } }, 'Editorial Calendar'),
           h('h1', { style: { margin: 0, fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '34px', letterSpacing: '-0.03em', color: C.heading } },
             monthName + ' ' + y,
-            h('span', { style: { marginLeft: '12px', fontSize: '17px', fontWeight: 500, color: C.dim, letterSpacing: '-0.01em' } }, visible.length + ' scheduled'),
+            h('span', { style: { marginLeft: '12px', fontSize: '17px', fontWeight: 500, color: C.dim, letterSpacing: '-0.01em' } }, visible.length + ' planned'),
           ),
+        ),
+        h('div', { style: { display: 'flex', gap: '9px', alignItems: 'center' } },
+          this.Btn(this.state.agendaBusy ? 'Generating…' : 'Refresh topics', () => this.runRefreshAgenda(), { variant: 'soft', icon: '↻', disabled: this.state.agendaBusy }),
+          this.Btn('New post', () => this.setState({ modal: { type: 'newpost' } }), { variant: 'primary', icon: '+' }),
         ),
       ),
       // this week's focus — the main topics in active rotation
@@ -450,7 +546,7 @@ export default class App extends React.Component<{}, any> {
 
   // ---------- topic briefs (third tab) ----------
   renderTopics() {
-    const C = this.C; const focus = weekFocus(this.state.posts).filter((p) => TOPIC_BRIEFS[p.id]);
+    const C = this.C; const focus = weekFocus(this.state.posts);
     return h('div', { style: { animation: 'pcsFade .4s ease', paddingTop: '14px' } },
       h('div', { style: { marginBottom: '20px' } },
         h('div', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '11px', letterSpacing: '0.16em', color: C.faint, textTransform: 'uppercase', marginBottom: '8px' } }, 'Topic Briefs'),
@@ -465,7 +561,7 @@ export default class App extends React.Component<{}, any> {
   }
 
   renderBriefCard(p: Post) {
-    const C = this.C; const b = TOPIC_BRIEFS[p.id]; const isNew = p.change === 'new';
+    const C = this.C; const b = (p as any).brief; const isNew = p.change === 'new'; const busy = this.state.briefBusy === p.id;
     const cc = isNew ? (C.dark ? C.accent : '#16181D') : SEM.warning;
     const cbg = isNew ? (C.dark ? 'rgba(184,188,196,0.16)' : 'rgba(8,9,11,0.06)') : 'rgba(201,162,75,0.15)';
     return h('div', { key: p.id, className: 'pcs-glass', style: { borderRadius: '18px', padding: '22px 24px', ...this.glass({ blur: 24 }) } },
@@ -477,16 +573,24 @@ export default class App extends React.Component<{}, any> {
       ),
       h('h2', { style: { margin: '0 0 4px', fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '21px', letterSpacing: '-0.02em', color: C.heading, lineHeight: 1.2, position: 'relative', zIndex: 1 } }, p.topic),
       h('div', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '11px', color: C.faint, marginBottom: '14px', position: 'relative', zIndex: 1 } }, p.angle),
-      h('p', { style: { margin: '0 0 14px', fontSize: '14.5px', color: C.text, lineHeight: 1.6, position: 'relative', zIndex: 1 } }, b.summary),
-      h('div', { style: { position: 'relative', zIndex: 1, marginBottom: '14px' } },
-        h('div', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '9.5px', letterSpacing: '0.1em', textTransform: 'uppercase', color: C.faint, marginBottom: '5px' } }, 'Why it matters'),
-        h('div', { style: { fontSize: '13.5px', color: C.dim, lineHeight: 1.56 } }, b.why)),
-      h('div', { style: { position: 'relative', zIndex: 1, marginBottom: '16px' } },
-        h('div', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '9.5px', letterSpacing: '0.1em', textTransform: 'uppercase', color: C.faint, marginBottom: '8px' } }, 'Key points'),
-        h('div', { style: { display: 'flex', flexDirection: 'column', gap: '8px' } },
-          b.points.map((pt, k) => h('div', { key: k, style: { display: 'flex', gap: '9px', alignItems: 'flex-start' } },
-            h('span', { style: { flexShrink: 0, marginTop: '1px', width: '18px', height: '18px', borderRadius: '6px', display: 'grid', placeItems: 'center', fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '10px', background: C.dark ? 'rgba(184,188,196,0.16)' : '#16181D', color: C.dark ? C.accent : '#fff' } }, k + 1),
-            h('span', { style: { fontSize: '13.5px', color: C.text, lineHeight: 1.5 } }, pt))))),
+      b
+        ? h('div', {},
+          h('p', { style: { margin: '0 0 14px', fontSize: '14.5px', color: C.text, lineHeight: 1.6, position: 'relative', zIndex: 1 } }, b.summary),
+          h('div', { style: { position: 'relative', zIndex: 1, marginBottom: '14px' } },
+            h('div', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '9.5px', letterSpacing: '0.1em', textTransform: 'uppercase', color: C.faint, marginBottom: '5px' } }, 'Why it matters'),
+            h('div', { style: { fontSize: '13.5px', color: C.dim, lineHeight: 1.56 } }, b.why)),
+          h('div', { style: { position: 'relative', zIndex: 1, marginBottom: '16px' } },
+            h('div', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '9.5px', letterSpacing: '0.1em', textTransform: 'uppercase', color: C.faint, marginBottom: '8px' } }, 'Key points'),
+            h('div', { style: { display: 'flex', flexDirection: 'column', gap: '8px' } },
+              (b.points || []).map((pt: string, k: number) => h('div', { key: k, style: { display: 'flex', gap: '9px', alignItems: 'flex-start' } },
+                h('span', { style: { flexShrink: 0, marginTop: '1px', width: '18px', height: '18px', borderRadius: '6px', display: 'grid', placeItems: 'center', fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '10px', background: C.dark ? 'rgba(184,188,196,0.16)' : '#16181D', color: C.dark ? C.accent : '#fff' } }, k + 1),
+                h('span', { style: { fontSize: '13.5px', color: C.text, lineHeight: 1.5 } }, pt))))))
+        : h('div', { style: { position: 'relative', zIndex: 1, marginBottom: '16px' } },
+          h('p', { style: { margin: '0 0 12px', fontSize: '13.5px', color: C.dim, lineHeight: 1.56 } },
+            this.connected ? 'No brief yet — generate a plain-language explainer for this topic.' : 'Connect your Claude account to generate an explainer for this topic.'),
+          this.connected
+            ? this.Btn(busy ? 'Generating…' : 'Generate brief', () => this.genBrief(p.id), { variant: 'soft', sm: true, icon: '✦', disabled: busy })
+            : this.Btn('Connect Claude', () => this.openSettings(), { variant: 'soft', sm: true })),
       h('div', { style: { display: 'flex', gap: '8px', position: 'relative', zIndex: 1 } },
         this.Btn('Open drafts', () => this.openPost(p.id), { variant: 'primary', sm: true, icon: '→' }),
         this.Btn('View in calendar', () => this.setTab('calendar'), { variant: 'ghost', sm: true })),
@@ -540,16 +644,39 @@ export default class App extends React.Component<{}, any> {
       ),
       // writing style panel
       this.renderStylePanel(),
-      // versions header
-      h('div', { style: { display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '12px', margin: '22px 2px 14px', flexWrap: 'wrap' } },
-        h('h2', { style: { margin: 0, fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '19px', letterSpacing: '-0.02em', color: C.heading } },
-          '3 generated versions',
-          h('span', { style: { marginLeft: '9px', fontSize: '13px', fontWeight: 500, color: C.dim } }, '— choose one to publish')),
-        this.Btn('Regenerate all', () => { vers.forEach((v, i) => this.regenerate(i)); }, { variant: 'soft', sm: true, icon: '↻' }),
-      ),
-      // version grid
-      h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(332px,1fr))', gap: '16px', alignItems: 'start' } },
-        vers.map((v, i) => this.renderVersion(p, v, i))),
+      // versions header + grid (or empty/generate state)
+      vers.length
+        ? h('div', {},
+          h('div', { style: { display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '12px', margin: '22px 2px 14px', flexWrap: 'wrap' } },
+            h('h2', { style: { margin: 0, fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '19px', letterSpacing: '-0.02em', color: C.heading } },
+              vers.length + ' generated versions',
+              h('span', { style: { marginLeft: '9px', fontSize: '13px', fontWeight: 500, color: C.dim } }, '— choose one to publish')),
+            this.Btn(this.state.genBusy ? 'Regenerating…' : 'Regenerate all', () => this.generateForSelected(), { variant: 'soft', sm: true, icon: '↻', disabled: this.state.genBusy }),
+          ),
+          h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(332px,1fr))', gap: '16px', alignItems: 'start' } },
+            vers.map((v, i) => this.renderVersion(p, v, i))))
+        : this.renderGeneratePanel(),
+    );
+  }
+
+  renderGeneratePanel() {
+    const C = this.C; const busy = this.state.genBusy;
+    return h('div', {
+      className: 'pcs-glass', style: {
+        marginTop: '22px', borderRadius: '18px', padding: '40px 28px', textAlign: 'center', ...this.glass({ blur: 24 }),
+      }
+    },
+      h('div', { style: { fontSize: '30px', marginBottom: '10px' } }, busy ? '✦' : '✎'),
+      h('h2', { style: { margin: '0 0 6px', fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '20px', letterSpacing: '-0.02em', color: C.heading } },
+        busy ? 'Generating with Claude…' : 'No drafts yet'),
+      h('p', { style: { margin: '0 auto 18px', maxWidth: '460px', fontSize: '14px', color: C.dim, lineHeight: 1.55 } },
+        this.connected
+          ? 'Generate three on-brand versions from this topic and your writing style.'
+          : 'Connect your Claude account to generate three on-brand versions from this topic.'),
+      h('div', { style: { display: 'flex', gap: '9px', justifyContent: 'center' } },
+        this.connected
+          ? this.Btn(busy ? 'Working…' : 'Generate 3 versions', () => this.generateForSelected(), { variant: 'primary', icon: '✦', disabled: busy })
+          : this.Btn('Connect Claude', () => this.openSettings(), { variant: 'primary' })),
     );
   }
 
@@ -588,7 +715,7 @@ export default class App extends React.Component<{}, any> {
               bg: C.dark ? 'rgba(255,255,255,0.05)' : 'rgba(8,9,11,0.04)', fg: C.dim, fs: '10.5px',
               style: { fontFamily: "'JetBrains Mono',monospace" }
             }))),
-          h('span', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '10px', color: C.faint, whiteSpace: 'nowrap' } }, 'Saved automatically'),
+          this.Btn('Save style', () => this.saveStyleProfile(), { variant: 'soft', sm: true, icon: '✓' }),
         ),
       ) : null,
     );
@@ -674,7 +801,7 @@ export default class App extends React.Component<{}, any> {
           ? [this.Btn('Save', () => this.saveEdit(i), { variant: 'primary', sm: true, icon: '✓' }),
           this.Btn('Cancel', () => this.cancelEdit(), { variant: 'ghost', sm: true })]
           : [this.Btn('Edit', () => this.startEdit(i), { variant: 'ghost', sm: true, icon: '✎' }),
-          this.Btn('Regenerate', () => this.regenerate(i), { variant: 'soft', sm: true, icon: '↻' }),
+          this.Btn(this.state.verBusy === i ? 'Regenerating…' : 'Regenerate', () => this.regenerate(i), { variant: 'soft', sm: true, icon: '↻', disabled: this.state.verBusy === i }),
           h('span', { key: 'sp', style: { flex: 1 } }),
           this.Btn('Approve', () => this.approve(i), { variant: v.approved ? 'success' : 'ghost', sm: true, icon: v.approved ? '✓' : null }),
           this.Btn('Schedule', () => this.setState({ modal: { type: 'schedule', vi: i } }), { variant: 'primary', sm: true, icon: '📅' })],
@@ -682,9 +809,68 @@ export default class App extends React.Component<{}, any> {
     );
   }
 
+  openSettings() { this.setState({ modal: { type: 'settings' }, settingsDraft: { ...this.state.settings } }); }
+
+  renderSettingsModal(close: () => void) {
+    const C = this.C; const d = this.state.settingsDraft || { ...this.state.settings };
+    const set = (patch: any) => this.setState({ settingsDraft: { ...d, ...patch } });
+    const inputStyle: any = {
+      width: '100%', borderRadius: '11px', padding: '11px 13px', background: C.input, border: '1px solid ' + C.border,
+      color: C.text, fontSize: '13.5px', fontFamily: "'JetBrains Mono',monospace", outline: 'none',
+    };
+    return h('div', { style: { padding: '26px' } },
+      h('div', { style: { display: 'flex', alignItems: 'center', gap: '9px', marginBottom: '6px' } },
+        h('span', { style: { fontSize: '20px' } }, '✦'),
+        h('h3', { style: { margin: 0, fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '20px', letterSpacing: '-0.02em', color: C.heading } }, 'Connect your Claude account')),
+      h('p', { style: { margin: '0 0 18px', fontSize: '13.5px', color: C.dim, lineHeight: 1.55 } },
+        'Paste your Anthropic API key. It is stored only in this browser (localStorage) and used to call Claude directly from this page — it is never sent anywhere else.'),
+      h('label', { style: { display: 'block', fontFamily: "'Sora',sans-serif", fontWeight: 600, fontSize: '12px', color: C.heading, marginBottom: '6px' } }, 'Anthropic API key'),
+      h('input', { type: 'password', value: d.apiKey, placeholder: 'sk-ant-…', spellCheck: false, autoFocus: true, onChange: (e: any) => set({ apiKey: e.target.value }), style: inputStyle }),
+      h('div', { style: { fontSize: '11px', color: C.faint, margin: '6px 0 16px' } },
+        'Get a key at console.anthropic.com → API keys.'),
+      h('label', { style: { display: 'block', fontFamily: "'Sora',sans-serif", fontWeight: 600, fontSize: '12px', color: C.heading, marginBottom: '6px' } }, 'Model'),
+      h('select', { value: d.model, onChange: (e: any) => set({ model: e.target.value }), style: { ...inputStyle, fontFamily: "'Hanken Grotesk',sans-serif" } },
+        MODELS.map((mo) => h('option', { key: mo.id, value: mo.id }, mo.label))),
+      h('div', { style: { display: 'flex', gap: '9px', justifyContent: 'flex-end', marginTop: '20px' } },
+        d.apiKey ? this.Btn('Disconnect', () => { this.saveSettings({ apiKey: '', model: d.model || DEFAULT_MODEL }); this.setState({ modal: null }); this.toast('Disconnected'); }, { variant: 'danger' }) : null,
+        this.Btn('Cancel', close, { variant: 'ghost' }),
+        this.Btn('Save', () => { this.saveSettings({ apiKey: (d.apiKey || '').trim(), model: d.model || DEFAULT_MODEL }); this.setState({ modal: null }); this.toast((d.apiKey || '').trim() ? 'Claude connected ✓' : 'Saved'); }, { variant: 'primary', icon: '✓' }),
+      ),
+    );
+  }
+
+  renderNewPostModal(close: () => void) {
+    const C = this.C; const np = this.state.newPost;
+    const set = (patch: any) => this.setState({ newPost: { ...np, ...patch } });
+    const formats = ['opinion', 'educational', 'technical', 'case study', 'trend'];
+    const prios = ['High', 'Medium', 'Low'];
+    const inputStyle: any = {
+      width: '100%', borderRadius: '11px', padding: '11px 13px', background: C.input, border: '1px solid ' + C.border,
+      color: C.text, fontSize: '13.5px', fontFamily: "'Hanken Grotesk',sans-serif", outline: 'none',
+    };
+    const label = (t: string) => h('label', { style: { display: 'block', fontFamily: "'Sora',sans-serif", fontWeight: 600, fontSize: '12px', color: C.heading, margin: '14px 0 6px' } }, t);
+    return h('div', { style: { padding: '26px' } },
+      h('h3', { style: { margin: '0 0 4px', fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '20px', letterSpacing: '-0.02em', color: C.heading } }, 'New post'),
+      h('p', { style: { margin: 0, fontSize: '13px', color: C.dim } }, 'Add a topic to today. Generate drafts from it in Content Generation.'),
+      label('Topic'),
+      h('input', { value: np.topic, autoFocus: true, placeholder: 'e.g. The accountability gap', onChange: (e: any) => set({ topic: e.target.value }), style: inputStyle }),
+      label('Angle'),
+      h('input', { value: np.angle, placeholder: 'One line on the take', onChange: (e: any) => set({ angle: e.target.value }), style: inputStyle }),
+      h('div', { style: { display: 'flex', gap: '12px' } },
+        h('div', { style: { flex: 1 } }, label('Format'),
+          h('select', { value: np.format, onChange: (e: any) => set({ format: e.target.value }), style: inputStyle }, formats.map((f) => h('option', { key: f, value: f }, f)))),
+        h('div', { style: { flex: 1 } }, label('Priority'),
+          h('select', { value: np.priority, onChange: (e: any) => set({ priority: e.target.value }), style: inputStyle }, prios.map((f) => h('option', { key: f, value: f }, f)))),
+      ),
+      h('div', { style: { display: 'flex', gap: '9px', justifyContent: 'flex-end', marginTop: '22px' } },
+        this.Btn('Cancel', close, { variant: 'ghost' }),
+        this.Btn('Create post', () => this.createPost(), { variant: 'primary', icon: '+' }),
+      ),
+    );
+  }
+
   renderModal() {
     const m = this.state.modal; if (!m) return null; const C = this.C;
-    const p = this.post(this.state.selectedId)!; const v = this.getVersions(p)[m.vi];
     const close = () => this.setState({ modal: null });
     const shell = (width: string, inner: any) => h('div', {
       onClick: close, style: {
@@ -699,6 +885,11 @@ export default class App extends React.Component<{}, any> {
           border: '1px solid ' + C.glassBorder, boxShadow: 'inset 0 1px 0 ' + C.glassHi + ', ' + C.shadow, animation: 'pcsPop .24s ease'
         }
       }, inner));
+
+    if (m.type === 'settings') return shell('480px', this.renderSettingsModal(close));
+    if (m.type === 'newpost') return shell('520px', this.renderNewPostModal(close));
+
+    const p = this.post(this.state.selectedId)!; const v = this.getVersions(p)[m.vi];
 
     if (m.type === 'schedule') {
       return shell('440px', h('div', { style: { padding: '26px' } },
