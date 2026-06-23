@@ -44,7 +44,7 @@ export default class App extends React.Component<AppProps, any> {
       posts, styleProfile: props.initialStyle != null ? props.initialStyle : loadStyle(), settings: loadSettings(),
       editingVer: null, draft: '', modal: null,
       toast: null, styleOpen: false, whyOpen: {}, indL: 0, indW: 0,
-      genBusy: false, agendaBusy: false, verBusy: null, briefBusy: null,
+      genBusy: false, agendaBusy: false, verBusy: null, briefBusy: null, planBusy: null,
       newPost: { topic: '', angle: '', format: 'opinion', priority: 'Medium' },
       joinId: '',
     };
@@ -272,6 +272,37 @@ export default class App extends React.Component<AppProps, any> {
       this.toast(made.length + ' topics added for this week');
     } catch (e: any) { this.setState({ agendaBusy: false }); this.toast('Agenda failed — ' + (e.message || e)); }
   }
+  // End-to-end: fetch this week's agenda, populate the calendar, then draft 3 versions for each.
+  async runPlanWeek() {
+    if (this.needsConnection()) return;
+    this.setState({ planBusy: { done: 0, total: 0 } });
+    try {
+      const { y, m } = monthAnchor();
+      const monday = this.mondayOfThisWeek();
+      const weekLabel = new Date(y, m, monday.getDate()).toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+      const items = await generateWeeklyAgenda(this.state.settings, this.state.styleProfile, 5, weekLabel + ' (this week)');
+      const made: Post[] = items.map((a) => {
+        const d = new Date(monday); d.setDate(monday.getDate() + a.dayOffset);
+        const date = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        return { id: newId(), date, topic: a.topic, angle: a.angle, format: a.format, status: 'Draft', priority: a.priority, change: 'new', scheduledFor: null, versions: null, activeVer: 0 };
+      });
+      let posts = [...made, ...this.state.posts];
+      this.setState({ posts, planBusy: { done: 0, total: made.length } }); this.persist(posts);
+      // Draft each topic in turn, surfacing progress and persisting as we go.
+      const hint = this.perfSummary();
+      for (let k = 0; k < made.length; k++) {
+        try {
+          const vers = await generateVersions(this.state.settings, made[k], this.state.styleProfile, hint);
+          const target = this.state.posts.find((p) => p.id === made[k].id);
+          if (target) { target.versions = vers; target.activeVer = 0; target.status = 'In Review'; }
+        } catch { /* skip a failed topic, keep going */ }
+        posts = [...this.state.posts];
+        this.setState({ posts, planBusy: { done: k + 1, total: made.length } }); this.persist(posts);
+      }
+      this.setState({ planBusy: null });
+      this.toast('Week planned — ' + made.length + ' topics drafted ✦');
+    } catch (e: any) { this.setState({ planBusy: null }); this.toast('Planning failed — ' + (e.message || e)); }
+  }
   async genBrief(id: string) {
     if (this.needsConnection()) return;
     const p = this.post(id)!; this.setState({ briefBusy: id });
@@ -464,12 +495,31 @@ export default class App extends React.Component<AppProps, any> {
           ),
         ),
         h('div', { style: { display: 'flex', gap: '9px', alignItems: 'center' } },
-          this.Btn(this.state.agendaBusy ? 'Generating…' : 'Refresh topics', () => this.runRefreshAgenda(), { variant: 'soft', icon: '↻', disabled: this.state.agendaBusy }),
-          this.Btn('New post', () => this.setState({ modal: { type: 'newpost' } }), { variant: 'primary', icon: '+' }),
+          (() => { const pb = this.state.planBusy; const busy = !!pb || this.state.agendaBusy;
+            const label = pb ? (pb.total ? 'Drafting ' + pb.done + '/' + pb.total + '…' : 'Planning…') : 'Plan & draft week';
+            return this.Btn(label, () => this.runPlanWeek(), { variant: 'primary', icon: '✦', disabled: busy }); })(),
+          this.Btn(this.state.agendaBusy ? 'Generating…' : 'Topics only', () => this.runRefreshAgenda(), { variant: 'soft', icon: '↻', disabled: this.state.agendaBusy || !!this.state.planBusy }),
+          this.Btn('New post', () => this.setState({ modal: { type: 'newpost' } }), { variant: 'soft', icon: '+' }),
         ),
       ),
       // this week's focus — the main topics in active rotation
       this.renderWeekFocus(),
+      // empty calendar → guide the user straight into the end-to-end flow
+      visible.length ? null : h('div', {
+        className: 'pcs-glass', style: { borderRadius: '18px', padding: '34px 28px', textAlign: 'center', marginBottom: '18px', ...this.glass({ blur: 24 }) }
+      },
+        h('div', { style: { fontSize: '28px', marginBottom: '10px', position: 'relative', zIndex: 1 } }, '🗓️'),
+        h('h2', { style: { margin: '0 0 6px', fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '20px', letterSpacing: '-0.02em', color: C.heading, position: 'relative', zIndex: 1 } }, 'Your week is a blank slate'),
+        h('p', { style: { margin: '0 auto 16px', maxWidth: '480px', fontSize: '14px', color: C.dim, lineHeight: 1.55, position: 'relative', zIndex: 1 } },
+          this.connected
+            ? 'Let Claude propose this week’s editorial agenda and draft three on-brand versions for every topic — then review, publish and track results.'
+            : 'Connect your Claude account, then let it propose this week’s agenda and draft every topic for you.'),
+        h('div', { style: { display: 'flex', gap: '9px', justifyContent: 'center', flexWrap: 'wrap', position: 'relative', zIndex: 1 } },
+          this.connected
+            ? this.Btn(this.state.planBusy ? 'Working…' : 'Plan & draft week', () => this.runPlanWeek(), { variant: 'primary', icon: '✦', disabled: !!this.state.planBusy })
+            : this.Btn('Connect Claude', () => this.openSettings(), { variant: 'primary' }),
+          this.Btn('New post', () => this.setState({ modal: { type: 'newpost' } }), { variant: 'soft', icon: '+' })),
+      ),
       // sub-header line — only meaningful when there are scheduled posts
       visible.length ? h('div', { style: { display: 'flex', alignItems: 'center', gap: '10px', margin: '2px 2px 14px' } },
         h('span', { style: { display: 'inline-flex', alignItems: 'center', gap: '7px', fontSize: '12.5px', color: C.dim } },
