@@ -24,7 +24,7 @@ export default class App extends React.Component<{}, any> {
   constructor(props: {}) {
     super(props);
     this.state = {
-      theme: 'dark', tab: 'calendar', selectedId: 'p15', refreshOpen: true,
+      theme: 'dark', tab: 'calendar', selectedId: 'p15',
       posts: makePosts(), styleProfile: DEFAULT_STYLE, editingVer: null, draft: '', modal: null,
       toast: null, styleOpen: false, whyOpen: {}, indL: 0, indW: 0,
     };
@@ -297,7 +297,6 @@ export default class App extends React.Component<{}, any> {
 
   renderCalendar() {
     const C = this.C;
-    const changed = this.state.posts.filter((p: Post) => p.change);
     const visible = this.state.posts.filter((p: Post) => p.status === 'Approved' || p.status === 'Published');
     // Anchor the grid to the real current month/year, with today driven by the actual date.
     const { y, m, dim, today } = monthAnchor();
@@ -319,13 +318,7 @@ export default class App extends React.Component<{}, any> {
             h('span', { style: { marginLeft: '12px', fontSize: '17px', fontWeight: 500, color: C.dim, letterSpacing: '-0.01em' } }, visible.length + ' scheduled'),
           ),
         ),
-        h('div', { style: { display: 'flex', gap: '9px', alignItems: 'center' } },
-          this.Btn('Refresh topics', () => this.runRefresh(), { variant: 'soft', icon: '↻' }),
-          this.Btn('New post', () => { }, { variant: 'primary', icon: '+' }),
-        ),
       ),
-      // weekly refresh panel
-      this.renderRefreshPanel(changed),
       // this week's focus — the main topics in active rotation
       this.renderWeekFocus(),
       // sub-header line
@@ -346,40 +339,6 @@ export default class App extends React.Component<{}, any> {
       // grid
       h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: '10px' } },
         cells.map((d, i) => this.renderDayCell(d, byDay[d as any] || [], today, i))),
-    );
-  }
-
-  renderRefreshPanel(changed: Post[]) {
-    const C = this.C;
-    if (!this.state.refreshOpen) return null;
-    const newc = changed.filter((p) => p.change === 'new').length, upc = changed.filter((p) => p.change === 'updated').length;
-    const firstNew = changed.find((p) => p.change === 'new') || changed[0];
-    return h('div', {
-      className: 'pcs-glass pcs-sheen',
-      style: {
-        display: 'flex', alignItems: 'center', gap: '12px', padding: '11px 15px', borderRadius: '14px', marginBottom: '16px',
-        ...this.glass(), animation: 'pcsFade .4s ease'
-      }
-    },
-      h('span', { className: 'pcs-sheen-bar' }),
-      h('span', {
-        style: {
-          width: '26px', height: '26px', borderRadius: '8px', flexShrink: 0, display: 'grid', placeItems: 'center',
-          background: C.dark ? 'rgba(184,188,196,0.16)' : '#16181D', color: C.dark ? C.accent : '#fff', fontSize: '13px',
-          animation: 'pcsPulse 2.6s ease-in-out infinite'
-        }
-      }, '↻'),
-      h('div', { style: { fontSize: '12.5px', color: C.dim, lineHeight: 1.45, flex: 1 } },
-        h('strong', { style: { color: C.heading, fontFamily: "'Sora',sans-serif", fontWeight: 600, fontSize: '13px' } }, 'Weekly refresh'),
-        h('span', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '10px', color: C.faint } }, '  · ' + new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
-        '   —   ' + newc + ' new topics and ' + upc + ' sharpened angles added to your backlog.'),
-      firstNew ? this.Btn('Review drafts', () => this.openPost(firstNew.id), { variant: 'soft', sm: true }) : null,
-      h('button', {
-        className: 'pcs-btn', onClick: () => this.setState({ refreshOpen: false }), style: {
-          background: 'transparent', border: 'none',
-          color: C.faint, fontSize: '16px', lineHeight: 1, padding: '2px 4px'
-        }
-      }, '×'),
     );
   }
 
@@ -446,8 +405,6 @@ export default class App extends React.Component<{}, any> {
       this.StatusBadge(p.status),
     );
   }
-
-  runRefresh() { this.setState({ refreshOpen: true }); }
 
   // ---------- this week's focus (calendar) ----------
   renderWeekFocus() {
@@ -631,7 +588,7 @@ export default class App extends React.Component<{}, any> {
               bg: C.dark ? 'rgba(255,255,255,0.05)' : 'rgba(8,9,11,0.04)', fg: C.dim, fs: '10.5px',
               style: { fontFamily: "'JetBrains Mono',monospace" }
             }))),
-          this.Btn('Save style', () => { }, { variant: 'soft', sm: true }),
+          h('span', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '10px', color: C.faint, whiteSpace: 'nowrap' } }, 'Saved automatically'),
         ),
       ) : null,
     );
