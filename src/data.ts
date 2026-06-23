@@ -38,51 +38,16 @@ export interface Post {
   activeVer: number;
 }
 
-// date, topic, angle, format, status, priority, change
-const rows: [string, string, string, string, string, string, string | null][] = [
-  ['2026-06-01', 'The AI execution gap', 'Why 91% adopt AI but only 6% see ROI', 'opinion', 'Published', 'High', null],
-  ['2026-06-02', 'Pilots that never ship', 'The notebook-to-production death valley', 'educational', 'Published', 'Medium', null],
-  ['2026-06-03', 'Synthetic workforce economics', 'Per-unit output vs. headcount', 'technical', 'Published', 'High', null],
-  ['2026-06-04', 'From advice to operation', 'Why slide decks don’t move the P&L', 'opinion', 'Published', 'Medium', null],
-  ['2026-06-05', 'The $600B ROI gap', 'Capital deployed vs. outcome realized', 'trend', 'Published', 'Low', null],
-  ['2026-06-08', 'Forward-deployed engineers', 'The consulting model that actually ships', 'trend', 'Published', 'High', null],
-  ['2026-06-09', 'Outcome-based pricing for AI', 'Getting paid for results, not hours', 'opinion', 'Published', 'Medium', null],
-  ['2026-06-10', 'Legacy ERP, rebuilt AI-native', 'A 30-year system in 14 weeks', 'case study', 'Approved', 'High', null],
-  ['2026-06-11', 'Who owns the wrong answer?', 'Accountability when the model fails', 'opinion', 'Approved', 'Medium', null],
-  ['2026-06-12', 'Executive AI literacy', 'What leaders must understand to govern', 'educational', 'Published', 'Low', null],
-  ['2026-06-15', 'Agents in real workflows', 'Beyond the chatbot demo', 'case study', 'Approved', 'High', null],
-  ['2026-06-16', 'Measuring AI on the P&L', 'The only metric that survives the board', 'technical', 'Approved', 'Medium', null],
-  ['2026-06-17', 'Model drift & compounding', 'Why good AI degrades — and how it shouldn’t', 'technical', 'In Review', 'High', null],
-  ['2026-06-18', 'Build vs. buy for AI capability', 'When to own the model layer', 'educational', 'In Review', 'Medium', null],
-  ['2026-06-19', 'LatAm: the unclaimed market', 'Where forward-deployed AI is wide open', 'trend', 'Draft', 'Low', null],
-  // --- this week (June 22) : freshly refreshed ---
-  ['2026-06-22', 'The accountability gap', 'No one owns AI after the demo ends', 'opinion', 'Approved', 'High', 'updated'],
-  ['2026-06-23', 'Retraining loops that don’t rot', 'Operating AI so it improves quarterly', 'technical', 'Draft', 'High', 'new'],
-  ['2026-06-24', 'Vibe-coding, production-grade', 'Fast and rigorous are not opposites', 'opinion', 'Draft', 'Medium', 'new'],
-  ['2026-06-25', 'The synthetic BPO shift', 'Replacing volume work, unit by unit', 'case study', 'Approved', 'High', 'updated'],
-  ['2026-06-26', 'Governance after the demo', 'Monitoring, retraining, scope control', 'educational', 'Draft', 'Medium', 'new'],
-  ['2026-06-29', 'AI capability you actually own', 'The people layer of the operating model', 'educational', 'Approved', 'Low', null],
-  ['2026-06-30', 'The week after the demo', 'What separates the 6% from everyone else', 'opinion', 'Draft', 'Medium', 'new'],
-];
-
-// Current month anchor — the calendar always shows "today" in the present month/year,
-// and the seeded posts are rebased onto it (preserving day-of-month) so content stays visible.
+// Current month anchor — the calendar always shows "today" in the present month/year.
 export function monthAnchor() {
   const now = new Date();
   const y = now.getFullYear(), m = now.getMonth();
   return { y, m, mm: String(m + 1).padStart(2, '0'), dim: new Date(y, m + 1, 0).getDate(), today: now.getDate() };
 }
 
+// The calendar starts empty — no fabricated posts. Real posts get added here.
 export function makePosts(): Post[] {
-  const { y, mm, dim } = monthAnchor();
-  return rows.map((r, i) => {
-    const day = Math.min(parseInt(r[0].split('-')[2], 10), dim);
-    const date = `${y}-${mm}-${String(day).padStart(2, '0')}`;
-    return {
-      id: 'p' + i, date, topic: r[1], angle: r[2], format: r[3], status: r[4], priority: r[5], change: r[6],
-      scheduledFor: null, versions: null, activeVer: 0,
-    };
-  });
+  return [];
 }
 
 export function NOW() { return new Date().toISOString(); }

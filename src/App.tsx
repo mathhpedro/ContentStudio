@@ -321,13 +321,13 @@ export default class App extends React.Component<{}, any> {
       ),
       // this week's focus — the main topics in active rotation
       this.renderWeekFocus(),
-      // sub-header line
-      h('div', { style: { display: 'flex', alignItems: 'center', gap: '10px', margin: '2px 2px 14px' } },
+      // sub-header line — only meaningful when there are scheduled posts
+      visible.length ? h('div', { style: { display: 'flex', alignItems: 'center', gap: '10px', margin: '2px 2px 14px' } },
         h('span', { style: { display: 'inline-flex', alignItems: 'center', gap: '7px', fontSize: '12.5px', color: C.dim } },
           this.StatusBadge('Approved'), this.StatusBadge('Published')),
         h('span', { style: { flex: 1 } }),
         h('span', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '10.5px', color: C.faint } }, 'Drag a card to reschedule'),
-      ),
+      ) : h('div', { style: { height: '6px' } }),
       // weekday header
       h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: '10px', marginBottom: '8px' } },
         wd.map((w, i) => h('div', {
