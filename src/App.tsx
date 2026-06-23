@@ -18,7 +18,7 @@ function newId() {
 
 // Optional collaborative wiring injected by the Supabase Root gate.
 export interface AppSession { email: string; role: string; workspaceId: string; signOut: () => void; joinWorkspace: (id: string) => Promise<void>; }
-export interface AppPersistence { savePosts: (posts: Post[]) => Promise<void>; saveStyle: (s: string) => Promise<void>; loadPosts: () => Promise<Post[]>; subscribe: (cb: () => void) => () => void; }
+export interface AppPersistence { savePosts: (posts: Post[]) => Promise<void>; saveStyle: (s: string) => Promise<void>; loadPosts: () => Promise<Post[]>; subscribe: (cb: () => void) => () => void; deletePosts?: (ids: string[]) => Promise<void>; }
 export interface AppProps { persistence?: AppPersistence; session?: AppSession; initialPosts?: Post[]; initialStyle?: string; }
 
 // Fluid view morph: use the View Transitions API when available so switching
@@ -169,6 +169,19 @@ export default class App extends React.Component<AppProps, any> {
       opt.dot ? h('span', { style: { width: '6px', height: '6px', borderRadius: '50%', background: opt.dot } }) : null, label);
   }
   StatusBadge(s: string) { const m = this.statusMeta(s); return m.solid ? this.Pill(s, m.fg, { solid: true, bg: m.bg, solidFg: m.fg }) : this.Pill(s, m.fg, { bg: m.bg, fg: m.fg, dot: m.dot }); }
+  // Small × that opens the delete-confirm modal. Stops propagation so it doesn't open the post.
+  DeleteBtn(id: string, opt: any = {}) {
+    const C = this.C; const s = opt.sm ? 24 : 28;
+    return h('button', {
+      key: 'del', className: 'pcs-btn', title: 'Remove topic',
+      onClick: (e: any) => { e.stopPropagation(); this.setState({ modal: { type: 'delete', id } }); },
+      style: {
+        width: s + 'px', height: s + 'px', borderRadius: '8px', border: '1px solid ' + C.border, flexShrink: 0,
+        background: C.dark ? 'rgba(255,255,255,0.05)' : 'rgba(8,9,11,0.04)', color: C.faint,
+        fontSize: '12px', lineHeight: 1, display: 'grid', placeItems: 'center', ...(opt.style || {}),
+      },
+    }, '✕');
+  }
   FormatTag(f: string) {
     const C = this.C; return h('span', {
       style: {
@@ -191,6 +204,17 @@ export default class App extends React.Component<AppProps, any> {
   setStatus(id: string, s: string) { const posts = this.state.posts.map((p: Post) => p.id === id ? { ...p, status: s } : p); this.setState({ posts }); this.persist(posts); this.toast('Status → ' + s); }
   setActiveVer(i: number) { const p = this.post(this.state.selectedId)!; p.activeVer = i; this.forceUpdate(); this.persist(); }
   movePost(id: string, date: string) { const posts = this.state.posts.map((p: Post) => p.id === id ? { ...p, date } : p); this.setState({ posts }); this.persist(posts); }
+  deletePost(id: string) {
+    const posts = this.state.posts.filter((p: Post) => p.id !== id);
+    const wasSelected = this.state.selectedId === id;
+    const selectedId = wasSelected ? (posts[0] ? posts[0].id : null) : this.state.selectedId;
+    const tab = (wasSelected && this.state.tab === 'generate') ? 'calendar' : this.state.tab;
+    this.setState({ posts, selectedId, tab, modal: null });
+    this.persist(posts);
+    // Collab mode: savePosts only upserts, so removed rows need an explicit delete.
+    if (this.props.persistence && this.props.persistence.deletePosts) this.props.persistence.deletePosts([id]).catch(() => {});
+    this.toast('Topic removed');
+  }
   shiftMonth(delta: number) { const { y, m } = this.state.viewYM; const d = new Date(y, m + delta, 1); fluid(() => this.setState({ viewYM: { y: d.getFullYear(), m: d.getMonth() } })); }
   goToday() { const a = monthAnchor(); fluid(() => this.setState({ viewYM: { y: a.y, m: a.m } })); }
 
@@ -656,7 +680,9 @@ export default class App extends React.Component<AppProps, any> {
       h('span', { className: 'pcs-sheen-bar' }),
       h('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px', marginBottom: '8px', position: 'relative', zIndex: 1 } },
         this.FormatTag(p.format),
-        h('span', { style: { width: '6px', height: '6px', borderRadius: '50%', background: sm.solid ? C.accent : sm.dot, flexShrink: 0 } })),
+        h('span', { style: { display: 'inline-flex', alignItems: 'center', gap: '6px', flexShrink: 0 } },
+          h('span', { style: { width: '6px', height: '6px', borderRadius: '50%', background: sm.solid ? C.accent : sm.dot } }),
+          this.DeleteBtn(p.id, { sm: true, style: { width: '20px', height: '20px', fontSize: '10px' } }))),
       h('div', {
         style: {
           fontFamily: "'Sora',sans-serif", fontWeight: 600, fontSize: '12.5px', letterSpacing: '-0.01em', color: C.heading,
@@ -739,6 +765,7 @@ export default class App extends React.Component<AppProps, any> {
         nVers ? h('span', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '11px', color: C.faint } }, nVers + (nVers === 1 ? ' version' : ' versions')) : h('span', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '11px', color: C.faint } }, 'no drafts'),
         eng != null ? h('span', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '11px', color: C.dim } }, '⚡ ' + eng) : null,
         this.StatusBadge(p.status),
+        this.DeleteBtn(p.id, { sm: true }),
         h('span', { style: { color: C.faint, fontSize: '15px' } }, '→')),
     );
   }
@@ -776,7 +803,9 @@ export default class App extends React.Component<AppProps, any> {
       h('span', { className: 'pcs-sheen-bar' }),
       h('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '9px', position: 'relative', zIndex: 1 } },
         this.FormatTag(p.format),
-        this.Pill(isNew ? 'New' : 'Updated', cc, { bg: cbg, fg: cc, fs: '9.5px', pad: '3px 8px' })),
+        h('span', { style: { display: 'inline-flex', alignItems: 'center', gap: '7px' } },
+          this.Pill(isNew ? 'New' : 'Updated', cc, { bg: cbg, fg: cc, fs: '9.5px', pad: '3px 8px' }),
+          this.DeleteBtn(p.id, { sm: true }))),
       h('div', { style: { fontFamily: "'Sora',sans-serif", fontWeight: 600, fontSize: '14px', letterSpacing: '-0.01em', color: C.heading, lineHeight: 1.3, marginBottom: '5px', position: 'relative', zIndex: 1 } }, p.topic),
       h('div', { style: { fontSize: '12.5px', color: C.dim, lineHeight: 1.45, marginBottom: '11px', position: 'relative', zIndex: 1 } }, p.angle),
       h('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', position: 'relative', zIndex: 1 } },
@@ -955,7 +984,9 @@ export default class App extends React.Component<AppProps, any> {
           this.FormatTag(p.format),
           h('span', { style: { width: '3px', height: '3px', borderRadius: '50%', background: C.faint } }),
           h('span', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '11px', color: C.faint } }, this.fmtLong(p.date)),
-          h('span', { style: { marginLeft: 'auto' } }, this.StatusBadge(p.status)),
+          h('span', { style: { marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: '9px' } },
+            this.StatusBadge(p.status),
+            this.Btn('Delete', () => this.setState({ modal: { type: 'delete', id: p.id } }), { variant: 'danger', sm: true, icon: '🗑️' })),
         ),
         h('h1', { style: { margin: '0 0 6px', fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '30px', letterSpacing: '-0.03em', color: C.heading, lineHeight: 1.12 } }, p.topic),
         h('p', { style: { margin: '0 0 18px', fontSize: '15px', color: C.dim, lineHeight: 1.55, maxWidth: '720px' } }, p.angle),
@@ -1291,6 +1322,19 @@ export default class App extends React.Component<AppProps, any> {
     if (m.type === 'settings') return shell('480px', this.renderSettingsModal(close));
     if (m.type === 'newpost') return shell('520px', this.renderNewPostModal(close));
     if (m.type === 'import') return shell('520px', this.renderImportModal(close));
+    if (m.type === 'delete') {
+      const target = this.post(m.id); const hasDrafts = !!(target && target.versions && target.versions.length);
+      return shell('440px', h('div', { style: { padding: '26px' } },
+        h('div', { style: { fontSize: '28px', marginBottom: '10px' } }, '🗑️'),
+        h('h3', { style: { margin: '0 0 6px', fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '20px', letterSpacing: '-0.02em', color: C.heading } }, 'Remove this topic?'),
+        h('p', { style: { margin: '0 0 18px', fontSize: '14px', color: C.dim, lineHeight: 1.55 } },
+          h('strong', { style: { color: C.text } }, (target && target.topic) || 'This post'),
+          ' will be removed from your calendar' + (hasDrafts ? ', along with its generated drafts' : '') + '. This can’t be undone.'),
+        h('div', { style: { display: 'flex', gap: '9px', justifyContent: 'flex-end' } },
+          this.Btn('Cancel', close, { variant: 'ghost' }),
+          this.Btn('Remove topic', () => this.deletePost(m.id), { variant: 'danger', icon: '🗑️' })),
+      ));
+    }
 
     const p = this.post(this.state.selectedId)!; const v = this.getVersions(p)[m.vi];
 

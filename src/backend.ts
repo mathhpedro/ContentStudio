@@ -116,6 +116,11 @@ export async function fetchStyle(ws: string): Promise<string | null> {
 export async function saveStyle(ws: string, style: string): Promise<void> {
   await supabase.from('style_profiles').upsert({ workspace_id: ws, style, updated_at: new Date().toISOString() });
 }
+export async function deletePosts(ws: string, ids: string[]): Promise<void> {
+  if (!ids.length) return;
+  const { error } = await supabase.from('posts').delete().eq('workspace_id', ws).in('id', ids);
+  if (error) throw new Error(error.message);
+}
 export function subscribePosts(ws: string, onChange: () => void): () => void {
   const ch = supabase
     .channel('posts-' + ws)
