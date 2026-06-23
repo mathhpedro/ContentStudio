@@ -1,10 +1,22 @@
 import React from 'react';
+import { flushSync } from 'react-dom';
 import {
   SEM, DEFAULT_STYLE, AUTHORED, makePosts, makeVersions, regen,
   NOW, rel, lcsDiff, type Post, type Version,
 } from './data';
 
 const h = React.createElement;
+
+// Fluid view morph: use the View Transitions API when available so switching
+// between Calendar and Generation crossfades/morphs instead of cutting.
+function fluid(apply: () => void) {
+  const doc: any = document;
+  if (doc.startViewTransition && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    doc.startViewTransition(() => flushSync(apply));
+  } else {
+    apply();
+  }
+}
 
 export default class App extends React.Component<{}, any> {
   _tid: any;
@@ -14,10 +26,25 @@ export default class App extends React.Component<{}, any> {
     this.state = {
       theme: 'dark', tab: 'calendar', selectedId: 'p15', refreshOpen: true,
       posts: makePosts(), styleProfile: DEFAULT_STYLE, editingVer: null, draft: '', modal: null,
-      toast: null, styleOpen: false, whyOpen: {},
+      toast: null, styleOpen: false, whyOpen: {}, indL: 0, indW: 0,
     };
     this._tid = 0;
+    this.tabRefs = {};
   }
+
+  tabRefs: Record<string, HTMLElement | null>;
+
+  componentDidMount() { this.syncTab(); window.addEventListener('resize', this.syncTab); }
+  componentWillUnmount() { window.removeEventListener('resize', this.syncTab); }
+  componentDidUpdate(_p: {}, prev: any) {
+    if (prev.tab !== this.state.tab || prev.theme !== this.state.theme) this.syncTab();
+  }
+  syncTab = () => {
+    const el = this.tabRefs[this.state.tab];
+    if (el && (el.offsetLeft !== this.state.indL || el.offsetWidth !== this.state.indW)) {
+      this.setState({ indL: el.offsetLeft, indW: el.offsetWidth });
+    }
+  };
 
   // ---------- theme ----------
   get C() {
@@ -29,6 +56,9 @@ export default class App extends React.Component<{}, any> {
       primBg: '#E9EBEF', primFg: '#0A0B0D',
       glass: 'rgba(22,24,29,0.66)', glassBorder: 'rgba(255,255,255,0.10)', glassHi: 'rgba(255,255,255,0.45)',
       shadow: '0 16px 50px rgba(0,0,0,0.55)', input: '#0E0F13',
+      // liquid-glass surface tokens (translucent panels that refract the drifting background)
+      surf: 'rgba(20,22,27,0.55)', surf2: 'rgba(27,29,35,0.5)', surfBorder: 'rgba(255,255,255,0.09)',
+      surfHi: 'rgba(255,255,255,0.16)', surfShadow: '0 10px 34px rgba(0,0,0,0.42)',
     } : {
       dark: false, bg: '#EDEEF1', panel: '#F5F6F8', card: '#FFFFFF', card2: '#FBFBFD', raise: '#FFFFFF',
       border: '#E1E3E8', borderSoft: 'rgba(8,9,11,0.07)',
@@ -36,7 +66,22 @@ export default class App extends React.Component<{}, any> {
       primBg: '#121317', primFg: '#FFFFFF',
       glass: 'rgba(255,255,255,0.7)', glassBorder: 'rgba(255,255,255,0.85)', glassHi: 'rgba(255,255,255,0.9)',
       shadow: '0 16px 50px rgba(8,9,11,0.14)', input: '#FFFFFF',
+      // liquid-glass surface tokens (light)
+      surf: 'rgba(255,255,255,0.62)', surf2: 'rgba(255,255,255,0.5)', surfBorder: 'rgba(255,255,255,0.7)',
+      surfHi: 'rgba(255,255,255,0.95)', surfShadow: '0 10px 34px rgba(8,9,11,0.10)',
     };
+  }
+
+  // Reusable liquid-glass surface style. `soft` => lighter tint for nested panels.
+  glass(opt: any = {}) {
+    const C = this.C;
+    const blur = opt.blur || 22;
+    return {
+      background: opt.soft ? C.surf2 : C.surf,
+      backdropFilter: `blur(${blur}px) saturate(165%)`, WebkitBackdropFilter: `blur(${blur}px) saturate(165%)`,
+      border: '1px solid ' + C.surfBorder,
+      boxShadow: 'inset 0 1px 0 ' + C.surfHi + ', ' + (opt.shadow || C.surfShadow),
+    } as any;
   }
   statusMeta(s: string): any {
     const C = this.C;
@@ -107,9 +152,9 @@ export default class App extends React.Component<{}, any> {
   toast(msg: string) { this.setState({ toast: msg }); clearTimeout(this._tid); this._tid = setTimeout(() => this.setState({ toast: null }), 2200); }
 
   // ---------- actions ----------
-  setTheme(t: string) { this.setState({ theme: t }); }
-  setTab(t: string) { this.setState({ tab: t }); }
-  openPost(id: string) { this.setState({ tab: 'generate', selectedId: id, editingVer: null }); }
+  setTheme(t: string) { fluid(() => this.setState({ theme: t })); }
+  setTab(t: string) { fluid(() => this.setState({ tab: t })); }
+  openPost(id: string) { fluid(() => this.setState({ tab: 'generate', selectedId: id, editingVer: null })); }
   setStatus(id: string, s: string) { const posts = this.state.posts.map((p: Post) => p.id === id ? { ...p, status: s } : p); this.setState({ posts }); this.toast('Status → ' + s); }
   setActiveVer(i: number) { const p = this.post(this.state.selectedId)!; p.activeVer = i; this.forceUpdate(); }
   movePost(id: string, date: string) { const posts = this.state.posts.map((p: Post) => p.id === id ? { ...p, date } : p); this.setState({ posts }); }
@@ -158,10 +203,20 @@ export default class App extends React.Component<{}, any> {
         fontFamily: "'Hanken Grotesk',sans-serif", position: 'relative', transition: 'background .3s ease,color .3s ease'
       }
     },
-      C.dark ? h('div', { style: { position: 'fixed', inset: 0, pointerEvents: 'none', background: 'radial-gradient(900px 500px at 78% -8%, rgba(184,188,196,0.08), transparent 60%)', zIndex: 0 } }) : null,
+      // ambient liquid field — slowly drifting gradients that the glass surfaces refract
+      h('div', {
+        style: {
+          position: 'fixed', inset: '-15%', pointerEvents: 'none', zIndex: 0,
+          animation: 'pcsDrift 26s ease-in-out infinite',
+          background: C.dark
+            ? 'radial-gradient(760px 520px at 78% -6%, rgba(184,188,196,0.12), transparent 60%), radial-gradient(620px 520px at 8% 18%, rgba(120,150,170,0.10), transparent 62%), radial-gradient(700px 600px at 60% 108%, rgba(150,130,180,0.10), transparent 60%)'
+            : 'radial-gradient(760px 520px at 80% -8%, rgba(120,140,180,0.18), transparent 60%), radial-gradient(640px 540px at 4% 14%, rgba(150,180,200,0.20), transparent 62%), radial-gradient(700px 600px at 64% 110%, rgba(190,170,210,0.18), transparent 60%)',
+        }
+      }),
       h('div', { style: { position: 'relative', zIndex: 1, maxWidth: '1280px', margin: '0 auto', padding: '0 28px 80px' } },
         this.renderHeader(),
-        this.state.tab === 'calendar' ? this.renderCalendar() : this.renderGenerator(),
+        h('div', { key: this.state.tab, style: { viewTransitionName: 'pcs-view', animation: 'pcsViewIn .42s var(--pcs-ease) both' } as any },
+          this.state.tab === 'calendar' ? this.renderCalendar() : this.renderGenerator()),
       ),
       this.renderModal(),
       this.renderToast(),
@@ -186,11 +241,11 @@ export default class App extends React.Component<{}, any> {
     const Tab = (id: string, label: string) => {
       const on = tab === id;
       return h('button', {
-        className: 'pcs-btn', onClick: () => this.setTab(id), style: {
-          fontFamily: "'Sora',sans-serif", fontWeight: 600,
+        className: 'pcs-btn', onClick: () => this.setTab(id), ref: (el: HTMLElement | null) => { this.tabRefs[id] = el; },
+        style: {
+          position: 'relative', zIndex: 1, fontFamily: "'Sora',sans-serif", fontWeight: 600,
           fontSize: '13.5px', letterSpacing: '-0.01em', padding: '9px 17px', borderRadius: '10px', border: 'none',
-          background: on ? (C.dark ? 'rgba(255,255,255,0.10)' : '#FFFFFF') : 'transparent',
-          color: on ? C.heading : C.dim, boxShadow: on ? (C.dark ? 'inset 0 1px 0 rgba(255,255,255,0.35)' : '0 1px 3px rgba(8,9,11,0.12)') : 'none'
+          background: 'transparent', color: on ? C.heading : C.dim
         }
       }, label);
     };
@@ -218,8 +273,17 @@ export default class App extends React.Component<{}, any> {
           h('span', { style: { width: '1px', height: '18px', background: C.border } }),
           h('span', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '9.5px', letterSpacing: '0.14em', color: C.faint, textTransform: 'uppercase' } }, 'Content Studio'),
         ),
-        // tabs
-        h('div', { style: { display: 'flex', gap: '4px', padding: '4px', borderRadius: '12px', background: C.dark ? 'rgba(0,0,0,0.25)' : 'rgba(8,9,11,0.05)' } },
+        // tabs — sliding liquid-glass indicator behind the active tab
+        h('div', { style: { position: 'relative', display: 'flex', gap: '4px', padding: '4px', borderRadius: '12px', background: C.dark ? 'rgba(0,0,0,0.25)' : 'rgba(8,9,11,0.05)' } },
+          h('div', {
+            className: 'pcs-tab-ind', style: {
+              position: 'absolute', top: '4px', bottom: '4px', left: 0, width: (this.state.indW || 0) + 'px',
+              transform: 'translateX(' + (this.state.indL || 0) + 'px)', borderRadius: '10px', zIndex: 0,
+              background: C.dark ? 'rgba(255,255,255,0.12)' : '#FFFFFF',
+              boxShadow: (C.dark ? 'inset 0 1px 0 rgba(255,255,255,0.35)' : '0 1px 3px rgba(8,9,11,0.14)') + ', 0 4px 14px rgba(0,0,0,0.18)',
+              backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
+            }
+          }),
           Tab('calendar', 'Post Calendar'), Tab('generate', 'Content Generation')),
         h('div', { style: { flex: 1 } }),
         // theme toggle
@@ -284,12 +348,13 @@ export default class App extends React.Component<{}, any> {
     const newc = changed.filter((p) => p.change === 'new').length, upc = changed.filter((p) => p.change === 'updated').length;
     const firstNew = changed.find((p) => p.change === 'new') || changed[0];
     return h('div', {
+      className: 'pcs-glass pcs-sheen',
       style: {
         display: 'flex', alignItems: 'center', gap: '12px', padding: '11px 15px', borderRadius: '14px', marginBottom: '16px',
-        background: C.dark ? 'rgba(184,188,196,0.07)' : C.card, border: '1px solid ' + (C.dark ? 'rgba(184,188,196,0.18)' : C.border),
-        boxShadow: C.dark ? 'none' : '0 1px 2px rgba(8,9,11,0.05)', animation: 'pcsFade .4s ease'
+        ...this.glass(), animation: 'pcsFade .4s ease'
       }
     },
+      h('span', { className: 'pcs-sheen-bar' }),
       h('span', {
         style: {
           width: '26px', height: '26px', borderRadius: '8px', flexShrink: 0, display: 'grid', placeItems: 'center',
@@ -315,15 +380,19 @@ export default class App extends React.Component<{}, any> {
     const C = this.C; const isToday = d === today; const weekend = (key % 7) > 4;
     if (d === null) return h('div', { key: key, style: { minHeight: '150px', borderRadius: '14px', border: '1px dashed ' + C.borderSoft, opacity: 0.4 } });
     return h('div', {
-      key: key, className: 'pcs-day pcs-int',
+      key: key, className: 'pcs-day pcs-int pcs-glass',
       onDragOver: (e: any) => { e.preventDefault(); e.currentTarget.classList.add('pcs-drag-over'); },
       onDragLeave: (e: any) => e.currentTarget.classList.remove('pcs-drag-over'),
       onDrop: (e: any) => { e.preventDefault(); e.currentTarget.classList.remove('pcs-drag-over'); const id = e.dataTransfer.getData('text'); if (id) this.movePost(id, '2026-06-' + String(d).padStart(2, '0')); },
       style: {
         minHeight: '150px', maxHeight: '320px', display: 'flex', flexDirection: 'column', borderRadius: '14px',
-        background: isToday ? (C.dark ? 'rgba(184,188,196,0.08)' : 'rgba(8,9,11,0.025)') : (weekend ? (C.dark ? 'rgba(255,255,255,0.012)' : 'rgba(8,9,11,0.012)') : C.card),
-        border: '1px solid ' + (isToday ? (C.dark ? 'rgba(184,188,196,0.55)' : '#16181D') : C.border),
-        boxShadow: isToday ? (C.dark ? '0 0 0 1px rgba(184,188,196,0.35), 0 8px 24px rgba(0,0,0,0.35)' : '0 8px 22px rgba(8,9,11,0.10)') : 'none', overflow: 'hidden'
+        ...this.glass({ blur: 14, soft: weekend }),
+        overflow: 'hidden',
+        ...(isToday ? {
+          background: C.dark ? 'rgba(184,188,196,0.12)' : 'rgba(255,255,255,0.7)',
+          border: '1px solid ' + (C.dark ? 'rgba(184,188,196,0.55)' : '#16181D'),
+          boxShadow: 'inset 0 1px 0 ' + C.surfHi + ', ' + (C.dark ? '0 0 0 1px rgba(184,188,196,0.35), 0 8px 24px rgba(0,0,0,0.35)' : '0 8px 22px rgba(8,9,11,0.12)'),
+        } : {}),
       }
     },
       h('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 11px 6px' } },
@@ -347,15 +416,18 @@ export default class App extends React.Component<{}, any> {
   renderPostCard(p: Post) {
     const C = this.C; const sm = this.statusMeta(p.status);
     return h('div', {
-      key: p.id, className: 'pcs-card pcs-int', draggable: true,
+      key: p.id, className: 'pcs-card pcs-int pcs-glass pcs-sheen', draggable: true,
       onDragStart: (e: any) => { e.dataTransfer.setData('text', p.id); e.dataTransfer.effectAllowed = 'move'; },
       onClick: () => this.openPost(p.id),
       style: {
         cursor: 'pointer', borderRadius: '10px', padding: '10px 11px', position: 'relative',
-        background: C.dark ? 'rgba(255,255,255,0.04)' : C.card2, border: '1px solid ' + C.border
+        background: C.dark ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.55)',
+        backdropFilter: 'blur(8px) saturate(150%)', WebkitBackdropFilter: 'blur(8px) saturate(150%)',
+        border: '1px solid ' + C.surfBorder, boxShadow: 'inset 0 1px 0 ' + C.surfHi
       }
     },
-      h('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px', marginBottom: '8px' } },
+      h('span', { className: 'pcs-sheen-bar' }),
+      h('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px', marginBottom: '8px', position: 'relative', zIndex: 1 } },
         this.FormatTag(p.format),
         h('span', { style: { width: '6px', height: '6px', borderRadius: '50%', background: sm.solid ? C.accent : sm.dot, flexShrink: 0 } })),
       h('div', {
@@ -386,9 +458,9 @@ export default class App extends React.Component<{}, any> {
         '←', ' Back to calendar'),
       // post header
       h('div', {
+        className: 'pcs-glass',
         style: {
-          borderRadius: '18px', padding: '22px 24px', marginBottom: '18px', background: C.card, border: '1px solid ' + C.border,
-          boxShadow: C.dark ? 'none' : C.shadow
+          borderRadius: '18px', padding: '22px 24px', marginBottom: '18px', ...this.glass({ blur: 26 }),
         }
       },
         h('div', { style: { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px', flexWrap: 'wrap' } },
@@ -432,7 +504,7 @@ export default class App extends React.Component<{}, any> {
 
   renderStylePanel() {
     const C = this.C; const open = this.state.styleOpen;
-    return h('div', { style: { borderRadius: '16px', background: C.dark ? 'rgba(184,188,196,0.06)' : C.card2, border: '1px solid ' + C.border, overflow: 'hidden' } },
+    return h('div', { className: 'pcs-glass', style: { borderRadius: '16px', ...this.glass({ blur: 20 }), overflow: 'hidden' } },
       h('button', {
         className: 'pcs-btn', onClick: () => this.setState({ styleOpen: !open }), style: {
           width: '100%', display: 'flex', alignItems: 'center',
@@ -475,12 +547,14 @@ export default class App extends React.Component<{}, any> {
     const C = this.C; const editing = this.state.editingVer === i; const active = p.activeVer === i;
     const whyOpen = (this.state.whyOpen || {})[i]; const methodShort = v.method.split('—')[0].trim();
     return h('div', {
-      className: 'pcs-ver pcs-int', style: {
+      className: 'pcs-ver pcs-int pcs-glass pcs-sheen', style: {
         display: 'flex', flexDirection: 'column', borderRadius: '16px', overflow: 'hidden',
-        background: C.card, border: '1px solid ' + (v.approved ? 'rgba(46,139,116,0.5)' : active ? (C.dark ? 'rgba(184,188,196,0.4)' : '#16181D') : C.border),
-        boxShadow: v.approved ? '0 0 0 1px rgba(46,139,116,0.25)' : (C.dark ? 'none' : C.shadow)
+        ...this.glass({ blur: 24 }),
+        border: '1px solid ' + (v.approved ? 'rgba(46,139,116,0.5)' : active ? (C.dark ? 'rgba(184,188,196,0.4)' : '#16181D') : C.surfBorder),
+        boxShadow: 'inset 0 1px 0 ' + C.surfHi + ', ' + (v.approved ? '0 0 0 1px rgba(46,139,116,0.25), ' + C.surfShadow : C.surfShadow)
       }
     },
+      h('span', { className: 'pcs-sheen-bar' }),
       // header
       h('div', { style: { display: 'flex', alignItems: 'center', gap: '9px', padding: '12px 15px', borderBottom: '1px solid ' + C.borderSoft } },
         h('span', {
