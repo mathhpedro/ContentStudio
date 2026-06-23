@@ -110,12 +110,14 @@ export async function generateVersions(
   settings: Settings,
   post: { topic: string; angle: string; format: string },
   style: string,
+  perfHint?: string,
 ): Promise<Version[]> {
   const user = [
     'Create 3 distinct versions of a single post.',
     `Topic: ${post.topic}`,
     `Angle: ${post.angle}`,
     `Format: ${post.format}`,
+    perfHint ? `\nPerformance signals from past posts: ${perfHint}\nLean into what has worked, without copying.` : '',
     '',
     'Each version must use a DIFFERENT rhetorical method (e.g. Pyramid Principle / answer-first,',
     'Storytelling / situation-complication-resolution, and Proof & specificity / numbered claims).',
@@ -142,6 +144,7 @@ export async function regenerateVersion(
   post: { topic: string; angle: string; format: string },
   style: string,
   prev: { label: string; hook: string },
+  perfHint?: string,
 ): Promise<{ hook: string; body: string; method: string; methodNote: string; why: string }> {
   const user = [
     `Write a FRESH alternative for version ${prev.label} of this post — clearly different from the previous take.`,
@@ -149,6 +152,7 @@ export async function regenerateVersion(
     `Angle: ${post.angle}`,
     `Format: ${post.format}`,
     `Previous hook (avoid repeating): ${prev.hook}`,
+    perfHint ? `Performance signals from past posts: ${perfHint}` : '',
     '',
     'Body is 110–200 words and ends with one sharp question.',
     settings.webSearch ? 'Use web search to ground it in recent, specific facts; cite only verifiable figures.' : '',

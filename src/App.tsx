@@ -235,7 +235,7 @@ export default class App extends React.Component<AppProps, any> {
     const p = this.post(this.state.selectedId)!;
     this.setState({ genBusy: true });
     try {
-      const vers = await generateVersions(this.state.settings, p, this.state.styleProfile);
+      const vers = await generateVersions(this.state.settings, p, this.state.styleProfile, this.perfSummary());
       p.versions = vers; p.activeVer = 0;
       this.setState({ posts: [...this.state.posts], genBusy: false }); this.persist();
       this.toast('Generated 3 versions');
@@ -247,7 +247,7 @@ export default class App extends React.Component<AppProps, any> {
     if (!v) return;
     this.setState({ verBusy: vi });
     try {
-      const alt = await regenerateVersion(this.state.settings, p, this.state.styleProfile, { label: v.label, hook: v.hook });
+      const alt = await regenerateVersion(this.state.settings, p, this.state.styleProfile, { label: v.label, hook: v.hook }, this.perfSummary());
       v.history = [{ body: v.body, hook: v.hook, editor: v.editor || 'Pragma AI', ts: v.ts, label: 'v' + (v.history.length + 1) }, ...v.history];
       v.body = alt.body; v.hook = alt.hook; v.method = alt.method || v.method; v.methodNote = alt.methodNote || v.methodNote; v.why = alt.why || v.why;
       v.editor = 'Pragma AI'; v.ts = NOW(); v.regenCount = (v.regenCount || 0) + 1;
@@ -294,6 +294,34 @@ export default class App extends React.Component<AppProps, any> {
     this.openPost(post.id);
   }
 
+  // ---------- publish + analytics ----------
+  postText(v: Version) { return ((v.hook || '') + '\n\n' + (v.body || '')).trim(); }
+  markPublished(vi: number) {
+    const p = this.post(this.state.selectedId)!; const vers = this.getVersions(p);
+    vers.forEach((v, k) => v.approved = (k === vi)); p.activeVer = vi; p.status = 'Published'; p.publishedAt = NOW();
+    this.setState({ modal: null, posts: [...this.state.posts] }); this.persist(); this.toast('Marked as published 🚀');
+  }
+  setMetric(id: string, key: 'impressions' | 'reactions' | 'comments', value: number) {
+    const posts = this.state.posts.map((p: Post) => p.id === id ? { ...p, metrics: { ...(p.metrics || {}), [key]: value } } : p);
+    this.setState({ posts }); this.persist(posts);
+  }
+  engagement(p: Post) { const m = p.metrics || {}; return (m.reactions || 0) + (m.comments || 0); }
+  // A short "what worked" hint fed back into generation prompts.
+  perfSummary(): string {
+    const withM = this.state.posts.filter((p) => p.metrics && (p.metrics.reactions || p.metrics.comments || p.metrics.impressions));
+    if (withM.length < 2) return '';
+    const byFmt: Record<string, number[]> = {};
+    withM.forEach((p) => { (byFmt[p.format] = byFmt[p.format] || []).push(this.engagement(p)); });
+    const fmtAvg = Object.keys(byFmt).map((f) => [f, byFmt[f].reduce((a, b) => a + b, 0) / byFmt[f].length] as [string, number]).sort((a, b) => b[1] - a[1]);
+    const topFmts = fmtAvg.slice(0, 2).map((x) => x[0]).join(', ');
+    const ranked = [...withM].sort((a, b) => this.engagement(b) - this.engagement(a));
+    const topHooks = ranked.slice(0, 2).map((p) => { const v = (p.versions || [])[p.activeVer]; return v && v.hook ? '"' + v.hook.slice(0, 90) + '"' : null; }).filter(Boolean).join('; ');
+    let s = '';
+    if (topFmts) s += 'best-performing formats: ' + topFmts + '. ';
+    if (topHooks) s += 'top hooks: ' + topHooks;
+    return s.trim();
+  }
+
   // ---------- render ----------
   render() { return this.renderApp(); }
 
@@ -320,7 +348,8 @@ export default class App extends React.Component<AppProps, any> {
         h('div', { key: this.state.tab, style: { viewTransitionName: 'pcs-view', animation: 'pcsViewIn .42s var(--pcs-ease) both' } as any },
           this.state.tab === 'calendar' ? this.renderCalendar()
             : this.state.tab === 'topics' ? this.renderTopics()
-              : this.renderGenerator()),
+              : this.state.tab === 'analytics' ? this.renderAnalytics()
+                : this.renderGenerator()),
       ),
       this.renderModal(),
       this.renderToast(),
@@ -388,7 +417,7 @@ export default class App extends React.Component<AppProps, any> {
               backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
             }
           }),
-          Tab('calendar', 'Post Calendar'), Tab('topics', 'Topic Briefs'), Tab('generate', 'Content Generation')),
+          Tab('calendar', 'Post Calendar'), Tab('topics', 'Topic Briefs'), Tab('generate', 'Content Generation'), Tab('analytics', 'Analytics')),
         h('div', { style: { flex: 1 } }),
         // connect-to-Claude status / button
         h('button', {
@@ -621,6 +650,98 @@ export default class App extends React.Component<AppProps, any> {
     );
   }
 
+  // ---------- analytics ----------
+  renderAnalytics() {
+    const C = this.C;
+    const published = this.state.posts
+      .filter((p) => p.status === 'Published' || p.publishedAt)
+      .sort((a, b) => (b.publishedAt || b.date || '').localeCompare(a.publishedAt || a.date || ''));
+    const sum = (k: 'impressions' | 'reactions' | 'comments') => published.reduce((t, p) => t + ((p.metrics || {})[k] || 0), 0);
+    const totalImpr = sum('impressions'), totalReact = sum('reactions'), totalComm = sum('comments');
+    const totalEng = totalReact + totalComm;
+    const engRate = totalImpr > 0 ? ((totalEng / totalImpr) * 100).toFixed(1) + '%' : '—';
+    const hint = this.perfSummary();
+
+    return h('div', { style: { animation: 'pcsFade .4s ease', paddingTop: '14px' } },
+      h('div', { style: { marginBottom: '20px' } },
+        h('div', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '11px', letterSpacing: '0.16em', color: C.faint, textTransform: 'uppercase', marginBottom: '8px' } }, 'Analytics'),
+        h('h1', { style: { margin: 0, fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '34px', letterSpacing: '-0.03em', color: C.heading } }, 'Performance & feedback loop'),
+        h('p', { style: { margin: '8px 0 0', fontSize: '15px', color: C.dim, lineHeight: 1.55, maxWidth: '700px' } },
+          'Log the real numbers from each published post. Claude folds these signals back into the next round of generations — so what works compounds.'),
+      ),
+      published.length
+        ? h('div', {},
+          // summary cards
+          h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(168px,1fr))', gap: '14px', marginBottom: '18px' } },
+            this.statCard('Published', String(published.length), '🚀'),
+            this.statCard('Impressions', totalImpr.toLocaleString(), '👁'),
+            this.statCard('Reactions', totalReact.toLocaleString(), '👍'),
+            this.statCard('Comments', totalComm.toLocaleString(), '💬'),
+            this.statCard('Engagement rate', engRate, '⚡'),
+          ),
+          // what's working
+          hint
+            ? h('div', { className: 'pcs-glass', style: { borderRadius: '16px', padding: '18px 20px', marginBottom: '18px', ...this.glass({ blur: 22 }) } },
+              h('div', { style: { display: 'flex', alignItems: 'center', gap: '8px', position: 'relative', zIndex: 1 } },
+                h('span', { style: { fontSize: '16px' } }, '✦'),
+                h('div', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: C.faint } }, 'Fed back into generation')),
+              h('p', { style: { margin: '8px 0 0', fontSize: '14px', color: C.text, lineHeight: 1.6, position: 'relative', zIndex: 1, textTransform: 'capitalize' } }, hint + '.'))
+            : h('div', { style: { fontSize: '13px', color: C.dim, marginBottom: '18px', padding: '0 2px' } },
+              'Log metrics on at least 2 posts to unlock the feedback loop into Claude’s prompts.'),
+          // per-post table
+          h('h2', { style: { margin: '4px 2px 14px', fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '19px', letterSpacing: '-0.02em', color: C.heading } }, 'Published posts'),
+          h('div', { style: { display: 'flex', flexDirection: 'column', gap: '12px' } },
+            published.map((p) => this.renderAnalyticsRow(p))))
+        : h('div', { className: 'pcs-glass', style: { borderRadius: '18px', padding: '46px 28px', textAlign: 'center', ...this.glass({ blur: 24 }) } },
+          h('div', { style: { fontSize: '30px', marginBottom: '10px', position: 'relative', zIndex: 1 } }, '📊'),
+          h('h2', { style: { margin: '0 0 6px', fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '20px', letterSpacing: '-0.02em', color: C.heading, position: 'relative', zIndex: 1 } }, 'Nothing published yet'),
+          h('p', { style: { margin: '0 auto', maxWidth: '440px', fontSize: '14px', color: C.dim, lineHeight: 1.55, position: 'relative', zIndex: 1 } },
+            'When you publish a post from the generator, it shows up here. Then log its impressions, reactions and comments to start the feedback loop.')),
+    );
+  }
+
+  statCard(label: string, value: string, icon: string) {
+    const C = this.C;
+    return h('div', { key: label, className: 'pcs-glass', style: { borderRadius: '15px', padding: '16px 18px', ...this.glass({ blur: 20 }) } },
+      h('div', { style: { display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '8px', position: 'relative', zIndex: 1 } },
+        h('span', { style: { fontSize: '14px' } }, icon),
+        h('div', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '10px', letterSpacing: '0.08em', textTransform: 'uppercase', color: C.faint } }, label)),
+      h('div', { style: { fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '26px', letterSpacing: '-0.02em', color: C.heading, position: 'relative', zIndex: 1 } }, value));
+  }
+
+  renderAnalyticsRow(p: Post) {
+    const C = this.C; const v = (p.versions || [])[p.activeVer || 0];
+    return h('div', { key: p.id, className: 'pcs-glass', style: { borderRadius: '16px', padding: '18px 20px', ...this.glass({ blur: 22 }) } },
+      h('div', { style: { display: 'flex', alignItems: 'center', gap: '9px', marginBottom: '10px', flexWrap: 'wrap', position: 'relative', zIndex: 1 } },
+        this.FormatTag(p.format),
+        h('span', { style: { width: '3px', height: '3px', borderRadius: '50%', background: C.faint } }),
+        h('span', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '11px', color: C.faint } }, this.fmtLong(p.publishedAt || p.date)),
+        h('span', { style: { marginLeft: 'auto' } }, this.StatusBadge(p.status)),
+      ),
+      h('h3', { style: { margin: '0 0 3px', fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '17px', letterSpacing: '-0.02em', color: C.heading, lineHeight: 1.2, position: 'relative', zIndex: 1 } }, p.topic),
+      v && v.hook ? h('div', { style: { fontSize: '12.5px', color: C.dim, marginBottom: '14px', lineHeight: 1.5, position: 'relative', zIndex: 1, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' } as any }, v.hook) : null,
+      h('div', { style: { display: 'flex', gap: '12px', flexWrap: 'wrap', position: 'relative', zIndex: 1 } },
+        this.metricInput(p, 'impressions', 'Impressions'),
+        this.metricInput(p, 'reactions', 'Reactions'),
+        this.metricInput(p, 'comments', 'Comments')),
+    );
+  }
+
+  metricInput(p: Post, key: 'impressions' | 'reactions' | 'comments', label: string) {
+    const C = this.C; const cur = (p.metrics || {})[key];
+    return h('label', { key, style: { display: 'flex', flexDirection: 'column', gap: '5px' } },
+      h('span', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '9.5px', letterSpacing: '0.08em', textTransform: 'uppercase', color: C.faint } }, label),
+      h('input', {
+        type: 'number', min: 0, value: cur == null ? '' : cur, placeholder: '0',
+        onChange: (e: any) => this.setMetric(p.id, key, Math.max(0, parseInt(e.target.value, 10) || 0)),
+        style: {
+          width: '104px', padding: '8px 10px', borderRadius: '9px', border: '1px solid ' + C.border,
+          background: C.dark ? 'rgba(0,0,0,0.22)' : '#fff', color: C.text,
+          fontFamily: "'Sora',sans-serif", fontWeight: 600, fontSize: '14px', boxSizing: 'border-box',
+        },
+      }));
+  }
+
   renderGenerator() {
     const C = this.C; const p = this.post(this.state.selectedId);
     if (!p) return h('div', { style: { padding: '60px', textAlign: 'center', color: C.dim } }, 'Select a post from the calendar.');
@@ -845,7 +966,7 @@ export default class App extends React.Component<AppProps, any> {
           this.Btn(this.state.verBusy === i ? 'Regenerating…' : 'Regenerate', () => this.regenerate(i), { variant: 'soft', sm: true, icon: '↻', disabled: this.state.verBusy === i }),
           h('span', { key: 'sp', style: { flex: 1 } }),
           this.Btn('Approve', () => this.approve(i), { variant: v.approved ? 'success' : 'ghost', sm: true, icon: v.approved ? '✓' : null }),
-          this.Btn('Schedule', () => this.setState({ modal: { type: 'schedule', vi: i } }), { variant: 'primary', sm: true, icon: '📅' })],
+          this.Btn('Publish', () => this.setState({ modal: { type: 'publish', vi: i } }), { variant: 'primary', sm: true, icon: '🚀' })],
       ),
     );
   }
@@ -972,6 +1093,31 @@ export default class App extends React.Component<AppProps, any> {
         h('div', { style: { display: 'flex', gap: '9px', justifyContent: 'flex-end' } },
           this.Btn('Cancel', close, { variant: 'ghost' }),
           this.Btn('Confirm schedule', () => this.schedule(m.vi), { variant: 'primary', icon: '✓' })),
+      ));
+    }
+
+    if (m.type === 'publish') {
+      const text = this.postText(v);
+      return shell('560px', h('div', { style: { padding: '26px' } },
+        h('div', { style: { fontSize: '30px', marginBottom: '10px' } }, '🚀'),
+        h('h3', { style: { margin: '0 0 6px', fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '20px', letterSpacing: '-0.02em', color: C.heading } }, 'Publish to LinkedIn'),
+        h('p', { style: { margin: '0 0 16px', fontSize: '13.5px', color: C.dim, lineHeight: 1.55 } },
+          'Copy the post, open LinkedIn to paste and publish, then mark it as published here to track its performance.'),
+        h('textarea', {
+          readOnly: true, value: text, className: 'pcs-scroll',
+          onFocus: (e: any) => e.target.select(),
+          style: {
+            width: '100%', minHeight: '180px', resize: 'vertical', borderRadius: '12px', padding: '13px 14px',
+            background: C.dark ? 'rgba(0,0,0,0.22)' : '#fff', border: '1px solid ' + C.border, color: C.text,
+            fontSize: '13.5px', lineHeight: 1.6, fontFamily: 'inherit', boxSizing: 'border-box', whiteSpace: 'pre-wrap',
+          },
+        }),
+        h('div', { style: { display: 'flex', gap: '9px', flexWrap: 'wrap', justifyContent: 'flex-end', marginTop: '16px' } },
+          this.Btn('Copy text', () => {
+            try { navigator.clipboard.writeText(text); this.toast('Post copied 📋'); } catch { this.toast('Copy failed — select and copy manually'); }
+          }, { variant: 'ghost', sm: true, icon: '📋' }),
+          this.Btn('Open LinkedIn', () => window.open('https://www.linkedin.com/feed/?shareActive=true', '_blank', 'noopener'), { variant: 'ghost', sm: true, icon: '↗' }),
+          this.Btn('Mark as published', () => this.markPublished(m.vi), { variant: 'primary', sm: true, icon: '✓' })),
       ));
     }
 
