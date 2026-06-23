@@ -3,10 +3,10 @@
 // Builds SVGs from structured specs and rasterises them to PNG. Fonts are
 // embedded as data-URI @font-face at raster time so the PNG is faithful.
 
-// ---- design tokens (from the reference) ----
-const BG = '#15110B', CREAM = '#EDE4D2', GOLD = '#C6912E', GOLDLT = '#D4A23F';
-const MUTE = '#A89E8B', FAINT = '#74695A', RULE = '#352E24';
-const SERIF = "'Playfair Display', Georgia, 'Times New Roman', serif";
+// ---- Pragma design-system tokens ----
+const BG = '#0F0E0B', CREAM = '#F2EEE4', GOLD = '#C2861E', GOLDLT = '#DDB778';
+const MUTE = '#A89E8B', FAINT = '#74695A', RULE = '#2B261C';
+const SERIF = "'Cormorant Garamond', Georgia, 'Times New Roman', serif";
 const MONO = "'JetBrains Mono', 'Courier New', monospace";
 
 // semantic data colours (so values differ by meaning, on a dark ground)
@@ -264,7 +264,7 @@ function abToB64(buf: ArrayBuffer): string {
 async function embeddedFontCss(): Promise<string> {
   if (_fontCss !== null) return _fontCss;
   try {
-    const url = 'https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,400;1,700&family=JetBrains+Mono:wght@400;500;700&display=swap';
+    const url = 'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600;1,700&family=JetBrains+Mono:wght@400;500;700&display=swap';
     const css = await (await fetch(url)).text();
     const urls = Array.from(new Set((css.match(/url\((https:[^)]+\.woff2)\)/g) || []).map((m) => m.slice(4, -1))));
     let out = css;

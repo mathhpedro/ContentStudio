@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
   /* Fluid / spring easings used across the liquid-glass UI */
@@ -9,8 +9,15 @@
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; height: 100%; }
 #root { height: 100%; }
-body { font-family: 'Hanken Grotesk', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
-::selection { background: #B8BCC4; color: #08090B; }
+body { font-family: 'Cormorant Garamond', Georgia, serif; -webkit-font-smoothing: antialiased; }
+::selection { background: #C2861E; color: #0F0E0B; }
+
+/* Pragma DS — near-square corners; the elegance is in the type, not the radii. */
+.pcs-glass { border-radius: 4px !important; }
+.pcs-btn { border-radius: 3px !important; }
+.pcs-card { border-radius: 3px !important; }
+.pcs-day { border-radius: 4px !important; }
+.pcs-tab-ind { border-radius: 3px !important; }
 
 @keyframes pcsFade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 @keyframes pcsPop { from { opacity: 0; transform: scale(.97); } to { opacity: 1; transform: none; } }
@@ -33,9 +40,9 @@ body { font-family: 'Hanken Grotesk', system-ui, sans-serif; -webkit-font-smooth
 .pcs-btn:active { transform: translateY(1px) scale(.98); }
 .pcs-card:hover { transform: translateY(-3px) scale(1.012); }
 .pcs-day:hover { border-color: rgba(150,155,164,.45) !important; }
-.pcs-drag-over { outline: 2px dashed #B8BCC4 !important; outline-offset: -4px; }
+.pcs-drag-over { outline: 2px dashed #C2861E !important; outline-offset: -4px; }
 .pcs-scroll::-webkit-scrollbar { width: 9px; height: 9px; }
-.pcs-scroll::-webkit-scrollbar-thumb { background: rgba(150,155,164,.32); border-radius: 8px; }
+.pcs-scroll::-webkit-scrollbar-thumb { background: rgba(194,134,30,.32); border-radius: 8px; }
 .pcs-scroll::-webkit-scrollbar-track { background: transparent; }
 textarea, input { font-family: inherit; }
 .pcs-ver:hover { border-color: rgba(150,155,164,.5) !important; }
@@ -44,8 +51,8 @@ textarea, input { font-family: inherit; }
 .pcs-glass { position: relative; isolation: isolate; }
 .pcs-glass::after {
   content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
-  background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0) 42%);
-  opacity: .9; z-index: 0;
+  background: linear-gradient(180deg, rgba(242,238,228,0.06), rgba(242,238,228,0) 42%);
+  opacity: .85; z-index: 0;
 }
 /* moving sheen — sweeps once on hover */
 .pcs-sheen { position: relative; overflow: hidden; }

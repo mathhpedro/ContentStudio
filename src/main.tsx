@@ -25,14 +25,14 @@ function CodeGate({ onEntered }: { onEntered: () => void }) {
   const [err, setErr] = useState('');
 
   const input: React.CSSProperties = {
-    width: '100%', borderRadius: '12px', padding: '13px 15px', background: '#0E0F13',
-    border: '1px solid #232529', color: '#E9EBEF', fontSize: '14px', outline: 'none',
-    fontFamily: "'Hanken Grotesk',sans-serif", boxSizing: 'border-box',
+    width: '100%', borderRadius: '3px', padding: '13px 15px', background: '#141209',
+    border: '1px solid #2B261C', color: '#F2EEE4', fontSize: '15px', outline: 'none',
+    fontFamily: "'JetBrains Mono',monospace", boxSizing: 'border-box',
   };
   const btn: React.CSSProperties = {
-    width: '100%', borderRadius: '12px', padding: '13px', marginTop: '12px', border: 'none',
-    background: '#E9EBEF', color: '#0A0B0D', fontFamily: "'Sora',sans-serif", fontWeight: 600,
-    fontSize: '14px', cursor: 'pointer', opacity: busy ? 0.6 : 1,
+    width: '100%', borderRadius: '3px', padding: '14px', marginTop: '12px', border: 'none',
+    background: '#C2861E', color: '#0F0E0B', fontFamily: "'JetBrains Mono',monospace", fontWeight: 600,
+    fontSize: '13px', letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer', opacity: busy ? 0.6 : 1,
   };
 
   async function enter() {
@@ -43,28 +43,29 @@ function CodeGate({ onEntered }: { onEntered: () => void }) {
 
   return (
     <div style={{
-      minHeight: '100vh', display: 'grid', placeItems: 'center', background: '#08090B',
-      fontFamily: "'Hanken Grotesk',sans-serif", color: '#E9EBEF', padding: '24px',
+      minHeight: '100vh', display: 'grid', placeItems: 'center', background: '#0F0E0B',
+      fontFamily: "'Cormorant Garamond',serif", color: '#F2EEE4', padding: '24px',
     }}>
       <div style={{
-        width: '100%', maxWidth: '380px', borderRadius: '20px', padding: '30px',
-        background: 'rgba(22,24,29,0.66)', backdropFilter: 'blur(30px) saturate(180%)',
-        border: '1px solid rgba(255,255,255,0.10)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.45), 0 16px 50px rgba(0,0,0,0.55)',
+        width: '100%', maxWidth: '390px', borderRadius: '4px', padding: '34px',
+        background: '#15130D', border: '1px solid #2B261C', boxShadow: '0 16px 50px rgba(0,0,0,0.55)',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
-          <span style={{ fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: '18px', letterSpacing: '0.17em' }}>PRAGMA</span>
-          <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: '9px', letterSpacing: '0.14em', color: '#6B7079', textTransform: 'uppercase' }}>Content Studio</span>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', marginBottom: '8px' }}>
+          <span style={{ fontFamily: "'Cormorant Garamond',serif", fontWeight: 700, fontSize: '24px', color: '#F2EEE4' }}>Pragma<span style={{ color: '#C2861E' }}>.</span></span>
+          <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: '9px', letterSpacing: '0.18em', color: '#74695A', textTransform: 'uppercase' }}>Content Studio</span>
         </div>
-        <h1 style={{ fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '22px', letterSpacing: '-0.02em', margin: '12px 0 6px' }}>
+        <div style={{ height: '1px', background: '#2B261C', margin: '4px 0 18px' }} />
+        <div style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: '10px', letterSpacing: '0.16em', color: '#C2861E', textTransform: 'uppercase', marginBottom: '10px' }}>Access</div>
+        <h1 style={{ fontFamily: "'Cormorant Garamond',serif", fontWeight: 700, fontSize: '30px', letterSpacing: '-0.01em', margin: '0 0 6px' }}>
           Enter access code
         </h1>
-        <p style={{ fontSize: '13.5px', color: '#969BA4', lineHeight: 1.5, marginTop: 0, marginBottom: '18px' }}>
+        <p style={{ fontSize: '16px', color: '#A89E8B', lineHeight: 1.5, marginTop: 0, marginBottom: '18px' }}>
           This studio is shared with your team. Enter the access code to continue.
         </p>
         <input style={input} type="password" placeholder="Access code" value={code} autoFocus
           onChange={(e) => setCode(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && code && enter()} />
-        <button style={btn} disabled={busy || !code} onClick={enter}>{busy ? 'Checking…' : 'Enter studio'}</button>
-        {err ? <div style={{ marginTop: '12px', fontSize: '12.5px', color: '#C2453E' }}>{err}</div> : null}
+        <button style={btn} disabled={busy || !code} onClick={enter}>{busy ? 'Checking…' : 'Enter studio →'}</button>
+        {err ? <div style={{ marginTop: '12px', fontSize: '13px', color: '#C2453E', fontFamily: "'JetBrains Mono',monospace" }}>{err}</div> : null}
       </div>
     </div>
   );
@@ -73,7 +74,7 @@ function CodeGate({ onEntered }: { onEntered: () => void }) {
 // ---------- Splash ----------
 function Splash({ text }: { text: string }) {
   return (
-    <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: '#08090B', color: '#969BA4', fontFamily: "'Sora',sans-serif", fontSize: '14px' }}>
+    <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: '#0F0E0B', color: '#A89E8B', fontFamily: "'JetBrains Mono',monospace", fontSize: '13px', letterSpacing: '0.08em' }}>
       {text}
     </div>
   );

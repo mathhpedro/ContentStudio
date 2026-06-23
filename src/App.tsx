@@ -92,26 +92,25 @@ export default class App extends React.Component<AppProps, any> {
   // ---------- theme ----------
   get C() {
     const d = this.state.theme === 'dark';
+    // Pragma DS — Ink #0F0E0B · Gold #C2861E · Cream #F2EEE4. Predominantly dark.
     return d ? {
-      dark: true, bg: '#08090B', panel: '#0C0D11', card: '#121317', card2: '#16181D', raise: '#1B1D23',
-      border: '#232529', borderSoft: 'rgba(255,255,255,0.07)',
-      text: '#E9EBEF', dim: '#969BA4', faint: '#6B7079', heading: '#FFFFFF', accent: '#B8BCC4',
-      primBg: '#E9EBEF', primFg: '#0A0B0D',
-      glass: 'rgba(22,24,29,0.66)', glassBorder: 'rgba(255,255,255,0.10)', glassHi: 'rgba(255,255,255,0.45)',
-      shadow: '0 16px 50px rgba(0,0,0,0.55)', input: '#0E0F13',
-      // liquid-glass surface tokens (translucent panels that refract the drifting background)
-      surf: 'rgba(20,22,27,0.55)', surf2: 'rgba(27,29,35,0.5)', surfBorder: 'rgba(255,255,255,0.09)',
-      surfHi: 'rgba(255,255,255,0.16)', surfShadow: '0 10px 34px rgba(0,0,0,0.42)',
+      dark: true, bg: '#0F0E0B', panel: '#15130D', card: '#19160F', card2: '#141209', raise: '#1F1B13',
+      border: '#2B261C', borderSoft: 'rgba(242,238,228,0.08)',
+      text: '#E8E2D4', dim: '#A89E8B', faint: '#74695A', heading: '#F4EFE3', accent: '#C2861E',
+      primBg: '#C2861E', primFg: '#0F0E0B',
+      glass: 'rgba(22,20,14,0.68)', glassBorder: 'rgba(242,238,228,0.10)', glassHi: 'rgba(242,238,228,0.30)',
+      shadow: '0 16px 50px rgba(0,0,0,0.55)', input: '#141209',
+      surf: 'rgba(21,19,13,0.58)', surf2: 'rgba(28,24,17,0.52)', surfBorder: 'rgba(242,238,228,0.09)',
+      surfHi: 'rgba(242,238,228,0.14)', surfShadow: '0 10px 34px rgba(0,0,0,0.42)',
     } : {
-      dark: false, bg: '#EDEEF1', panel: '#F5F6F8', card: '#FFFFFF', card2: '#FBFBFD', raise: '#FFFFFF',
-      border: '#E1E3E8', borderSoft: 'rgba(8,9,11,0.07)',
-      text: '#16181D', dim: '#6B7079', faint: '#969BA4', heading: '#08090B', accent: '#45484E',
-      primBg: '#121317', primFg: '#FFFFFF',
-      glass: 'rgba(255,255,255,0.7)', glassBorder: 'rgba(255,255,255,0.85)', glassHi: 'rgba(255,255,255,0.9)',
-      shadow: '0 16px 50px rgba(8,9,11,0.14)', input: '#FFFFFF',
-      // liquid-glass surface tokens (light)
-      surf: 'rgba(255,255,255,0.62)', surf2: 'rgba(255,255,255,0.5)', surfBorder: 'rgba(255,255,255,0.7)',
-      surfHi: 'rgba(255,255,255,0.95)', surfShadow: '0 10px 34px rgba(8,9,11,0.10)',
+      dark: false, bg: '#F2EEE4', panel: '#F7F4EC', card: '#FBF9F3', card2: '#F4F0E6', raise: '#FFFFFF',
+      border: '#E1DACA', borderSoft: 'rgba(15,14,11,0.08)',
+      text: '#1A1711', dim: '#736A58', faint: '#A89E8B', heading: '#0F0E0B', accent: '#A06E18',
+      primBg: '#C2861E', primFg: '#0F0E0B',
+      glass: 'rgba(247,244,236,0.74)', glassBorder: 'rgba(255,255,255,0.85)', glassHi: 'rgba(255,255,255,0.9)',
+      shadow: '0 16px 50px rgba(15,14,11,0.12)', input: '#FFFFFF',
+      surf: 'rgba(251,249,243,0.66)', surf2: 'rgba(244,240,230,0.55)', surfBorder: 'rgba(255,255,255,0.7)',
+      surfHi: 'rgba(255,255,255,0.95)', surfShadow: '0 10px 34px rgba(15,14,11,0.10)',
     };
   }
 
@@ -132,7 +131,7 @@ export default class App extends React.Component<AppProps, any> {
       'Draft': { fg: C.dim, bg: C.dark ? 'rgba(150,155,164,0.12)' : 'rgba(107,112,121,0.10)', dot: C.faint },
       'In Review': { fg: SEM.warning, bg: 'rgba(201,162,75,0.15)', dot: SEM.warning },
       'Approved': { fg: SEM.success, bg: 'rgba(46,139,116,0.16)', dot: SEM.success },
-      'Published': { fg: C.dark ? '#0A0B0D' : '#FFFFFF', bg: C.dark ? '#B8BCC4' : '#16181D', dot: C.accent, solid: true },
+      'Published': { fg: C.dark ? '#0A0B0D' : '#FFFFFF', bg: C.dark ? '#C2861E' : '#0F0E0B', dot: C.accent, solid: true },
     };
     return map[s] || map['Draft'];
   }
@@ -142,15 +141,15 @@ export default class App extends React.Component<AppProps, any> {
   Btn(label: any, onClick: any, opt: any = {}) {
     const C = this.C; const v = opt.variant || 'ghost';
     const base: any = {
-      display: 'inline-flex', alignItems: 'center', gap: '7px', fontFamily: "'Sora',sans-serif",
-      fontWeight: 600, fontSize: opt.sm ? '12.5px' : '13.5px', letterSpacing: '-0.01em', borderRadius: opt.sm ? '10px' : '12px',
-      padding: opt.sm ? '7px 12px' : '10px 16px', border: '1px solid transparent', whiteSpace: 'nowrap', lineHeight: 1
+      display: 'inline-flex', alignItems: 'center', gap: '7px', fontFamily: "'JetBrains Mono',monospace",
+      fontWeight: 500, fontSize: opt.sm ? '11px' : '12px', letterSpacing: '0.06em', textTransform: 'uppercase', borderRadius: '3px',
+      padding: opt.sm ? '8px 12px' : '11px 17px', border: '1px solid transparent', whiteSpace: 'nowrap', lineHeight: 1
     };
     const styles: any = {
-      primary: { background: C.primBg, color: C.primFg, boxShadow: C.dark ? 'inset 0 1px 0 rgba(255,255,255,0.5)' : '0 1px 2px rgba(0,0,0,0.2)' },
+      primary: { background: C.primBg, color: C.primFg, fontWeight: 600 },
       ghost: { background: 'transparent', color: C.text, borderColor: C.border },
       glass: { background: C.glass, color: C.text, borderColor: C.glassBorder, backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' },
-      soft: { background: C.dark ? 'rgba(255,255,255,0.06)' : 'rgba(8,9,11,0.05)', color: C.text, borderColor: C.borderSoft },
+      soft: { background: C.dark ? 'rgba(242,238,228,0.05)' : 'rgba(15,14,11,0.04)', color: C.text, borderColor: C.borderSoft },
       success: { background: 'rgba(46,139,116,0.16)', color: SEM.success, borderColor: 'rgba(46,139,116,0.4)' },
       danger: { background: 'rgba(194,69,62,0.14)', color: SEM.error, borderColor: 'rgba(194,69,62,0.4)' },
     };
@@ -164,7 +163,7 @@ export default class App extends React.Component<AppProps, any> {
     const C = this.C;
     return h('span', {
       style: {
-        display: 'inline-flex', alignItems: 'center', gap: '5px', fontFamily: "'Sora',sans-serif",
+        display: 'inline-flex', alignItems: 'center', gap: '5px', fontFamily: "'Cormorant Garamond',serif",
         fontSize: opt.fs || '11px', fontWeight: 600, letterSpacing: '0.01em', padding: opt.pad || '4px 9px', borderRadius: '999px',
         background: opt.solid ? (opt.bg || color) : (opt.bg || 'transparent'), color: opt.solid ? (opt.solidFg || (C.dark ? '#0A0B0D' : '#fff')) : (opt.fg || color),
         border: opt.border || 'none', lineHeight: 1, ...(opt.style || {})
@@ -503,17 +502,25 @@ export default class App extends React.Component<AppProps, any> {
     return h('div', {
       className: 'pcs-scroll', style: {
         minHeight: '100vh', height: '100vh', overflow: 'auto', background: C.bg, color: C.text,
-        fontFamily: "'Hanken Grotesk',sans-serif", position: 'relative', transition: 'background .3s ease,color .3s ease'
+        fontFamily: "'Cormorant Garamond',serif", position: 'relative', transition: 'background .3s ease,color .3s ease'
       }
     },
-      // ambient liquid field — slowly drifting gradients that the glass surfaces refract
+      // editorial mesh — the signature 32px grid texture, discreet and precise
+      h('div', {
+        style: {
+          position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0,
+          backgroundImage: 'linear-gradient(' + (C.dark ? 'rgba(242,238,228,0.022)' : 'rgba(15,14,11,0.03)') + ' 1px, transparent 1px), linear-gradient(90deg, ' + (C.dark ? 'rgba(242,238,228,0.022)' : 'rgba(15,14,11,0.03)') + ' 1px, transparent 1px)',
+          backgroundSize: '32px 32px',
+        }
+      }),
+      // a single warm gold glow — gold used with parsimony
       h('div', {
         style: {
           position: 'fixed', inset: '-15%', pointerEvents: 'none', zIndex: 0,
-          animation: 'pcsDrift 26s ease-in-out infinite',
+          animation: 'pcsDrift 30s ease-in-out infinite',
           background: C.dark
-            ? 'radial-gradient(760px 520px at 78% -6%, rgba(184,188,196,0.12), transparent 60%), radial-gradient(620px 520px at 8% 18%, rgba(120,150,170,0.10), transparent 62%), radial-gradient(700px 600px at 60% 108%, rgba(150,130,180,0.10), transparent 60%)'
-            : 'radial-gradient(760px 520px at 80% -8%, rgba(120,140,180,0.18), transparent 60%), radial-gradient(640px 540px at 4% 14%, rgba(150,180,200,0.20), transparent 62%), radial-gradient(700px 600px at 64% 110%, rgba(190,170,210,0.18), transparent 60%)',
+            ? 'radial-gradient(800px 540px at 82% -8%, rgba(194,134,30,0.10), transparent 62%), radial-gradient(620px 520px at 4% 16%, rgba(194,134,30,0.045), transparent 64%)'
+            : 'radial-gradient(820px 560px at 84% -10%, rgba(194,134,30,0.12), transparent 62%), radial-gradient(640px 540px at 2% 14%, rgba(194,134,30,0.06), transparent 64%)',
         }
       }),
       h('div', { style: { position: 'relative', zIndex: 1, maxWidth: '1280px', margin: '0 auto', padding: '0 28px 80px' } },
@@ -538,7 +545,7 @@ export default class App extends React.Component<AppProps, any> {
         position: 'fixed', bottom: '26px', left: '50%', transform: 'translateX(-50%)', zIndex: 80,
         background: C.glass, backdropFilter: 'blur(24px) saturate(160%)', WebkitBackdropFilter: 'blur(24px) saturate(160%)',
         border: '1px solid ' + C.glassBorder, boxShadow: 'inset 0 1px 0 ' + C.glassHi + ', ' + C.shadow, borderRadius: '14px',
-        padding: '12px 20px', fontFamily: "'Sora',sans-serif", fontWeight: 600, fontSize: '13.5px', color: C.text, animation: 'pcsPop .25s ease'
+        padding: '12px 20px', fontFamily: "'Cormorant Garamond',serif", fontWeight: 600, fontSize: '13.5px', color: C.text, animation: 'pcsPop .25s ease'
       }
     },
       this.state.toast);
@@ -551,8 +558,8 @@ export default class App extends React.Component<AppProps, any> {
       return h('button', {
         className: 'pcs-btn', onClick: () => this.setTab(id), ref: (el: HTMLElement | null) => { this.tabRefs[id] = el; },
         style: {
-          position: 'relative', zIndex: 1, fontFamily: "'Sora',sans-serif", fontWeight: 600,
-          fontSize: '13.5px', letterSpacing: '-0.01em', padding: '9px 17px', borderRadius: '10px', border: 'none',
+          position: 'relative', zIndex: 1, fontFamily: "'JetBrains Mono',monospace", fontWeight: 500,
+          fontSize: '11px', letterSpacing: '0.07em', textTransform: 'uppercase', padding: '9px 15px', borderRadius: '3px', border: 'none',
           background: 'transparent', color: on ? C.heading : C.dim
         }
       }, label);
@@ -576,20 +583,19 @@ export default class App extends React.Component<AppProps, any> {
         }
       },
         // brand — Pragma wordmark
-        h('div', { style: { display: 'flex', alignItems: 'center', gap: '12px', marginRight: '4px' } },
-          h('span', { style: { fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: '19px', letterSpacing: '0.17em', color: C.heading, lineHeight: 1 } }, 'PRAGMA'),
-          h('span', { style: { width: '1px', height: '18px', background: C.border } }),
-          h('span', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '9.5px', letterSpacing: '0.14em', color: C.faint, textTransform: 'uppercase' } }, 'Content Studio'),
+        h('div', { style: { display: 'flex', alignItems: 'baseline', gap: '12px', marginRight: '4px' } },
+          h('span', { style: { fontFamily: "'Cormorant Garamond',serif", fontWeight: 700, fontSize: '23px', letterSpacing: '0', color: C.heading, lineHeight: 1 } }, 'Pragma', h('span', { style: { color: C.accent } }, '.')),
+          h('span', { style: { width: '1px', height: '16px', background: C.border, alignSelf: 'center' } }),
+          h('span', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '9px', letterSpacing: '0.16em', color: C.faint, textTransform: 'uppercase' } }, 'Content Studio'),
         ),
         // tabs — sliding liquid-glass indicator behind the active tab
         h('div', { style: { position: 'relative', display: 'flex', gap: '4px', padding: '4px', borderRadius: '12px', background: C.dark ? 'rgba(0,0,0,0.25)' : 'rgba(8,9,11,0.05)' } },
           h('div', {
             className: 'pcs-tab-ind', style: {
               position: 'absolute', top: '4px', bottom: '4px', left: 0, width: (this.state.indW || 0) + 'px',
-              transform: 'translateX(' + (this.state.indL || 0) + 'px)', borderRadius: '10px', zIndex: 0,
-              background: C.dark ? 'rgba(255,255,255,0.12)' : '#FFFFFF',
-              boxShadow: (C.dark ? 'inset 0 1px 0 rgba(255,255,255,0.35)' : '0 1px 3px rgba(8,9,11,0.14)') + ', 0 4px 14px rgba(0,0,0,0.18)',
-              backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
+              transform: 'translateX(' + (this.state.indL || 0) + 'px)', borderRadius: '3px', zIndex: 0,
+              background: C.dark ? 'rgba(242,238,228,0.10)' : 'rgba(255,255,255,0.95)',
+              boxShadow: 'inset 0 0 0 1px ' + (C.dark ? 'rgba(194,134,30,0.35)' : 'rgba(15,14,11,0.10)'),
             }
           }),
           Tab('calendar', 'Calendar'), Tab('all', 'All Posts'), Tab('topics', 'Topic Briefs'), Tab('generate', 'Generation'), Tab('analytics', 'Analytics'),
@@ -600,7 +606,7 @@ export default class App extends React.Component<AppProps, any> {
           className: 'pcs-btn', onClick: () => this.openSettings(),
           title: this.connected ? 'Claude connected' : 'Connect your Claude account',
           style: {
-            display: 'inline-flex', alignItems: 'center', gap: '7px', fontFamily: "'Sora',sans-serif", fontWeight: 600,
+            display: 'inline-flex', alignItems: 'center', gap: '7px', fontFamily: "'Cormorant Garamond',serif", fontWeight: 600,
             fontSize: '12.5px', padding: '8px 13px', borderRadius: '10px', marginRight: '8px',
             border: '1px solid ' + (this.connected ? 'rgba(46,139,116,0.4)' : C.border),
             background: this.connected ? 'rgba(46,139,116,0.14)' : (C.dark ? 'rgba(255,255,255,0.06)' : 'rgba(8,9,11,0.05)'),
@@ -645,7 +651,7 @@ export default class App extends React.Component<AppProps, any> {
         h('div', {},
           h('div', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '11px', letterSpacing: '0.16em', color: C.faint, textTransform: 'uppercase', marginBottom: '8px' } }, 'Editorial Calendar'),
           h('div', { style: { display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' } },
-            h('h1', { style: { margin: 0, fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '34px', letterSpacing: '-0.03em', color: C.heading } },
+            h('h1', { style: { margin: 0, fontFamily: "'Cormorant Garamond',serif", fontWeight: 700, fontSize: '34px', letterSpacing: '-0.03em', color: C.heading } },
               monthName + ' ' + y,
               h('span', { style: { marginLeft: '12px', fontSize: '17px', fontWeight: 500, color: C.dim, letterSpacing: '-0.01em' } }, monthPosts.length + (monthPosts.length === 1 ? ' post' : ' posts')),
             ),
@@ -670,7 +676,7 @@ export default class App extends React.Component<AppProps, any> {
         className: 'pcs-glass', style: { borderRadius: '18px', padding: '34px 28px', textAlign: 'center', marginBottom: '18px', ...this.glass({ blur: 24 }) }
       },
         h('div', { style: { fontSize: '28px', marginBottom: '10px', position: 'relative', zIndex: 1 } }, '🗓️'),
-        h('h2', { style: { margin: '0 0 6px', fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '20px', letterSpacing: '-0.02em', color: C.heading, position: 'relative', zIndex: 1 } }, 'Your week is a blank slate'),
+        h('h2', { style: { margin: '0 0 6px', fontFamily: "'Cormorant Garamond',serif", fontWeight: 700, fontSize: '20px', letterSpacing: '-0.02em', color: C.heading, position: 'relative', zIndex: 1 } }, 'Your week is a blank slate'),
         h('p', { style: { margin: '0 auto 16px', maxWidth: '480px', fontSize: '14px', color: C.dim, lineHeight: 1.55, position: 'relative', zIndex: 1 } },
           this.connected
             ? 'Let Claude propose this week’s editorial agenda and draft three on-brand versions for every topic — then review, publish and track results.'
@@ -692,7 +698,7 @@ export default class App extends React.Component<AppProps, any> {
       h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: '10px', marginBottom: '8px' } },
         wd.map((w, i) => h('div', {
           key: w, style: {
-            fontFamily: "'Sora',sans-serif", fontWeight: 600, fontSize: '12px', letterSpacing: '0.02em',
+            fontFamily: "'Cormorant Garamond',serif", fontWeight: 600, fontSize: '12px', letterSpacing: '0.02em',
             color: i > 4 ? C.faint : C.dim, textAlign: 'left', paddingLeft: '4px'
           }
         }, w))),
@@ -715,9 +721,9 @@ export default class App extends React.Component<AppProps, any> {
         ...this.glass({ blur: 14, soft: weekend }),
         overflow: 'hidden',
         ...(isToday ? {
-          background: C.dark ? 'rgba(184,188,196,0.12)' : 'rgba(255,255,255,0.7)',
-          border: '1px solid ' + (C.dark ? 'rgba(184,188,196,0.55)' : '#16181D'),
-          boxShadow: 'inset 0 1px 0 ' + C.surfHi + ', ' + (C.dark ? '0 0 0 1px rgba(184,188,196,0.35), 0 8px 24px rgba(0,0,0,0.35)' : '0 8px 22px rgba(8,9,11,0.12)'),
+          background: C.dark ? 'rgba(194,134,30,0.12)' : 'rgba(255,255,255,0.7)',
+          border: '1px solid ' + (C.dark ? 'rgba(194,134,30,0.55)' : '#0F0E0B'),
+          boxShadow: 'inset 0 1px 0 ' + C.surfHi + ', ' + (C.dark ? '0 0 0 1px rgba(194,134,30,0.35), 0 8px 24px rgba(0,0,0,0.35)' : '0 8px 22px rgba(8,9,11,0.12)'),
         } : {}),
       }
     },
@@ -727,11 +733,11 @@ export default class App extends React.Component<AppProps, any> {
             h('span', {
               style: {
                 width: '22px', height: '22px', borderRadius: '50%', display: 'grid', placeItems: 'center',
-                fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '12px', background: C.dark ? '#E9EBEF' : '#16181D', color: C.dark ? '#08090B' : '#fff'
+                fontFamily: "'Cormorant Garamond',serif", fontWeight: 700, fontSize: '12px', background: C.dark ? '#E9EBEF' : '#0F0E0B', color: C.dark ? '#0F0E0B' : '#fff'
               }
             }, d),
-            h('span', { style: { fontSize: '8.5px', fontFamily: "'JetBrains Mono',monospace", letterSpacing: '0.1em', color: C.dark ? C.accent : '#16181D', textTransform: 'uppercase', fontWeight: 600 } }, 'Today'))
-          : h('span', { style: { fontFamily: "'Sora',sans-serif", fontWeight: 600, fontSize: '13px', color: weekend ? C.faint : C.dim } }, d),
+            h('span', { style: { fontSize: '8.5px', fontFamily: "'JetBrains Mono',monospace", letterSpacing: '0.1em', color: C.dark ? C.accent : '#0F0E0B', textTransform: 'uppercase', fontWeight: 600 } }, 'Today'))
+          : h('span', { style: { fontFamily: "'Cormorant Garamond',serif", fontWeight: 600, fontSize: '13px', color: weekend ? C.faint : C.dim } }, d),
         posts.length ? h('span', { style: { fontSize: '10px', fontFamily: "'JetBrains Mono',monospace", color: C.faint } }, posts.length) : null,
       ),
       h('div', { className: 'pcs-scroll', style: { display: 'flex', flexDirection: 'column', gap: '7px', padding: '2px 8px 9px', overflowY: 'auto', flex: 1 } },
@@ -760,7 +766,7 @@ export default class App extends React.Component<AppProps, any> {
           this.DeleteBtn(p.id, { sm: true, style: { width: '20px', height: '20px', fontSize: '10px' } }))),
       h('div', {
         style: {
-          fontFamily: "'Sora',sans-serif", fontWeight: 600, fontSize: '12.5px', letterSpacing: '-0.01em', color: C.heading,
+          fontFamily: "'Cormorant Garamond',serif", fontWeight: 600, fontSize: '12.5px', letterSpacing: '-0.01em', color: C.heading,
           lineHeight: 1.32, marginBottom: '10px'
         }
       }, p.topic),
@@ -784,9 +790,9 @@ export default class App extends React.Component<AppProps, any> {
     const chip = (label: string, on: boolean, fn: () => void) => h('button', {
       key: label, className: 'pcs-btn', onClick: fn,
       style: {
-        fontFamily: "'Sora',sans-serif", fontWeight: 600, fontSize: '12px', padding: '6px 11px', borderRadius: '999px',
-        border: '1px solid ' + (on ? (C.dark ? C.accent : '#16181D') : C.border),
-        background: on ? (C.dark ? 'rgba(184,188,196,0.16)' : '#16181D') : 'transparent',
+        fontFamily: "'Cormorant Garamond',serif", fontWeight: 600, fontSize: '12px', padding: '6px 11px', borderRadius: '999px',
+        border: '1px solid ' + (on ? (C.dark ? C.accent : '#0F0E0B') : C.border),
+        background: on ? (C.dark ? 'rgba(194,134,30,0.16)' : '#0F0E0B') : 'transparent',
         color: on ? (C.dark ? C.heading : '#fff') : C.dim,
       },
     }, label);
@@ -795,7 +801,7 @@ export default class App extends React.Component<AppProps, any> {
       h('div', { style: { display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '20px', flexWrap: 'wrap', marginBottom: '18px' } },
         h('div', {},
           h('div', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '11px', letterSpacing: '0.16em', color: C.faint, textTransform: 'uppercase', marginBottom: '8px' } }, 'All Posts'),
-          h('h1', { style: { margin: 0, fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '34px', letterSpacing: '-0.03em', color: C.heading } },
+          h('h1', { style: { margin: 0, fontFamily: "'Cormorant Garamond',serif", fontWeight: 700, fontSize: '34px', letterSpacing: '-0.03em', color: C.heading } },
             'Every post',
             h('span', { style: { marginLeft: '12px', fontSize: '17px', fontWeight: 500, color: C.dim } }, rows.length + ' of ' + this.state.posts.length))),
         h('div', { style: { display: 'flex', gap: '9px', alignItems: 'center', flexWrap: 'wrap' } },
@@ -834,7 +840,7 @@ export default class App extends React.Component<AppProps, any> {
           this.FormatTag(p.format),
           h('span', { style: { width: '3px', height: '3px', borderRadius: '50%', background: C.faint } }),
           h('span', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '11px', color: C.faint } }, this.fmtLong(p.date))),
-        h('div', { style: { fontFamily: "'Sora',sans-serif", fontWeight: 600, fontSize: '15px', letterSpacing: '-0.01em', color: C.heading, lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }, p.topic),
+        h('div', { style: { fontFamily: "'Cormorant Garamond',serif", fontWeight: 600, fontSize: '15px', letterSpacing: '-0.01em', color: C.heading, lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }, p.topic),
         v && v.hook ? h('div', { style: { fontSize: '12.5px', color: C.dim, marginTop: '3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }, v.hook) : null),
       h('div', { style: { display: 'flex', alignItems: 'center', gap: '14px', position: 'relative', zIndex: 1, flexShrink: 0 } },
         nVers ? h('span', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '11px', color: C.faint } }, nVers + (nVers === 1 ? ' version' : ' versions')) : h('span', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '11px', color: C.faint } }, 'no drafts'),
@@ -852,7 +858,7 @@ export default class App extends React.Component<AppProps, any> {
     return h('div', { style: { marginBottom: '20px' } },
       h('div', { style: { display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '10px', margin: '4px 2px 11px', flexWrap: 'wrap' } },
         h('div', { style: { display: 'flex', alignItems: 'baseline', gap: '10px', flexWrap: 'wrap' } },
-          h('h2', { style: { margin: 0, fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '17px', letterSpacing: '-0.02em', color: C.heading } }, 'This week’s focus'),
+          h('h2', { style: { margin: 0, fontFamily: "'Cormorant Garamond',serif", fontWeight: 700, fontSize: '17px', letterSpacing: '-0.02em', color: C.heading } }, 'This week’s focus'),
           h('span', { style: { fontSize: '12.5px', color: C.dim } }, focus.length + ' topics in rotation')),
         this.Btn('Explain these topics', () => this.setTab('topics'), { variant: 'soft', sm: true, icon: '🎓' }),
       ),
@@ -863,8 +869,8 @@ export default class App extends React.Component<AppProps, any> {
 
   renderFocusCard(p: Post) {
     const C = this.C; const isNew = p.change === 'new';
-    const cc = isNew ? (C.dark ? C.accent : '#16181D') : SEM.warning;
-    const cbg = isNew ? (C.dark ? 'rgba(184,188,196,0.16)' : 'rgba(8,9,11,0.06)') : 'rgba(201,162,75,0.15)';
+    const cc = isNew ? (C.dark ? C.accent : '#0F0E0B') : SEM.warning;
+    const cbg = isNew ? (C.dark ? 'rgba(194,134,30,0.16)' : 'rgba(8,9,11,0.06)') : 'rgba(201,162,75,0.15)';
     const wd = new Date(p.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' });
     return h('div', {
       key: p.id, className: 'pcs-card pcs-int pcs-glass pcs-sheen', onClick: () => this.openPost(p.id),
@@ -881,7 +887,7 @@ export default class App extends React.Component<AppProps, any> {
         h('span', { style: { display: 'inline-flex', alignItems: 'center', gap: '7px' } },
           this.Pill(isNew ? 'New' : 'Updated', cc, { bg: cbg, fg: cc, fs: '9.5px', pad: '3px 8px' }),
           this.DeleteBtn(p.id, { sm: true }))),
-      h('div', { style: { fontFamily: "'Sora',sans-serif", fontWeight: 600, fontSize: '14px', letterSpacing: '-0.01em', color: C.heading, lineHeight: 1.3, marginBottom: '5px', position: 'relative', zIndex: 1 } }, p.topic),
+      h('div', { style: { fontFamily: "'Cormorant Garamond',serif", fontWeight: 600, fontSize: '14px', letterSpacing: '-0.01em', color: C.heading, lineHeight: 1.3, marginBottom: '5px', position: 'relative', zIndex: 1 } }, p.topic),
       h('div', { style: { fontSize: '12.5px', color: C.dim, lineHeight: 1.45, marginBottom: '11px', position: 'relative', zIndex: 1 } }, p.angle),
       h('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', position: 'relative', zIndex: 1 } },
         this.StatusBadge(p.status),
@@ -895,7 +901,7 @@ export default class App extends React.Component<AppProps, any> {
     return h('div', { style: { animation: 'pcsFade .4s ease', paddingTop: '14px' } },
       h('div', { style: { marginBottom: '20px' } },
         h('div', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '11px', letterSpacing: '0.16em', color: C.faint, textTransform: 'uppercase', marginBottom: '8px' } }, 'Topic Briefs'),
-        h('h1', { style: { margin: 0, fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '34px', letterSpacing: '-0.03em', color: C.heading } }, 'This week’s topics, explained'),
+        h('h1', { style: { margin: 0, fontFamily: "'Cormorant Garamond',serif", fontWeight: 700, fontSize: '34px', letterSpacing: '-0.03em', color: C.heading } }, 'This week’s topics, explained'),
         h('p', { style: { margin: '8px 0 0', fontSize: '15px', color: C.dim, lineHeight: 1.55, maxWidth: '680px' } }, 'Plain-language briefs on the themes in active rotation — what each one means, why it matters, and the key points behind it.'),
       ),
       focus.length
@@ -907,8 +913,8 @@ export default class App extends React.Component<AppProps, any> {
 
   renderBriefCard(p: Post) {
     const C = this.C; const b = (p as any).brief; const isNew = p.change === 'new'; const busy = this.state.briefBusy === p.id;
-    const cc = isNew ? (C.dark ? C.accent : '#16181D') : SEM.warning;
-    const cbg = isNew ? (C.dark ? 'rgba(184,188,196,0.16)' : 'rgba(8,9,11,0.06)') : 'rgba(201,162,75,0.15)';
+    const cc = isNew ? (C.dark ? C.accent : '#0F0E0B') : SEM.warning;
+    const cbg = isNew ? (C.dark ? 'rgba(194,134,30,0.16)' : 'rgba(8,9,11,0.06)') : 'rgba(201,162,75,0.15)';
     return h('div', { key: p.id, className: 'pcs-glass', style: { borderRadius: '18px', padding: '22px 24px', ...this.glass({ blur: 24 }) } },
       h('div', { style: { display: 'flex', alignItems: 'center', gap: '9px', marginBottom: '13px', flexWrap: 'wrap', position: 'relative', zIndex: 1 } },
         this.FormatTag(p.format),
@@ -916,7 +922,7 @@ export default class App extends React.Component<AppProps, any> {
         p.change ? this.Pill(isNew ? 'New' : 'Updated', cc, { bg: cbg, fg: cc, fs: '9.5px', pad: '3px 8px' }) : null,
         h('span', { style: { marginLeft: 'auto' } }, this.StatusBadge(p.status)),
       ),
-      h('h2', { style: { margin: '0 0 4px', fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '21px', letterSpacing: '-0.02em', color: C.heading, lineHeight: 1.2, position: 'relative', zIndex: 1 } }, p.topic),
+      h('h2', { style: { margin: '0 0 4px', fontFamily: "'Cormorant Garamond',serif", fontWeight: 700, fontSize: '21px', letterSpacing: '-0.02em', color: C.heading, lineHeight: 1.2, position: 'relative', zIndex: 1 } }, p.topic),
       h('div', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '11px', color: C.faint, marginBottom: '14px', position: 'relative', zIndex: 1 } }, p.angle),
       b
         ? h('div', {},
@@ -928,7 +934,7 @@ export default class App extends React.Component<AppProps, any> {
             h('div', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '9.5px', letterSpacing: '0.1em', textTransform: 'uppercase', color: C.faint, marginBottom: '8px' } }, 'Key points'),
             h('div', { style: { display: 'flex', flexDirection: 'column', gap: '8px' } },
               (b.points || []).map((pt: string, k: number) => h('div', { key: k, style: { display: 'flex', gap: '9px', alignItems: 'flex-start' } },
-                h('span', { style: { flexShrink: 0, marginTop: '1px', width: '18px', height: '18px', borderRadius: '6px', display: 'grid', placeItems: 'center', fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '10px', background: C.dark ? 'rgba(184,188,196,0.16)' : '#16181D', color: C.dark ? C.accent : '#fff' } }, k + 1),
+                h('span', { style: { flexShrink: 0, marginTop: '1px', width: '18px', height: '18px', borderRadius: '6px', display: 'grid', placeItems: 'center', fontFamily: "'Cormorant Garamond',serif", fontWeight: 700, fontSize: '10px', background: C.dark ? 'rgba(194,134,30,0.16)' : '#0F0E0B', color: C.dark ? C.accent : '#fff' } }, k + 1),
                 h('span', { style: { fontSize: '13.5px', color: C.text, lineHeight: 1.5 } }, pt))))))
         : h('div', { style: { position: 'relative', zIndex: 1, marginBottom: '16px' } },
           h('p', { style: { margin: '0 0 12px', fontSize: '13.5px', color: C.dim, lineHeight: 1.56 } },
@@ -950,7 +956,7 @@ export default class App extends React.Component<AppProps, any> {
     return h('div', { style: { animation: 'pcsFade .4s ease', paddingTop: '14px' } },
       h('div', { style: { marginBottom: '20px' } },
         h('div', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '11px', letterSpacing: '0.16em', color: C.faint, textTransform: 'uppercase', marginBottom: '8px' } }, 'Accounts'),
-        h('h1', { style: { margin: 0, fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '34px', letterSpacing: '-0.03em', color: C.heading } }, 'Switch account'),
+        h('h1', { style: { margin: 0, fontFamily: "'Cormorant Garamond',serif", fontWeight: 700, fontSize: '34px', letterSpacing: '-0.03em', color: C.heading } }, 'Switch account'),
         h('p', { style: { margin: '8px 0 0', fontSize: '15px', color: C.dim, lineHeight: 1.55, maxWidth: '680px' } },
           'Each account is a separate studio — its own calendar, drafts, history and analytics. Pick whose content you’re working on. Everyone shares the same Claude on the server.'),
       ),
@@ -960,19 +966,19 @@ export default class App extends React.Component<AppProps, any> {
           return h('div', {
             key: a.id, className: 'pcs-glass', style: {
               borderRadius: '18px', padding: '24px', ...this.glass({ blur: 24 }),
-              border: '1px solid ' + (on ? (C.dark ? C.accent : '#16181D') : C.surfBorder),
+              border: '1px solid ' + (on ? (C.dark ? C.accent : '#0F0E0B') : C.surfBorder),
             },
           },
             h('div', { style: { display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px', position: 'relative', zIndex: 1 } },
               h('span', {
                 style: {
                   width: '44px', height: '44px', borderRadius: '12px', display: 'grid', placeItems: 'center', flexShrink: 0,
-                  background: C.dark ? 'rgba(184,188,196,0.16)' : '#16181D', color: C.dark ? C.accent : '#fff',
-                  fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '18px',
+                  background: C.dark ? 'rgba(194,134,30,0.16)' : '#0F0E0B', color: C.dark ? C.accent : '#fff',
+                  fontFamily: "'Cormorant Garamond',serif", fontWeight: 700, fontSize: '18px',
                 },
               }, (a.name || '?').charAt(0).toUpperCase()),
               h('div', { style: { flex: 1, minWidth: 0 } },
-                h('div', { style: { fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '18px', letterSpacing: '-0.02em', color: C.heading } }, a.name),
+                h('div', { style: { fontFamily: "'Cormorant Garamond',serif", fontWeight: 700, fontSize: '18px', letterSpacing: '-0.02em', color: C.heading } }, a.name),
                 h('div', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '10.5px', color: C.faint, marginTop: '2px' } }, on ? 'Active now' : 'Separate calendar & history')),
               on ? this.Pill('Active', SEM.success, { bg: 'rgba(46,139,116,0.16)', fg: SEM.success, dot: SEM.success }) : null),
             on
@@ -998,7 +1004,7 @@ export default class App extends React.Component<AppProps, any> {
     return h('div', { style: { animation: 'pcsFade .4s ease', paddingTop: '14px' } },
       h('div', { style: { marginBottom: '20px' } },
         h('div', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '11px', letterSpacing: '0.16em', color: C.faint, textTransform: 'uppercase', marginBottom: '8px' } }, 'Analytics'),
-        h('h1', { style: { margin: 0, fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '34px', letterSpacing: '-0.03em', color: C.heading } }, 'Performance & feedback loop'),
+        h('h1', { style: { margin: 0, fontFamily: "'Cormorant Garamond',serif", fontWeight: 700, fontSize: '34px', letterSpacing: '-0.03em', color: C.heading } }, 'Performance & feedback loop'),
         h('p', { style: { margin: '8px 0 0', fontSize: '15px', color: C.dim, lineHeight: 1.55, maxWidth: '700px' } },
           'Log the real numbers from each published post. Claude folds these signals back into the next round of generations — so what works compounds.'),
       ),
@@ -1022,12 +1028,12 @@ export default class App extends React.Component<AppProps, any> {
             : h('div', { style: { fontSize: '13px', color: C.dim, marginBottom: '18px', padding: '0 2px' } },
               'Log metrics on at least 2 posts to unlock the feedback loop into Claude’s prompts.'),
           // per-post table
-          h('h2', { style: { margin: '4px 2px 14px', fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '19px', letterSpacing: '-0.02em', color: C.heading } }, 'Published posts'),
+          h('h2', { style: { margin: '4px 2px 14px', fontFamily: "'Cormorant Garamond',serif", fontWeight: 700, fontSize: '19px', letterSpacing: '-0.02em', color: C.heading } }, 'Published posts'),
           h('div', { style: { display: 'flex', flexDirection: 'column', gap: '12px' } },
             published.map((p) => this.renderAnalyticsRow(p))))
         : h('div', { className: 'pcs-glass', style: { borderRadius: '18px', padding: '46px 28px', textAlign: 'center', ...this.glass({ blur: 24 }) } },
           h('div', { style: { fontSize: '30px', marginBottom: '10px', position: 'relative', zIndex: 1 } }, '📊'),
-          h('h2', { style: { margin: '0 0 6px', fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '20px', letterSpacing: '-0.02em', color: C.heading, position: 'relative', zIndex: 1 } }, 'Nothing published yet'),
+          h('h2', { style: { margin: '0 0 6px', fontFamily: "'Cormorant Garamond',serif", fontWeight: 700, fontSize: '20px', letterSpacing: '-0.02em', color: C.heading, position: 'relative', zIndex: 1 } }, 'Nothing published yet'),
           h('p', { style: { margin: '0 auto', maxWidth: '440px', fontSize: '14px', color: C.dim, lineHeight: 1.55, position: 'relative', zIndex: 1 } },
             'When you publish a post from the generator, it shows up here. Then log its impressions, reactions and comments to start the feedback loop.')),
     );
@@ -1039,7 +1045,7 @@ export default class App extends React.Component<AppProps, any> {
       h('div', { style: { display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '8px', position: 'relative', zIndex: 1 } },
         h('span', { style: { fontSize: '14px' } }, icon),
         h('div', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '10px', letterSpacing: '0.08em', textTransform: 'uppercase', color: C.faint } }, label)),
-      h('div', { style: { fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '26px', letterSpacing: '-0.02em', color: C.heading, position: 'relative', zIndex: 1 } }, value));
+      h('div', { style: { fontFamily: "'Cormorant Garamond',serif", fontWeight: 700, fontSize: '26px', letterSpacing: '-0.02em', color: C.heading, position: 'relative', zIndex: 1 } }, value));
   }
 
   renderAnalyticsRow(p: Post) {
@@ -1051,7 +1057,7 @@ export default class App extends React.Component<AppProps, any> {
         h('span', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '11px', color: C.faint } }, this.fmtLong(p.publishedAt || p.date)),
         h('span', { style: { marginLeft: 'auto' } }, this.StatusBadge(p.status)),
       ),
-      h('h3', { style: { margin: '0 0 3px', fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '17px', letterSpacing: '-0.02em', color: C.heading, lineHeight: 1.2, position: 'relative', zIndex: 1 } }, p.topic),
+      h('h3', { style: { margin: '0 0 3px', fontFamily: "'Cormorant Garamond',serif", fontWeight: 700, fontSize: '17px', letterSpacing: '-0.02em', color: C.heading, lineHeight: 1.2, position: 'relative', zIndex: 1 } }, p.topic),
       v && v.hook ? h('div', { style: { fontSize: '12.5px', color: C.dim, marginBottom: '14px', lineHeight: 1.5, position: 'relative', zIndex: 1, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' } as any }, v.hook) : null,
       h('div', { style: { display: 'flex', gap: '12px', flexWrap: 'wrap', position: 'relative', zIndex: 1 } },
         this.metricInput(p, 'impressions', 'Impressions'),
@@ -1070,7 +1076,7 @@ export default class App extends React.Component<AppProps, any> {
         style: {
           width: '104px', padding: '8px 10px', borderRadius: '9px', border: '1px solid ' + C.border,
           background: C.dark ? 'rgba(0,0,0,0.22)' : '#fff', color: C.text,
-          fontFamily: "'Sora',sans-serif", fontWeight: 600, fontSize: '14px', boxSizing: 'border-box',
+          fontFamily: "'Cormorant Garamond',serif", fontWeight: 600, fontSize: '14px', boxSizing: 'border-box',
         },
       }));
   }
@@ -1085,7 +1091,7 @@ export default class App extends React.Component<AppProps, any> {
       h('button', {
         className: 'pcs-btn', onClick: () => this.setTab('calendar'), style: {
           display: 'inline-flex', alignItems: 'center', gap: '7px',
-          background: 'transparent', border: 'none', color: C.dim, fontFamily: "'Sora',sans-serif", fontWeight: 600, fontSize: '13px', padding: '4px 0', marginBottom: '14px'
+          background: 'transparent', border: 'none', color: C.dim, fontFamily: "'Cormorant Garamond',serif", fontWeight: 600, fontSize: '13px', padding: '4px 0', marginBottom: '14px'
         }
       },
         '←', ' Back to calendar'),
@@ -1104,7 +1110,7 @@ export default class App extends React.Component<AppProps, any> {
             this.StatusBadge(p.status),
             this.Btn('Delete', () => this.setState({ modal: { type: 'delete', id: p.id } }), { variant: 'danger', sm: true, icon: '🗑️' })),
         ),
-        h('h1', { style: { margin: '0 0 6px', fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '30px', letterSpacing: '-0.03em', color: C.heading, lineHeight: 1.12 } }, p.topic),
+        h('h1', { style: { margin: '0 0 6px', fontFamily: "'Cormorant Garamond',serif", fontWeight: 700, fontSize: '30px', letterSpacing: '-0.03em', color: C.heading, lineHeight: 1.12 } }, p.topic),
         h('p', { style: { margin: '0 0 18px', fontSize: '15px', color: C.dim, lineHeight: 1.55, maxWidth: '720px' } }, p.angle),
         h('div', { style: { display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' } },
           h('div', { style: { display: 'flex', gap: '5px', padding: '4px', borderRadius: '11px', background: C.dark ? 'rgba(0,0,0,0.25)' : 'rgba(8,9,11,0.04)' } },
@@ -1113,7 +1119,7 @@ export default class App extends React.Component<AppProps, any> {
               return h('button', {
                 key: s, className: 'pcs-btn', onClick: () => this.setStatus(p.id, s), style: {
                   border: 'none', borderRadius: '8px',
-                  padding: '6px 11px', fontFamily: "'Sora',sans-serif", fontWeight: 600, fontSize: '12px',
+                  padding: '6px 11px', fontFamily: "'Cormorant Garamond',serif", fontWeight: 600, fontSize: '12px',
                   background: on ? (m.solid ? m.bg : m.bg) : 'transparent', color: on ? m.fg : C.dim,
                   boxShadow: on && !m.solid ? 'inset 0 0 0 1px ' + m.fg + '55' : 'none'
                 }
@@ -1128,7 +1134,7 @@ export default class App extends React.Component<AppProps, any> {
       vers.length
         ? h('div', {},
           h('div', { style: { display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '12px', margin: '22px 2px 14px', flexWrap: 'wrap' } },
-            h('h2', { style: { margin: 0, fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '19px', letterSpacing: '-0.02em', color: C.heading } },
+            h('h2', { style: { margin: 0, fontFamily: "'Cormorant Garamond',serif", fontWeight: 700, fontSize: '19px', letterSpacing: '-0.02em', color: C.heading } },
               vers.length + ' generated versions',
               h('span', { style: { marginLeft: '9px', fontSize: '13px', fontWeight: 500, color: C.dim } }, '— choose one to publish')),
             h('div', { style: { display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' } },
@@ -1154,7 +1160,7 @@ export default class App extends React.Component<AppProps, any> {
       h('div', { style: { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px', flexWrap: 'wrap', position: 'relative', zIndex: 1 } },
         h('span', { style: { fontSize: '18px' } }, '🖼️'),
         h('div', { style: { flex: 1, minWidth: 0 } },
-          h('h2', { style: { margin: 0, fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '18px', letterSpacing: '-0.02em', color: C.heading } }, 'Post image'),
+          h('h2', { style: { margin: 0, fontFamily: "'Cormorant Garamond',serif", fontWeight: 700, fontSize: '18px', letterSpacing: '-0.02em', color: C.heading } }, 'Post image'),
           h('div', { style: { fontSize: '12.5px', color: C.dim, marginTop: '2px' } }, 'A data figure, a photo, or a 3-slide carousel — built from the approved post.')),
         anyBusy ? null : h('div', { style: { display: 'flex', gap: '8px', flexWrap: 'wrap' } },
           this.canFigure ? this.Btn(p.image ? 'New figure' : 'Generate figure', () => this.genFigure(), { variant: p.image ? 'soft' : 'primary', sm: true, icon: '📊' }) : null,
@@ -1168,7 +1174,7 @@ export default class App extends React.Component<AppProps, any> {
           style: {
             width: '100%', minHeight: '80px', resize: 'vertical', borderRadius: '12px', padding: '12px 14px',
             background: C.input, border: '1px solid ' + C.border, color: C.text, fontSize: '13.5px', lineHeight: 1.55,
-            fontFamily: "'Hanken Grotesk',sans-serif", outline: 'none', boxSizing: 'border-box',
+            fontFamily: "'Cormorant Garamond',serif", outline: 'none', boxSizing: 'border-box',
           },
         }),
         h('div', { style: { display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '8px' } },
@@ -1218,7 +1224,7 @@ export default class App extends React.Component<AppProps, any> {
           flex: 1, padding: '7px 11px', borderRadius: '10px',
           border: '1px solid ' + (v ? 'rgba(46,139,116,0.4)' : C.border),
           background: v ? 'rgba(46,139,116,0.10)' : (C.dark ? 'rgba(255,255,255,0.05)' : 'rgba(8,9,11,0.04)'),
-          color: C.text, fontFamily: "'Hanken Grotesk',sans-serif", fontSize: '12.5px', outline: 'none', boxSizing: 'border-box',
+          color: C.text, fontFamily: "'Cormorant Garamond',serif", fontSize: '12.5px', outline: 'none', boxSizing: 'border-box',
         },
       }),
       v ? h('button', { className: 'pcs-btn', title: 'Clear', onClick: () => this.setState({ refUrl: '' }), style: { border: 'none', background: 'transparent', color: C.faint, fontSize: '14px', lineHeight: 1, padding: '2px 4px' } }, '✕') : null);
@@ -1230,7 +1236,7 @@ export default class App extends React.Component<AppProps, any> {
       className: 'pcs-btn', onClick: () => this.saveSettings({ ...this.state.settings, webSearch: !on }),
       title: on ? 'Web search on — posts grounded in recent sources' : 'Web search off',
       style: {
-        display: 'inline-flex', alignItems: 'center', gap: '6px', fontFamily: "'Sora',sans-serif", fontWeight: 600, fontSize: '12px',
+        display: 'inline-flex', alignItems: 'center', gap: '6px', fontFamily: "'Cormorant Garamond',serif", fontWeight: 600, fontSize: '12px',
         padding: '7px 11px', borderRadius: '10px', border: '1px solid ' + (on ? 'rgba(46,139,116,0.4)' : C.border),
         background: on ? 'rgba(46,139,116,0.14)' : (C.dark ? 'rgba(255,255,255,0.05)' : 'rgba(8,9,11,0.04)'),
         color: on ? SEM.success : C.dim,
@@ -1246,7 +1252,7 @@ export default class App extends React.Component<AppProps, any> {
       }
     },
       h('div', { style: { fontSize: '30px', marginBottom: '10px' } }, busy ? '✦' : '✎'),
-      h('h2', { style: { margin: '0 0 6px', fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '20px', letterSpacing: '-0.02em', color: C.heading } },
+      h('h2', { style: { margin: '0 0 6px', fontFamily: "'Cormorant Garamond',serif", fontWeight: 700, fontSize: '20px', letterSpacing: '-0.02em', color: C.heading } },
         busy ? 'Generating with Claude…' : 'No drafts yet'),
       h('p', { style: { margin: '0 auto 18px', maxWidth: '460px', fontSize: '14px', color: C.dim, lineHeight: 1.55 } },
         this.connected
@@ -1273,11 +1279,11 @@ export default class App extends React.Component<AppProps, any> {
         h('span', {
           style: {
             width: '30px', height: '30px', borderRadius: '9px', display: 'grid', placeItems: 'center', flexShrink: 0,
-            background: C.dark ? 'rgba(184,188,196,0.14)' : '#16181D', color: C.dark ? C.accent : '#fff', fontSize: '14px'
+            background: C.dark ? 'rgba(194,134,30,0.14)' : '#0F0E0B', color: C.dark ? C.accent : '#fff', fontSize: '14px'
           }
         }, '✎'),
         h('div', { style: { flex: 1 } },
-          h('div', { style: { fontFamily: "'Sora',sans-serif", fontWeight: 600, fontSize: '14px', color: C.heading } }, 'Your writing style'),
+          h('div', { style: { fontFamily: "'Cormorant Garamond',serif", fontWeight: 600, fontSize: '14px', color: C.heading } }, 'Your writing style'),
           h('div', { style: { fontSize: '12px', color: C.dim, marginTop: '2px' } }, 'Voice + reference examples that feed every generation')),
         h('span', { style: { color: C.faint, fontSize: '13px', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s' } }, '▼'),
       ),
@@ -1287,7 +1293,7 @@ export default class App extends React.Component<AppProps, any> {
           style: {
             width: '100%', minHeight: '120px', resize: 'vertical', borderRadius: '12px', padding: '13px 15px',
             background: C.input, border: '1px solid ' + C.border, color: C.text, fontSize: '13.5px', lineHeight: 1.65,
-            fontFamily: "'Hanken Grotesk',sans-serif", outline: 'none'
+            fontFamily: "'Cormorant Garamond',serif", outline: 'none'
           }
         }),
         h('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', marginTop: '10px', flexWrap: 'wrap' } },
@@ -1309,7 +1315,7 @@ export default class App extends React.Component<AppProps, any> {
       className: 'pcs-ver pcs-int pcs-glass pcs-sheen', style: {
         display: 'flex', flexDirection: 'column', borderRadius: '16px', overflow: 'hidden',
         ...this.glass({ blur: 24 }),
-        border: '1px solid ' + (v.approved ? 'rgba(46,139,116,0.5)' : active ? (C.dark ? 'rgba(184,188,196,0.4)' : '#16181D') : C.surfBorder),
+        border: '1px solid ' + (v.approved ? 'rgba(46,139,116,0.5)' : active ? (C.dark ? 'rgba(194,134,30,0.4)' : '#0F0E0B') : C.surfBorder),
         boxShadow: 'inset 0 1px 0 ' + C.surfHi + ', ' + (v.approved ? '0 0 0 1px rgba(46,139,116,0.25), ' + C.surfShadow : C.surfShadow)
       }
     },
@@ -1319,12 +1325,12 @@ export default class App extends React.Component<AppProps, any> {
         h('span', {
           style: {
             width: '24px', height: '24px', borderRadius: '7px', display: 'grid', placeItems: 'center',
-            fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '12px',
-            background: active ? (C.dark ? '#E9EBEF' : '#16181D') : (C.dark ? 'rgba(255,255,255,0.07)' : 'rgba(8,9,11,0.05)'),
-            color: active ? (C.dark ? '#08090B' : '#fff') : C.dim
+            fontFamily: "'Cormorant Garamond',serif", fontWeight: 700, fontSize: '12px',
+            background: active ? (C.dark ? '#E9EBEF' : '#0F0E0B') : (C.dark ? 'rgba(255,255,255,0.07)' : 'rgba(8,9,11,0.05)'),
+            color: active ? (C.dark ? '#0F0E0B' : '#fff') : C.dim
           }
         }, v.label),
-        h('span', { style: { fontFamily: "'Sora',sans-serif", fontWeight: 600, fontSize: '13px', color: C.heading } }, 'Version ' + v.label),
+        h('span', { style: { fontFamily: "'Cormorant Garamond',serif", fontWeight: 600, fontSize: '13px', color: C.heading } }, 'Version ' + v.label),
         v.approved ? this.Pill('Approved', SEM.success, { bg: 'rgba(46,139,116,0.16)', fg: SEM.success, dot: SEM.success, fs: '10px' }) : null,
         h('span', { style: { flex: 1 } }),
         h('button', {
@@ -1343,15 +1349,15 @@ export default class App extends React.Component<AppProps, any> {
             value: this.state.draft, onChange: (e: any) => this.setState({ draft: e.target.value }), spellCheck: false, autoFocus: true,
             style: {
               width: '100%', minHeight: '300px', resize: 'vertical', borderRadius: '11px', padding: '13px', background: C.input,
-              border: '1px solid ' + (C.dark ? C.accent : '#16181D'), color: C.text, fontSize: '14px', lineHeight: 1.68,
-              fontFamily: "'Hanken Grotesk',sans-serif", outline: 'none'
+              border: '1px solid ' + (C.dark ? C.accent : '#0F0E0B'), color: C.text, fontSize: '14px', lineHeight: 1.68,
+              fontFamily: "'Cormorant Garamond',serif", outline: 'none'
             }
           })
           : h('div', {},
             h('div', {
               style: {
-                fontFamily: "'Sora',sans-serif", fontWeight: 600, fontSize: '15px', letterSpacing: '-0.01em', lineHeight: 1.36, color: C.heading,
-                paddingLeft: '13px', borderLeft: '3px solid ' + (C.dark ? C.accent : '#16181D'), marginBottom: '13px'
+                fontFamily: "'Cormorant Garamond',serif", fontWeight: 600, fontSize: '15px', letterSpacing: '-0.01em', lineHeight: 1.36, color: C.heading,
+                paddingLeft: '13px', borderLeft: '3px solid ' + (C.dark ? C.accent : '#0F0E0B'), marginBottom: '13px'
               }
             }, v.hook),
             h('div', { style: { fontSize: '13.5px', lineHeight: 1.64, color: C.text, whiteSpace: 'pre-wrap' } }, v.body)),
@@ -1366,7 +1372,7 @@ export default class App extends React.Component<AppProps, any> {
           }
         },
           h('span', { style: { fontSize: '11px' } }, '🎓'),
-          h('span', { style: { fontFamily: "'Sora',sans-serif", fontWeight: 600, fontSize: '12px', color: C.heading } }, methodShort),
+          h('span', { style: { fontFamily: "'Cormorant Garamond',serif", fontWeight: 600, fontSize: '12px', color: C.heading } }, methodShort),
           h('span', { style: { flex: 1 } }),
           h('span', { style: { fontSize: '10px', color: C.faint, fontFamily: "'JetBrains Mono',monospace" } }, whyOpen ? 'hide' : 'why it works'),
           h('span', { style: { color: C.faint, fontSize: '9px', transform: whyOpen ? 'rotate(180deg)' : 'none', transition: 'transform .2s' } }, '▼')),
@@ -1406,13 +1412,13 @@ export default class App extends React.Component<AppProps, any> {
       return h('div', { style: { padding: '26px' } },
         h('div', { style: { display: 'flex', alignItems: 'center', gap: '9px', marginBottom: '6px' } },
           h('span', { style: { fontSize: '20px' } }, '✦'),
-          h('h3', { style: { margin: 0, fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '20px', letterSpacing: '-0.02em', color: C.heading } }, 'Shared studio')),
+          h('h3', { style: { margin: 0, fontFamily: "'Cormorant Garamond',serif", fontWeight: 700, fontSize: '20px', letterSpacing: '-0.02em', color: C.heading } }, 'Shared studio')),
         h('p', { style: { margin: '0 0 16px', fontSize: '13px', color: C.dim, lineHeight: 1.5 } },
           'You’re in the shared team studio — everyone with the access code sees and edits the same content, live. Generation runs through the team key on the server.'),
-        h('label', { style: { display: 'block', fontFamily: "'Sora',sans-serif", fontWeight: 600, fontSize: '12px', color: C.heading, marginBottom: '6px' } }, 'Text model'),
+        h('label', { style: { display: 'block', fontFamily: "'Cormorant Garamond',serif", fontWeight: 600, fontSize: '12px', color: C.heading, marginBottom: '6px' } }, 'Text model'),
         h('div', { style: { display: 'flex', alignItems: 'center', gap: '8px', padding: '11px 13px', borderRadius: '11px', background: C.dark ? 'rgba(255,255,255,0.04)' : C.card2, border: '1px solid ' + C.borderSoft } },
           h('span', { style: { fontSize: '13px' } }, '✦'),
-          h('span', { style: { fontFamily: "'Sora',sans-serif", fontWeight: 600, fontSize: '13px', color: C.heading } }, 'Gemini 2.5 Flash'),
+          h('span', { style: { fontFamily: "'Cormorant Garamond',serif", fontWeight: 600, fontSize: '13px', color: C.heading } }, 'Gemini 2.5 Flash'),
           h('span', { style: { marginLeft: 'auto', fontFamily: "'JetBrains Mono',monospace", fontSize: '10px', color: C.faint } }, 'set by admin')),
         h('div', { style: { display: 'flex', gap: '9px', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px' } },
           this.Btn('Leave studio', () => s.signOut(), { variant: 'ghost' }),
@@ -1425,15 +1431,15 @@ export default class App extends React.Component<AppProps, any> {
     return h('div', { style: { padding: '26px' } },
       h('div', { style: { display: 'flex', alignItems: 'center', gap: '9px', marginBottom: '6px' } },
         h('span', { style: { fontSize: '20px' } }, '✦'),
-        h('h3', { style: { margin: 0, fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '20px', letterSpacing: '-0.02em', color: C.heading } }, 'Connect your Claude account')),
+        h('h3', { style: { margin: 0, fontFamily: "'Cormorant Garamond',serif", fontWeight: 700, fontSize: '20px', letterSpacing: '-0.02em', color: C.heading } }, 'Connect your Claude account')),
       h('p', { style: { margin: '0 0 18px', fontSize: '13.5px', color: C.dim, lineHeight: 1.55 } },
         'Paste your Anthropic API key. It is stored only in this browser (localStorage) and used to call Claude directly from this page — it is never sent anywhere else.'),
-      h('label', { style: { display: 'block', fontFamily: "'Sora',sans-serif", fontWeight: 600, fontSize: '12px', color: C.heading, marginBottom: '6px' } }, 'Anthropic API key'),
+      h('label', { style: { display: 'block', fontFamily: "'Cormorant Garamond',serif", fontWeight: 600, fontSize: '12px', color: C.heading, marginBottom: '6px' } }, 'Anthropic API key'),
       h('input', { type: 'password', value: d.apiKey, placeholder: 'sk-ant-…', spellCheck: false, autoFocus: true, onChange: (e: any) => set({ apiKey: e.target.value }), style: inputStyle }),
       h('div', { style: { fontSize: '11px', color: C.faint, margin: '6px 0 16px' } },
         'Get a key at console.anthropic.com → API keys.'),
-      h('label', { style: { display: 'block', fontFamily: "'Sora',sans-serif", fontWeight: 600, fontSize: '12px', color: C.heading, marginBottom: '6px' } }, 'Model'),
-      h('select', { value: d.model, onChange: (e: any) => set({ model: e.target.value }), style: { ...inputStyle, fontFamily: "'Hanken Grotesk',sans-serif" } },
+      h('label', { style: { display: 'block', fontFamily: "'Cormorant Garamond',serif", fontWeight: 600, fontSize: '12px', color: C.heading, marginBottom: '6px' } }, 'Model'),
+      h('select', { value: d.model, onChange: (e: any) => set({ model: e.target.value }), style: { ...inputStyle, fontFamily: "'Cormorant Garamond',serif" } },
         MODELS.map((mo) => h('option', { key: mo.id, value: mo.id }, mo.label))),
       h('div', { style: { display: 'flex', gap: '9px', justifyContent: 'flex-end', marginTop: '20px' } },
         d.apiKey ? this.Btn('Disconnect', () => { this.saveSettings({ apiKey: '', model: d.model || DEFAULT_MODEL }); this.setState({ modal: null }); this.toast('Disconnected'); }, { variant: 'danger' }) : null,
@@ -1450,11 +1456,11 @@ export default class App extends React.Component<AppProps, any> {
     const prios = ['High', 'Medium', 'Low'];
     const inputStyle: any = {
       width: '100%', borderRadius: '11px', padding: '11px 13px', background: C.input, border: '1px solid ' + C.border,
-      color: C.text, fontSize: '13.5px', fontFamily: "'Hanken Grotesk',sans-serif", outline: 'none',
+      color: C.text, fontSize: '13.5px', fontFamily: "'Cormorant Garamond',serif", outline: 'none',
     };
-    const label = (t: string) => h('label', { style: { display: 'block', fontFamily: "'Sora',sans-serif", fontWeight: 600, fontSize: '12px', color: C.heading, margin: '14px 0 6px' } }, t);
+    const label = (t: string) => h('label', { style: { display: 'block', fontFamily: "'Cormorant Garamond',serif", fontWeight: 600, fontSize: '12px', color: C.heading, margin: '14px 0 6px' } }, t);
     return h('div', { style: { padding: '26px' } },
-      h('h3', { style: { margin: '0 0 4px', fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '20px', letterSpacing: '-0.02em', color: C.heading } }, 'New post'),
+      h('h3', { style: { margin: '0 0 4px', fontFamily: "'Cormorant Garamond',serif", fontWeight: 700, fontSize: '20px', letterSpacing: '-0.02em', color: C.heading } }, 'New post'),
       h('p', { style: { margin: 0, fontSize: '13px', color: C.dim } }, 'Add a topic and pick the day you plan to publish it. Generate drafts from it in Content Generation.'),
       label('Topic'),
       h('input', { value: np.topic, autoFocus: true, placeholder: 'e.g. Raise price to defend margin — or hold to defend volume?', onChange: (e: any) => set({ topic: e.target.value }), style: inputStyle }),
@@ -1485,7 +1491,7 @@ export default class App extends React.Component<AppProps, any> {
     };
     return h('div', { style: { padding: '26px' } },
       h('div', { style: { fontSize: '28px', marginBottom: '10px' } }, '⤒'),
-      h('h3', { style: { margin: '0 0 6px', fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '20px', letterSpacing: '-0.02em', color: C.heading } }, 'Import a backup'),
+      h('h3', { style: { margin: '0 0 6px', fontFamily: "'Cormorant Garamond',serif", fontWeight: 700, fontSize: '20px', letterSpacing: '-0.02em', color: C.heading } }, 'Import a backup'),
       h('p', { style: { margin: '0 0 18px', fontSize: '13.5px', color: C.dim, lineHeight: 1.55 } },
         'Restore posts and writing style from a previously exported JSON file. ',
         h('strong', { style: { color: C.text } }, 'Merge'), ' keeps your current posts and adds/updates by id; ',
@@ -1521,7 +1527,7 @@ export default class App extends React.Component<AppProps, any> {
       const target = this.post(m.id); const hasDrafts = !!(target && target.versions && target.versions.length);
       return shell('440px', h('div', { style: { padding: '26px' } },
         h('div', { style: { fontSize: '28px', marginBottom: '10px' } }, '🗑️'),
-        h('h3', { style: { margin: '0 0 6px', fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '20px', letterSpacing: '-0.02em', color: C.heading } }, 'Remove this topic?'),
+        h('h3', { style: { margin: '0 0 6px', fontFamily: "'Cormorant Garamond',serif", fontWeight: 700, fontSize: '20px', letterSpacing: '-0.02em', color: C.heading } }, 'Remove this topic?'),
         h('p', { style: { margin: '0 0 18px', fontSize: '14px', color: C.dim, lineHeight: 1.55 } },
           h('strong', { style: { color: C.text } }, (target && target.topic) || 'This post'),
           ' will be removed from your calendar' + (hasDrafts ? ', along with its generated drafts' : '') + '. This can’t be undone.'),
@@ -1536,7 +1542,7 @@ export default class App extends React.Component<AppProps, any> {
     if (m.type === 'schedule') {
       return shell('440px', h('div', { style: { padding: '26px' } },
         h('div', { style: { fontSize: '30px', marginBottom: '10px' } }, '📅'),
-        h('h3', { style: { margin: '0 0 6px', fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '20px', letterSpacing: '-0.02em', color: C.heading } }, 'Schedule this post'),
+        h('h3', { style: { margin: '0 0 6px', fontFamily: "'Cormorant Garamond',serif", fontWeight: 700, fontSize: '20px', letterSpacing: '-0.02em', color: C.heading } }, 'Schedule this post'),
         h('p', { style: { margin: '0 0 18px', fontSize: '14px', color: C.dim, lineHeight: 1.55 } },
           'Version ', h('strong', { style: { color: C.text } }, v.label), ' will be approved and queued for publication on ',
           h('strong', { style: { color: C.text } }, this.fmtLong(p.date)), '.'),
@@ -1550,7 +1556,7 @@ export default class App extends React.Component<AppProps, any> {
       const text = this.postText(v);
       return shell('560px', h('div', { style: { padding: '26px' } },
         h('div', { style: { fontSize: '30px', marginBottom: '10px' } }, '🚀'),
-        h('h3', { style: { margin: '0 0 6px', fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '20px', letterSpacing: '-0.02em', color: C.heading } }, 'Publish to LinkedIn'),
+        h('h3', { style: { margin: '0 0 6px', fontFamily: "'Cormorant Garamond',serif", fontWeight: 700, fontSize: '20px', letterSpacing: '-0.02em', color: C.heading } }, 'Publish to LinkedIn'),
         h('p', { style: { margin: '0 0 16px', fontSize: '13.5px', color: C.dim, lineHeight: 1.55 } },
           'Copy the post, open LinkedIn to paste and publish, then mark it as published here to track its performance.'),
         (p.images && p.images.length)
@@ -1599,7 +1605,7 @@ export default class App extends React.Component<AppProps, any> {
       h('div', { style: { display: 'flex', alignItems: 'center', gap: '10px', padding: '18px 22px', borderBottom: '1px solid ' + C.borderSoft } },
         h('span', { style: { fontSize: '16px' } }, '↺'),
         h('div', { style: { flex: 1 } },
-          h('h3', { style: { margin: 0, fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '17px', letterSpacing: '-0.02em', color: C.heading } }, 'Version history — Version ' + v.label),
+          h('h3', { style: { margin: 0, fontFamily: "'Cormorant Garamond',serif", fontWeight: 700, fontSize: '17px', letterSpacing: '-0.02em', color: C.heading } }, 'Version history — Version ' + v.label),
           h('div', { style: { fontSize: '12px', color: C.dim, marginTop: '2px' } }, (v.history.length + 1) + ' versions · compare and revert')),
         h('button', { className: 'pcs-btn', onClick: close, style: { background: 'transparent', border: 'none', color: C.faint, fontSize: '20px', lineHeight: 1, padding: '2px 6px' } }, '×'),
       ),
@@ -1611,12 +1617,12 @@ export default class App extends React.Component<AppProps, any> {
             return h('button', {
               key: k, className: 'pcs-btn', onClick: () => this.setState({ modal: { ...m, sel: k } }),
               style: {
-                width: '100%', textAlign: 'left', border: '1px solid ' + (on ? (C.dark ? C.accent : '#16181D') : 'transparent'), borderRadius: '11px',
-                padding: '11px 12px', marginBottom: '6px', background: on ? (C.dark ? 'rgba(184,188,196,0.10)' : 'rgba(8,9,11,0.04)') : 'transparent'
+                width: '100%', textAlign: 'left', border: '1px solid ' + (on ? (C.dark ? C.accent : '#0F0E0B') : 'transparent'), borderRadius: '11px',
+                padding: '11px 12px', marginBottom: '6px', background: on ? (C.dark ? 'rgba(194,134,30,0.10)' : 'rgba(8,9,11,0.04)') : 'transparent'
               }
             },
               h('div', { style: { display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '4px' } },
-                h('span', { style: { fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '12.5px', color: C.heading } }, e.current ? 'Current' : e.label),
+                h('span', { style: { fontFamily: "'Cormorant Garamond',serif", fontWeight: 700, fontSize: '12.5px', color: C.heading } }, e.current ? 'Current' : e.label),
                 e.current ? this.Pill('live', SEM.success, { bg: 'rgba(46,139,116,0.16)', fg: SEM.success, fs: '9px', pad: '2px 6px' }) : null),
               h('div', { style: { fontSize: '11.5px', color: C.dim, lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }, e.hook),
               h('div', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '9.5px', color: C.faint, marginTop: '5px' } }, e.editor + ' · ' + rel(e.ts)),
