@@ -85,7 +85,7 @@ Deno.serve(async (req) => {
   const bin = atob(b64);
   const bytes = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-  const path = `${workspaceId}/${postId}-${Date.now()}.png`;
+  const path = `${workspaceId}/${postId}-${Date.now()}-${Math.floor(Math.random() * 1e6)}.png`;
   const { error: upErr } = await admin.storage.from('post-images').upload(path, bytes, { contentType: 'image/png', upsert: true });
   if (upErr) return json({ error: 'Upload failed: ' + upErr.message }, 500);
   const { data: pub } = admin.storage.from('post-images').getPublicUrl(path);

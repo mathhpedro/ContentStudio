@@ -4,10 +4,10 @@ import {
   SEM, NOW, rel, lcsDiff, monthAnchor, weekFocus, type Post, type Version,
 } from './data';
 import {
-  MODELS, DEFAULT_MODEL, generateVersions, regenerateVersion, generateWeeklyAgenda, generateBrief, generateImagePrompt, generateChartSpec,
+  MODELS, DEFAULT_MODEL, generateVersions, regenerateVersion, generateWeeklyAgenda, generateBrief, generateImagePrompt, generateChartSpec, generateCarousel,
   type Settings,
 } from './anthropic';
-import { buildChartSVG, svgToPng } from './chart';
+import { buildChartSVG, buildSlideSVG, svgToPng } from './chart';
 import { loadSettings, saveSettings, loadPosts, savePosts, loadStyle, saveStyle } from './store';
 import { hasSupabase } from './supabaseClient';
 
@@ -52,7 +52,7 @@ export default class App extends React.Component<AppProps, any> {
       viewYM: (() => { const a = monthAnchor(); return { y: a.y, m: a.m }; })(),
       allFilter: { status: 'All', format: 'All', q: '' },
       refUrl: '',
-      imgBusy: false, imgPromptOpen: false, imgPromptDraft: '',
+      imgBusy: false, imgPromptOpen: false, imgPromptDraft: '', carBusy: false,
     };
     this._tid = 0;
     this.tabRefs = {};
@@ -438,6 +438,31 @@ export default class App extends React.Component<AppProps, any> {
       this.setState({ imgBusy: false, imgPromptOpen: false, imgPromptDraft: '', posts: [...this.state.posts] });
       this.persist(); this.toast('Image generated 🖼️');
     } catch (e: any) { this.setState({ imgBusy: false }); this.toast('Image failed — ' + (e.message || e)); }
+  }
+  // Carousel: the model designs ≤3 connected slides; we render + upload each.
+  async genCarousel() {
+    const p = this.post(this.state.selectedId)!; if (!p) return;
+    if (!this.canFigure) { this.toast('Carousels need the shared studio'); return; }
+    const v = this.approvedVersion(p);
+    if (!v) { this.toast('Approve a version first'); return; }
+    this.setState({ carBusy: true });
+    try {
+      const data = await generateCarousel(this.state.settings, p, this.postText(v));
+      const slides = (data && Array.isArray(data.slides) ? data.slides : []).slice(0, 3);
+      if (!slides.length) throw new Error('Could not design slides');
+      const urls: string[] = [];
+      for (let i = 0; i < slides.length; i++) {
+        const png = await svgToPng(buildSlideSVG(slides[i], i, slides.length));
+        urls.push(await this.props.persistence!.uploadImage!(p.id, png));
+      }
+      p.images = urls;
+      this.setState({ carBusy: false, posts: [...this.state.posts] });
+      this.persist(); this.toast(urls.length + '-slide carousel generated 🎠');
+    } catch (e: any) { this.setState({ carBusy: false }); this.toast('Carousel failed — ' + (e.message || e)); }
+  }
+  removeCarousel() {
+    const p = this.post(this.state.selectedId)!; if (!p) return;
+    p.images = null; this.setState({ posts: [...this.state.posts] }); this.persist(); this.toast('Carousel removed');
   }
   removeImage() {
     const p = this.post(this.state.selectedId)!; if (!p) return;
@@ -1121,6 +1146,7 @@ export default class App extends React.Component<AppProps, any> {
 
   renderImagePanel(p: Post) {
     const C = this.C; const busy = this.state.imgBusy; const open = this.state.imgPromptOpen;
+    const carBusy = this.state.carBusy; const anyBusy = busy || carBusy;
     if (!this.canImage) return null;
     return h('div', {
       className: 'pcs-glass', style: { marginTop: '20px', borderRadius: '18px', padding: '22px 24px', ...this.glass({ blur: 24 }) },
@@ -1129,10 +1155,11 @@ export default class App extends React.Component<AppProps, any> {
         h('span', { style: { fontSize: '18px' } }, '🖼️'),
         h('div', { style: { flex: 1, minWidth: 0 } },
           h('h2', { style: { margin: 0, fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '18px', letterSpacing: '-0.02em', color: C.heading } }, 'Post image'),
-          h('div', { style: { fontSize: '12.5px', color: C.dim, marginTop: '2px' } }, 'A data figure (charts) or a photo for the approved version — built from the post.')),
-        busy ? null : h('div', { style: { display: 'flex', gap: '8px', flexWrap: 'wrap' } },
+          h('div', { style: { fontSize: '12.5px', color: C.dim, marginTop: '2px' } }, 'A data figure, a photo, or a 3-slide carousel — built from the approved post.')),
+        anyBusy ? null : h('div', { style: { display: 'flex', gap: '8px', flexWrap: 'wrap' } },
           this.canFigure ? this.Btn(p.image ? 'New figure' : 'Generate figure', () => this.genFigure(), { variant: p.image ? 'soft' : 'primary', sm: true, icon: '📊' }) : null,
-          this.Btn(p.image ? 'Photo' : 'Photo', () => this.genImage(), { variant: 'soft', sm: true, icon: '📷' }),
+          this.canFigure ? this.Btn(p.images && p.images.length ? 'New carousel' : 'Carousel', () => this.genCarousel(), { variant: 'soft', sm: true, icon: '🎠' }) : null,
+          this.Btn('Photo', () => this.genImage(), { variant: 'soft', sm: true, icon: '📷' }),
           this.Btn('Custom prompt', () => this.setState({ imgPromptOpen: !open, imgPromptDraft: open ? '' : (p.imagePrompt || '') }), { variant: 'soft', sm: true, icon: '✎' }))),
       open ? h('div', { style: { position: 'relative', zIndex: 1, marginBottom: '14px' } },
         h('textarea', {
@@ -1157,7 +1184,25 @@ export default class App extends React.Component<AppProps, any> {
               this.Btn('Download', () => window.open(p.image as string, '_blank', 'noopener'), { variant: 'soft', sm: true, icon: '⤓' }),
               this.Btn('Remove', () => this.removeImage(), { variant: 'danger', sm: true, icon: '🗑️' })),
             p.imagePrompt ? h('div', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '10.5px', color: C.faint, marginTop: '10px', lineHeight: 1.5 } }, 'Prompt · ' + p.imagePrompt) : null)
-          : (open ? null : h('div', { style: { fontSize: '13px', color: C.dim, position: 'relative', zIndex: 1 } }, 'No image yet — generate one automatically from the post, or write a custom prompt.'))),
+          : (open ? null : h('div', { style: { fontSize: '13px', color: C.dim, position: 'relative', zIndex: 1 } }, 'No image yet — generate a figure, a photo, or a carousel from the post.'))),
+      // carousel
+      carBusy
+        ? h('div', { style: { padding: '34px', textAlign: 'center', color: C.dim, position: 'relative', zIndex: 1, marginTop: '14px', borderTop: '1px solid ' + C.borderSoft } },
+          h('div', { style: { fontSize: '24px', marginBottom: '8px' } }, '🎠'), 'Designing & rendering the carousel…')
+        : (p.images && p.images.length
+          ? h('div', { style: { position: 'relative', zIndex: 1, marginTop: '16px', paddingTop: '16px', borderTop: '1px solid ' + C.borderSoft } },
+            h('div', { style: { display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' } },
+              h('span', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: C.faint } }, 'Carousel · ' + p.images.length + ' slides'),
+              h('span', { style: { flex: 1 } }),
+              this.Btn('Remove', () => this.removeCarousel(), { variant: 'ghost', sm: true, icon: '🗑️' })),
+            h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '10px' } },
+              (p.images as string[]).map((src, i) => h('a', {
+                key: i, href: src, target: '_blank', rel: 'noopener',
+                style: { display: 'block', position: 'relative', borderRadius: '10px', overflow: 'hidden', border: '1px solid ' + C.border },
+              },
+                h('img', { src, alt: 'Slide ' + (i + 1), style: { width: '100%', display: 'block' } }),
+                h('span', { style: { position: 'absolute', left: '6px', top: '6px', fontFamily: "'JetBrains Mono',monospace", fontSize: '10px', color: '#fff', background: 'rgba(0,0,0,0.55)', padding: '2px 6px', borderRadius: '6px' } }, (i + 1) + '/' + p.images!.length)))))
+          : null),
     );
   }
 
@@ -1508,9 +1553,15 @@ export default class App extends React.Component<AppProps, any> {
         h('h3', { style: { margin: '0 0 6px', fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '20px', letterSpacing: '-0.02em', color: C.heading } }, 'Publish to LinkedIn'),
         h('p', { style: { margin: '0 0 16px', fontSize: '13.5px', color: C.dim, lineHeight: 1.55 } },
           'Copy the post, open LinkedIn to paste and publish, then mark it as published here to track its performance.'),
-        p.image ? h('div', { style: { marginBottom: '14px' } },
-          h('img', { src: p.image, alt: 'Post image', style: { width: '100%', borderRadius: '12px', display: 'block', border: '1px solid ' + C.border } }),
-          h('div', { style: { marginTop: '6px' } }, this.Btn('Download image', () => window.open(p.image as string, '_blank', 'noopener'), { variant: 'soft', sm: true, icon: '⤓' }))) : null,
+        (p.images && p.images.length)
+          ? h('div', { style: { marginBottom: '14px' } },
+            h('div', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: C.faint, marginBottom: '6px' } }, 'Carousel — post these ' + p.images.length + ' slides in order'),
+            h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '8px' } },
+              (p.images as string[]).map((src, i) => h('a', { key: i, href: src, target: '_blank', rel: 'noopener', style: { display: 'block', borderRadius: '10px', overflow: 'hidden', border: '1px solid ' + C.border } },
+                h('img', { src, alt: 'Slide ' + (i + 1), style: { width: '100%', display: 'block' } })))))
+          : (p.image ? h('div', { style: { marginBottom: '14px' } },
+            h('img', { src: p.image, alt: 'Post image', style: { width: '100%', borderRadius: '12px', display: 'block', border: '1px solid ' + C.border } }),
+            h('div', { style: { marginTop: '6px' } }, this.Btn('Download image', () => window.open(p.image as string, '_blank', 'noopener'), { variant: 'soft', sm: true, icon: '⤓' }))) : null),
         h('textarea', {
           readOnly: true, value: text, className: 'pcs-scroll',
           onFocus: (e: any) => e.target.select(),

@@ -384,7 +384,10 @@ export async function generateChartSpec(
     '- PREFER numbers actually stated in the article text; keep them consistent with it.',
     '- If you must invent figures to make the point, keep them realistic and set "illustrative": true.',
     '- "title" = the point in ~6–10 words (not a label like "Bar chart"). "takeaway" = one short so-what line.',
-    '- "unit" is one of "%", "$", "x", or "" . Keep labels short (≤ ~24 chars). Mark the key item highlight:true.',
+    '- "unit" is one of "%", "$", "x", or "" . Keep labels short (≤ ~24 chars).',
+    '- COLOUR-CODE every bar / value by meaning via "kind": "base" (current/baseline), "gain" (an',
+    '  improvement), "result" (a generated result/outcome), "loss" (a decline), or "neutral". Use distinct',
+    '  kinds so the figure differentiates baseline vs improvement vs result — never make them all the same.',
     '- No brand or company names anywhere.',
     '',
     `Article topic: ${post.topic}`,
@@ -392,12 +395,52 @@ export async function generateChartSpec(
     `Article text:\n"""\n${postText}\n"""`,
     '',
     'Return JSON exactly like one of:',
-    '{"type":"bars","title":"...","takeaway":"...","unit":"%","illustrative":true,"bars":[{"label":"...","value":35,"highlight":true},{"label":"...","value":12}]}',
-    '{"type":"comparison","title":"...","unit":"$","left":{"label":"...","value":50},"right":{"label":"...","value":8}}',
+    '{"type":"bars","title":"...","takeaway":"...","unit":"%","illustrative":true,"bars":[{"label":"Today","value":35,"kind":"base"},{"label":"After","value":52,"kind":"result"}]}',
+    '{"type":"comparison","title":"...","unit":"$","left":{"label":"...","value":50,"kind":"base"},"right":{"label":"...","value":8,"kind":"gain"}}',
     '{"type":"stat","title":"...","takeaway":"...","stat":{"value":"39%","label":"..."}}',
     '{"type":"matrix","title":"...","axisX":{"low":"...","high":"..."},"axisY":{"low":"...","high":"..."},"points":[{"label":"...","x":0.2,"y":0.8,"highlight":true}]}',
   ].join('\n');
   const text = await callClaude(settings, { system, user, maxTokens: 900 });
+  return extractJson(text);
+}
+
+// ---- 3-slide carousel for an approved post ----
+// A connected set of at most 3 slides (each may be text-only) that tell one story.
+export async function generateCarousel(
+  settings: Settings,
+  post: { topic: string; angle: string },
+  postText: string,
+): Promise<any> {
+  const system = [
+    'You design tight LinkedIn carousels: at most 3 slides that connect into ONE flowing story',
+    '(slide 1 hooks, the middle delivers the substance, the last lands the takeaway and asks a question).',
+    'Slides can be text-only. Return ONLY valid JSON — no prose, no markdown fences.',
+  ].join('\n');
+  const user = [
+    'Design a carousel of EXACTLY 3 slides for the article below. The slides must reference one through-line',
+    'so they clearly belong together (a promise opened on slide 1 and paid off by slide 3).',
+    '',
+    'Each slide is one of these shapes:',
+    '- {"kind":"cover","kicker":"SHORT LABEL","title":"the hook","subtitle":"one supporting line"}',
+    '- {"kind":"point","title":"slide heading","bullets":["short point","short point","short point"]}',
+    '- {"kind":"stat","value":"39%","label":"what it is","context":"one line of meaning"}',
+    '- {"kind":"bars","title":"the point","unit":"%","bars":[{"label":"Today","value":35,"kind":"base"},{"label":"After","value":52,"kind":"result"}]}',
+    '- {"kind":"cta","title":"the takeaway","question":"one genuine question","footer":"a short closing line"}',
+    '',
+    'Rules:',
+    '- Slide 1 should be a "cover". Slide 3 should be a "cta". The middle slide carries the substance',
+    '  (use "bars"/"stat" when there are real numbers, otherwise "point").',
+    '- On "bars", COLOUR-CODE by "kind" (base / gain / result / loss / neutral) so baseline, improvement and',
+    '  result are visually distinct — never all the same.',
+    '- Keep text short and punchy (it must fit a slide). Prefer numbers already in the article. No brands.',
+    '',
+    `Article topic: ${post.topic}`,
+    `Angle: ${post.angle}`,
+    `Article text:\n"""\n${postText}\n"""`,
+    '',
+    'Return JSON exactly: {"slides":[ {…}, {…}, {…} ]} with at most 3 slides.',
+  ].join('\n');
+  const text = await callClaude(settings, { system, user, maxTokens: 1400 });
   return extractJson(text);
 }
 

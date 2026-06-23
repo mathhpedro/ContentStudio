@@ -41,6 +41,7 @@ export interface Post {
   metrics?: { impressions?: number; reactions?: number; comments?: number };
   image?: string | null;
   imagePrompt?: string | null;
+  images?: string[] | null;
 }
 
 // Current month anchor — the calendar always shows "today" in the present month/year.
