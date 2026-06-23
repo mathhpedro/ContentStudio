@@ -36,17 +36,15 @@ Deno.serve(async (req) => {
   if (userErr || !userData?.user) return json({ error: 'Not authenticated' }, 401);
   const uid = userData.user.id;
 
-  const geminiKey = Deno.env.get('GEMINI_API_KEY') || Deno.env.get('GOOGLE_API_KEY');
-  if (!geminiKey) return json({ error: 'Server is missing GEMINI_API_KEY' }, 500);
-
   let body: any;
   try { body = await req.json(); } catch { return json({ error: 'Invalid JSON body' }, 400); }
   const prompt = (body && typeof body.prompt === 'string') ? body.prompt.trim() : '';
+  const pngBase64 = (body && typeof body.pngBase64 === 'string') ? body.pngBase64 : '';
   const workspaceId = body && body.workspaceId;
   const postId = body && body.postId;
   const aspectRatio = (body && body.aspectRatio) || '16:9';
-  if (!prompt) return json({ error: 'Missing prompt' }, 400);
   if (!workspaceId || !postId) return json({ error: 'Missing workspace/post' }, 400);
+  if (!prompt && !pngBase64) return json({ error: 'Missing prompt or image' }, 400);
 
   const admin = createClient(url, serviceKey);
 
@@ -54,25 +52,34 @@ Deno.serve(async (req) => {
   const { data: mem } = await admin.from('members').select('user_id').eq('workspace_id', workspaceId).eq('user_id', uid).maybeSingle();
   if (!mem) return json({ error: 'Not a member of this workspace' }, 403);
 
-  // Generate the image with Imagen.
-  const model = (body && body.model) || IMAGE_MODEL;
-  const genRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:predict`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json', 'x-goog-api-key': geminiKey },
-    body: JSON.stringify({
-      instances: [{ prompt }],
-      parameters: { sampleCount: 1, aspectRatio, personGeneration: 'allow_adult' },
-    }),
-  });
-  if (!genRes.ok) {
-    let msg = 'Image generation failed (HTTP ' + genRes.status + ')';
-    try { const j = await genRes.json(); msg = j?.error?.message || msg; } catch { /* ignore */ }
-    return json({ error: msg }, genRes.status);
+  // Path 1: a pre-rendered figure (PNG) — just store it.
+  let b64: string;
+  if (pngBase64) {
+    b64 = pngBase64;
+  } else {
+    // Path 2: generate a photo with Imagen.
+    const geminiKey = Deno.env.get('GEMINI_API_KEY') || Deno.env.get('GOOGLE_API_KEY');
+    if (!geminiKey) return json({ error: 'Server is missing GEMINI_API_KEY' }, 500);
+    const model = (body && body.model) || IMAGE_MODEL;
+    const genRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:predict`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-goog-api-key': geminiKey },
+      body: JSON.stringify({
+        instances: [{ prompt }],
+        parameters: { sampleCount: 1, aspectRatio, personGeneration: 'allow_adult' },
+      }),
+    });
+    if (!genRes.ok) {
+      let msg = 'Image generation failed (HTTP ' + genRes.status + ')';
+      try { const j = await genRes.json(); msg = j?.error?.message || msg; } catch { /* ignore */ }
+      return json({ error: msg }, genRes.status);
+    }
+    const gen = await genRes.json();
+    const pred = (gen.predictions || [])[0];
+    const got = pred && (pred.bytesBase64Encoded || pred.image?.imageBytes);
+    if (!got) return json({ error: 'No image returned (possibly blocked by safety filters)' }, 502);
+    b64 = got;
   }
-  const gen = await genRes.json();
-  const pred = (gen.predictions || [])[0];
-  const b64 = pred && (pred.bytesBase64Encoded || pred.image?.imageBytes);
-  if (!b64) return json({ error: 'No image returned (possibly blocked by safety filters)' }, 502);
 
   // Decode base64 → bytes and upload to the public bucket.
   const bin = atob(b64);

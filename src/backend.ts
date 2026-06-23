@@ -183,3 +183,19 @@ export async function callImage(opts: { prompt: string; workspaceId: string; pos
   if (!u) throw new Error('No image returned');
   return u as string;
 }
+
+// Upload a pre-rendered figure (base64 PNG, no data: prefix) and return its URL.
+export async function uploadFigure(opts: { pngBase64: string; workspaceId: string; postId: string }): Promise<string> {
+  const { data, error } = await supabase.functions.invoke('image', {
+    body: { pngBase64: opts.pngBase64, workspaceId: opts.workspaceId, postId: opts.postId },
+  });
+  if (error) {
+    let msg = error.message || 'Figure upload failed';
+    try { const ctx = (error as any).context; if (ctx && typeof ctx.json === 'function') { const j = await ctx.json(); msg = j.error || msg; } } catch { /* ignore */ }
+    throw new Error(msg);
+  }
+  if (data && data.error) throw new Error(data.error);
+  const u = data && data.url;
+  if (!u) throw new Error('No image returned');
+  return u as string;
+}

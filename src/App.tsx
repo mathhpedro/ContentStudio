@@ -4,9 +4,10 @@ import {
   SEM, NOW, rel, lcsDiff, monthAnchor, weekFocus, type Post, type Version,
 } from './data';
 import {
-  MODELS, DEFAULT_MODEL, generateVersions, regenerateVersion, generateWeeklyAgenda, generateBrief, generateImagePrompt,
+  MODELS, DEFAULT_MODEL, generateVersions, regenerateVersion, generateWeeklyAgenda, generateBrief, generateImagePrompt, generateChartSpec,
   type Settings,
 } from './anthropic';
+import { buildChartSVG, svgToPng } from './chart';
 import { loadSettings, saveSettings, loadPosts, savePosts, loadStyle, saveStyle } from './store';
 import { hasSupabase } from './supabaseClient';
 
@@ -19,7 +20,7 @@ function newId() {
 // Optional collaborative wiring injected by the Supabase Root gate.
 export interface Account { id: string; name: string; }
 export interface AppSession { email: string; role: string; workspaceId: string; accounts?: Account[]; accountId?: string; switchAccount?: (id: string) => void; signOut: () => void; joinWorkspace: (id: string) => Promise<void>; }
-export interface AppPersistence { savePosts: (posts: Post[]) => Promise<void>; saveStyle: (s: string) => Promise<void>; loadPosts: () => Promise<Post[]>; subscribe: (cb: () => void) => () => void; deletePosts?: (ids: string[]) => Promise<void>; generateImage?: (postId: string, prompt: string) => Promise<string>; }
+export interface AppPersistence { savePosts: (posts: Post[]) => Promise<void>; saveStyle: (s: string) => Promise<void>; loadPosts: () => Promise<Post[]>; subscribe: (cb: () => void) => () => void; deletePosts?: (ids: string[]) => Promise<void>; generateImage?: (postId: string, prompt: string) => Promise<string>; uploadImage?: (postId: string, pngBase64: string) => Promise<string>; }
 export interface AppProps { persistence?: AppPersistence; session?: AppSession; initialPosts?: Post[]; initialStyle?: string; }
 
 // Fluid view morph: use the View Transitions API when available so switching
@@ -402,9 +403,27 @@ export default class App extends React.Component<AppProps, any> {
 
   // ---------- publish + analytics ----------
   postText(v: Version) { return ((v.hook || '') + '\n\n' + (v.body || '')).trim(); }
-  // ---------- post image (Imagen) ----------
+  // ---------- post image / figure ----------
   get canImage(): boolean { return !!(this.props.persistence && this.props.persistence.generateImage); }
+  get canFigure(): boolean { return !!(this.props.persistence && this.props.persistence.uploadImage); }
   approvedVersion(p: Post): Version | null { return this.getVersions(p).find((x) => x.approved) || null; }
+  // Data figure: the model designs a chart spec, we render it as a clean editorial PNG.
+  async genFigure() {
+    const p = this.post(this.state.selectedId)!; if (!p) return;
+    if (!this.canFigure) { this.toast('Figures need the shared studio'); return; }
+    const v = this.approvedVersion(p);
+    if (!v) { this.toast('Approve a version first'); return; }
+    this.setState({ imgBusy: true });
+    try {
+      const spec = await generateChartSpec(this.state.settings, p, this.postText(v));
+      if (!spec || !spec.type) throw new Error('Could not design a figure');
+      const png = await svgToPng(buildChartSVG(spec));
+      const url = await this.props.persistence!.uploadImage!(p.id, png);
+      p.image = url; p.imagePrompt = 'Figure — ' + (spec.title || spec.type);
+      this.setState({ imgBusy: false, imgPromptOpen: false, imgPromptDraft: '', posts: [...this.state.posts] });
+      this.persist(); this.toast('Figure generated 📊');
+    } catch (e: any) { this.setState({ imgBusy: false }); this.toast('Figure failed — ' + (e.message || e)); }
+  }
   async genImage(custom?: string) {
     const p = this.post(this.state.selectedId)!; if (!p) return;
     if (!this.canImage) { this.toast('Image generation needs the shared studio'); return; }
@@ -1110,9 +1129,10 @@ export default class App extends React.Component<AppProps, any> {
         h('span', { style: { fontSize: '18px' } }, '🖼️'),
         h('div', { style: { flex: 1, minWidth: 0 } },
           h('h2', { style: { margin: 0, fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '18px', letterSpacing: '-0.02em', color: C.heading } }, 'Post image'),
-          h('div', { style: { fontSize: '12.5px', color: C.dim, marginTop: '2px' } }, 'A photographic, on-topic image for the approved version — generated with Imagen.')),
+          h('div', { style: { fontSize: '12.5px', color: C.dim, marginTop: '2px' } }, 'A data figure (charts) or a photo for the approved version — built from the post.')),
         busy ? null : h('div', { style: { display: 'flex', gap: '8px', flexWrap: 'wrap' } },
-          this.Btn(p.image ? 'Regenerate' : 'Generate image', () => this.genImage(), { variant: p.image ? 'soft' : 'primary', sm: true, icon: '✦' }),
+          this.canFigure ? this.Btn(p.image ? 'New figure' : 'Generate figure', () => this.genFigure(), { variant: p.image ? 'soft' : 'primary', sm: true, icon: '📊' }) : null,
+          this.Btn(p.image ? 'Photo' : 'Photo', () => this.genImage(), { variant: 'soft', sm: true, icon: '📷' }),
           this.Btn('Custom prompt', () => this.setState({ imgPromptOpen: !open, imgPromptDraft: open ? '' : (p.imagePrompt || '') }), { variant: 'soft', sm: true, icon: '✎' }))),
       open ? h('div', { style: { position: 'relative', zIndex: 1, marginBottom: '14px' } },
         h('textarea', {

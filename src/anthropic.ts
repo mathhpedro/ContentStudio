@@ -361,3 +361,43 @@ export async function generateImagePrompt(
   return (out || '').trim().replace(/^["']+|["']+$/g, '').trim();
 }
 
+// ---- data figure spec for an approved post ----
+// The model turns the post into a structured chart spec; the app renders it as a
+// clean editorial figure (see chart.ts). Reuses figures already cited in the post.
+export async function generateChartSpec(
+  settings: Settings,
+  post: { topic: string; angle: string },
+  postText: string,
+): Promise<any> {
+  const system = [
+    'You are a data-visualisation editor for a business publication. You turn an article into ONE simple,',
+    'honest figure that carries its core point. Return ONLY valid JSON — no prose, no markdown fences.',
+  ].join('\n');
+  const user = [
+    'Design ONE figure for the article below. Pick the chart type that best carries its single main point:',
+    '- "bars": compare 2–6 quantities (each {label, value, highlight?}). Best default.',
+    '- "comparison": two contrasting numbers ({left:{label,value}}, {right:{label,value}}).',
+    '- "stat": one hero number ({stat:{value, label}}) — value is a short string like "39%" or "6×".',
+    '- "matrix": a 2×2 positioning ({axisX:{low,high}}, {axisY:{low,high}}, points:[{label,x,y,highlight}] with x,y in 0..1).',
+    '',
+    'Rules:',
+    '- PREFER numbers actually stated in the article text; keep them consistent with it.',
+    '- If you must invent figures to make the point, keep them realistic and set "illustrative": true.',
+    '- "title" = the point in ~6–10 words (not a label like "Bar chart"). "takeaway" = one short so-what line.',
+    '- "unit" is one of "%", "$", "x", or "" . Keep labels short (≤ ~24 chars). Mark the key item highlight:true.',
+    '- No brand or company names anywhere.',
+    '',
+    `Article topic: ${post.topic}`,
+    `Angle: ${post.angle}`,
+    `Article text:\n"""\n${postText}\n"""`,
+    '',
+    'Return JSON exactly like one of:',
+    '{"type":"bars","title":"...","takeaway":"...","unit":"%","illustrative":true,"bars":[{"label":"...","value":35,"highlight":true},{"label":"...","value":12}]}',
+    '{"type":"comparison","title":"...","unit":"$","left":{"label":"...","value":50},"right":{"label":"...","value":8}}',
+    '{"type":"stat","title":"...","takeaway":"...","stat":{"value":"39%","label":"..."}}',
+    '{"type":"matrix","title":"...","axisX":{"low":"...","high":"..."},"axisY":{"low":"...","high":"..."},"points":[{"label":"...","x":0.2,"y":0.8,"highlight":true}]}',
+  ].join('\n');
+  const text = await callClaude(settings, { system, user, maxTokens: 900 });
+  return extractJson(text);
+}
+
