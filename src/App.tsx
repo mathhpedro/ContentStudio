@@ -2,7 +2,7 @@ import React from 'react';
 import { flushSync } from 'react-dom';
 import {
   SEM, DEFAULT_STYLE, AUTHORED, makePosts, makeVersions, regen,
-  NOW, rel, lcsDiff, type Post, type Version,
+  NOW, rel, lcsDiff, monthAnchor, weekFocus, TOPIC_BRIEFS, type Post, type Version,
 } from './data';
 
 const h = React.createElement;
@@ -216,7 +216,9 @@ export default class App extends React.Component<{}, any> {
       h('div', { style: { position: 'relative', zIndex: 1, maxWidth: '1280px', margin: '0 auto', padding: '0 28px 80px' } },
         this.renderHeader(),
         h('div', { key: this.state.tab, style: { viewTransitionName: 'pcs-view', animation: 'pcsViewIn .42s var(--pcs-ease) both' } as any },
-          this.state.tab === 'calendar' ? this.renderCalendar() : this.renderGenerator()),
+          this.state.tab === 'calendar' ? this.renderCalendar()
+            : this.state.tab === 'topics' ? this.renderTopics()
+              : this.renderGenerator()),
       ),
       this.renderModal(),
       this.renderToast(),
@@ -284,7 +286,7 @@ export default class App extends React.Component<{}, any> {
               backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
             }
           }),
-          Tab('calendar', 'Post Calendar'), Tab('generate', 'Content Generation')),
+          Tab('calendar', 'Post Calendar'), Tab('topics', 'Topic Briefs'), Tab('generate', 'Content Generation')),
         h('div', { style: { flex: 1 } }),
         // theme toggle
         h('div', { style: { display: 'flex', gap: '2px', padding: '3px', borderRadius: '10px', background: C.dark ? 'rgba(0,0,0,0.25)' : 'rgba(8,9,11,0.05)' } },
@@ -297,10 +299,13 @@ export default class App extends React.Component<{}, any> {
     const C = this.C;
     const changed = this.state.posts.filter((p: Post) => p.change);
     const visible = this.state.posts.filter((p: Post) => p.status === 'Approved' || p.status === 'Published');
-    const dim = 30; const first = 1; // June 1 2026 = Monday
+    // Anchor the grid to the real current month/year, with today driven by the actual date.
+    const { y, m, dim, today } = monthAnchor();
+    const monthName = new Date(y, m, 1).toLocaleDateString('en-US', { month: 'long' });
+    const firstJs = new Date(y, m, 1).getDay(); // 0=Sun..6=Sat
+    const first = firstJs === 0 ? 7 : firstJs;  // Monday-based offset (1=Mon..7=Sun)
     const cells: (number | null)[] = []; for (let i = 0; i < first - 1; i++) cells.push(null); for (let d = 1; d <= dim; d++) cells.push(d);
     while (cells.length % 7 !== 0) cells.push(null);
-    const today = 22;
     const byDay: any = {}; visible.forEach((p: Post) => { const dd = this.fmtDay(p.date); (byDay[dd] = byDay[dd] || []).push(p); });
     const wd = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -310,17 +315,19 @@ export default class App extends React.Component<{}, any> {
         h('div', {},
           h('div', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '11px', letterSpacing: '0.16em', color: C.faint, textTransform: 'uppercase', marginBottom: '8px' } }, 'Editorial Calendar'),
           h('h1', { style: { margin: 0, fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '34px', letterSpacing: '-0.03em', color: C.heading } },
-            'June 2026',
+            monthName + ' ' + y,
             h('span', { style: { marginLeft: '12px', fontSize: '17px', fontWeight: 500, color: C.dim, letterSpacing: '-0.01em' } }, visible.length + ' scheduled'),
           ),
         ),
         h('div', { style: { display: 'flex', gap: '9px', alignItems: 'center' } },
           this.Btn('Refresh topics', () => this.runRefresh(), { variant: 'soft', icon: '↻' }),
-          this.Btn('New post', () => this.toast('New post — pick a day'), { variant: 'primary', icon: '+' }),
+          this.Btn('New post', () => { }, { variant: 'primary', icon: '+' }),
         ),
       ),
       // weekly refresh panel
       this.renderRefreshPanel(changed),
+      // this week's focus — the main topics in active rotation
+      this.renderWeekFocus(),
       // sub-header line
       h('div', { style: { display: 'flex', alignItems: 'center', gap: '10px', margin: '2px 2px 14px' } },
         h('span', { style: { display: 'inline-flex', alignItems: 'center', gap: '7px', fontSize: '12.5px', color: C.dim } },
@@ -364,7 +371,7 @@ export default class App extends React.Component<{}, any> {
       }, '↻'),
       h('div', { style: { fontSize: '12.5px', color: C.dim, lineHeight: 1.45, flex: 1 } },
         h('strong', { style: { color: C.heading, fontFamily: "'Sora',sans-serif", fontWeight: 600, fontSize: '13px' } }, 'Weekly refresh'),
-        h('span', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '10px', color: C.faint } }, '  · Jun 22'),
+        h('span', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '10px', color: C.faint } }, '  · ' + new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
         '   —   ' + newc + ' new topics and ' + upc + ' sharpened angles added to your backlog.'),
       firstNew ? this.Btn('Review drafts', () => this.openPost(firstNew.id), { variant: 'soft', sm: true }) : null,
       h('button', {
@@ -383,7 +390,7 @@ export default class App extends React.Component<{}, any> {
       key: key, className: 'pcs-day pcs-int pcs-glass',
       onDragOver: (e: any) => { e.preventDefault(); e.currentTarget.classList.add('pcs-drag-over'); },
       onDragLeave: (e: any) => e.currentTarget.classList.remove('pcs-drag-over'),
-      onDrop: (e: any) => { e.preventDefault(); e.currentTarget.classList.remove('pcs-drag-over'); const id = e.dataTransfer.getData('text'); if (id) this.movePost(id, '2026-06-' + String(d).padStart(2, '0')); },
+      onDrop: (e: any) => { e.preventDefault(); e.currentTarget.classList.remove('pcs-drag-over'); const id = e.dataTransfer.getData('text'); if (id) { const a = monthAnchor(); this.movePost(id, a.y + '-' + a.mm + '-' + String(d).padStart(2, '0')); } },
       style: {
         minHeight: '150px', maxHeight: '320px', display: 'flex', flexDirection: 'column', borderRadius: '14px',
         ...this.glass({ blur: 14, soft: weekend }),
@@ -440,7 +447,94 @@ export default class App extends React.Component<{}, any> {
     );
   }
 
-  runRefresh() { this.setState({ refreshOpen: true }); this.toast('Topics refreshed for this week'); }
+  runRefresh() { this.setState({ refreshOpen: true }); }
+
+  // ---------- this week's focus (calendar) ----------
+  renderWeekFocus() {
+    const C = this.C; const focus = weekFocus(this.state.posts);
+    if (!focus.length) return null;
+    return h('div', { style: { marginBottom: '20px' } },
+      h('div', { style: { display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '10px', margin: '4px 2px 11px', flexWrap: 'wrap' } },
+        h('div', { style: { display: 'flex', alignItems: 'baseline', gap: '10px', flexWrap: 'wrap' } },
+          h('h2', { style: { margin: 0, fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '17px', letterSpacing: '-0.02em', color: C.heading } }, 'This week’s focus'),
+          h('span', { style: { fontSize: '12.5px', color: C.dim } }, focus.length + ' topics in rotation')),
+        this.Btn('Explain these topics', () => this.setTab('topics'), { variant: 'soft', sm: true, icon: '🎓' }),
+      ),
+      h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(228px,1fr))', gap: '12px' } },
+        focus.map((p) => this.renderFocusCard(p))),
+    );
+  }
+
+  renderFocusCard(p: Post) {
+    const C = this.C; const isNew = p.change === 'new';
+    const cc = isNew ? (C.dark ? C.accent : '#16181D') : SEM.warning;
+    const cbg = isNew ? (C.dark ? 'rgba(184,188,196,0.16)' : 'rgba(8,9,11,0.06)') : 'rgba(201,162,75,0.15)';
+    const wd = new Date(p.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' });
+    return h('div', {
+      key: p.id, className: 'pcs-card pcs-int pcs-glass pcs-sheen', onClick: () => this.openPost(p.id),
+      style: {
+        cursor: 'pointer', borderRadius: '14px', padding: '13px 14px', position: 'relative',
+        background: C.dark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.55)',
+        backdropFilter: 'blur(10px) saturate(150%)', WebkitBackdropFilter: 'blur(10px) saturate(150%)',
+        border: '1px solid ' + C.surfBorder, boxShadow: 'inset 0 1px 0 ' + C.surfHi
+      }
+    },
+      h('span', { className: 'pcs-sheen-bar' }),
+      h('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '9px', position: 'relative', zIndex: 1 } },
+        this.FormatTag(p.format),
+        this.Pill(isNew ? 'New' : 'Updated', cc, { bg: cbg, fg: cc, fs: '9.5px', pad: '3px 8px' })),
+      h('div', { style: { fontFamily: "'Sora',sans-serif", fontWeight: 600, fontSize: '14px', letterSpacing: '-0.01em', color: C.heading, lineHeight: 1.3, marginBottom: '5px', position: 'relative', zIndex: 1 } }, p.topic),
+      h('div', { style: { fontSize: '12.5px', color: C.dim, lineHeight: 1.45, marginBottom: '11px', position: 'relative', zIndex: 1 } }, p.angle),
+      h('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', position: 'relative', zIndex: 1 } },
+        this.StatusBadge(p.status),
+        h('span', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '10px', color: C.faint } }, wd)),
+    );
+  }
+
+  // ---------- topic briefs (third tab) ----------
+  renderTopics() {
+    const C = this.C; const focus = weekFocus(this.state.posts).filter((p) => TOPIC_BRIEFS[p.id]);
+    return h('div', { style: { animation: 'pcsFade .4s ease', paddingTop: '14px' } },
+      h('div', { style: { marginBottom: '20px' } },
+        h('div', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '11px', letterSpacing: '0.16em', color: C.faint, textTransform: 'uppercase', marginBottom: '8px' } }, 'Topic Briefs'),
+        h('h1', { style: { margin: 0, fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '34px', letterSpacing: '-0.03em', color: C.heading } }, 'This week’s topics, explained'),
+        h('p', { style: { margin: '8px 0 0', fontSize: '15px', color: C.dim, lineHeight: 1.55, maxWidth: '680px' } }, 'Plain-language briefs on the themes in active rotation — what each one means, why it matters, and the key points behind it.'),
+      ),
+      focus.length
+        ? h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(420px,1fr))', gap: '16px', alignItems: 'start' } },
+          focus.map((p) => this.renderBriefCard(p)))
+        : h('div', { style: { padding: '40px', textAlign: 'center', color: C.dim } }, 'No topic briefs for this week yet.'),
+    );
+  }
+
+  renderBriefCard(p: Post) {
+    const C = this.C; const b = TOPIC_BRIEFS[p.id]; const isNew = p.change === 'new';
+    const cc = isNew ? (C.dark ? C.accent : '#16181D') : SEM.warning;
+    const cbg = isNew ? (C.dark ? 'rgba(184,188,196,0.16)' : 'rgba(8,9,11,0.06)') : 'rgba(201,162,75,0.15)';
+    return h('div', { key: p.id, className: 'pcs-glass', style: { borderRadius: '18px', padding: '22px 24px', ...this.glass({ blur: 24 }) } },
+      h('div', { style: { display: 'flex', alignItems: 'center', gap: '9px', marginBottom: '13px', flexWrap: 'wrap', position: 'relative', zIndex: 1 } },
+        this.FormatTag(p.format),
+        h('span', { style: { width: '3px', height: '3px', borderRadius: '50%', background: C.faint } }),
+        p.change ? this.Pill(isNew ? 'New' : 'Updated', cc, { bg: cbg, fg: cc, fs: '9.5px', pad: '3px 8px' }) : null,
+        h('span', { style: { marginLeft: 'auto' } }, this.StatusBadge(p.status)),
+      ),
+      h('h2', { style: { margin: '0 0 4px', fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '21px', letterSpacing: '-0.02em', color: C.heading, lineHeight: 1.2, position: 'relative', zIndex: 1 } }, p.topic),
+      h('div', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '11px', color: C.faint, marginBottom: '14px', position: 'relative', zIndex: 1 } }, p.angle),
+      h('p', { style: { margin: '0 0 14px', fontSize: '14.5px', color: C.text, lineHeight: 1.6, position: 'relative', zIndex: 1 } }, b.summary),
+      h('div', { style: { position: 'relative', zIndex: 1, marginBottom: '14px' } },
+        h('div', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '9.5px', letterSpacing: '0.1em', textTransform: 'uppercase', color: C.faint, marginBottom: '5px' } }, 'Why it matters'),
+        h('div', { style: { fontSize: '13.5px', color: C.dim, lineHeight: 1.56 } }, b.why)),
+      h('div', { style: { position: 'relative', zIndex: 1, marginBottom: '16px' } },
+        h('div', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '9.5px', letterSpacing: '0.1em', textTransform: 'uppercase', color: C.faint, marginBottom: '8px' } }, 'Key points'),
+        h('div', { style: { display: 'flex', flexDirection: 'column', gap: '8px' } },
+          b.points.map((pt, k) => h('div', { key: k, style: { display: 'flex', gap: '9px', alignItems: 'flex-start' } },
+            h('span', { style: { flexShrink: 0, marginTop: '1px', width: '18px', height: '18px', borderRadius: '6px', display: 'grid', placeItems: 'center', fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '10px', background: C.dark ? 'rgba(184,188,196,0.16)' : '#16181D', color: C.dark ? C.accent : '#fff' } }, k + 1),
+            h('span', { style: { fontSize: '13.5px', color: C.text, lineHeight: 1.5 } }, pt))))),
+      h('div', { style: { display: 'flex', gap: '8px', position: 'relative', zIndex: 1 } },
+        this.Btn('Open drafts', () => this.openPost(p.id), { variant: 'primary', sm: true, icon: '→' }),
+        this.Btn('View in calendar', () => this.setTab('calendar'), { variant: 'ghost', sm: true })),
+    );
+  }
 
   renderGenerator() {
     const C = this.C; const p = this.post(this.state.selectedId);
@@ -537,7 +631,7 @@ export default class App extends React.Component<{}, any> {
               bg: C.dark ? 'rgba(255,255,255,0.05)' : 'rgba(8,9,11,0.04)', fg: C.dim, fs: '10.5px',
               style: { fontFamily: "'JetBrains Mono',monospace" }
             }))),
-          this.Btn('Save style', () => this.toast('Style profile saved'), { variant: 'soft', sm: true }),
+          this.Btn('Save style', () => { }, { variant: 'soft', sm: true }),
         ),
       ) : null,
     );
