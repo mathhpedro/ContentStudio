@@ -17,7 +17,7 @@ function write(key: string, value: any) {
 
 export function loadSettings(): Settings {
   const s = read(K_SETTINGS) || {};
-  return { apiKey: s.apiKey || '', model: s.model || DEFAULT_MODEL };
+  return { apiKey: s.apiKey || '', model: s.model || DEFAULT_MODEL, webSearch: s.webSearch !== false };
 }
 export function saveSettings(s: Settings) { write(K_SETTINGS, s); }
 
