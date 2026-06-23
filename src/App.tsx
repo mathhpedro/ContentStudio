@@ -46,7 +46,7 @@ export default class App extends React.Component<AppProps, any> {
       editingVer: null, draft: '', modal: null,
       toast: null, styleOpen: false, whyOpen: {}, indL: 0, indW: 0,
       genBusy: false, agendaBusy: false, verBusy: null, briefBusy: null, planBusy: null,
-      newPost: { topic: '', angle: '', format: 'opinion', priority: 'Medium' },
+      newPost: { topic: '', angle: '', format: 'opinion', priority: 'Medium', date: '' },
       joinId: '',
       viewYM: (() => { const a = monthAnchor(); return { y: a.y, m: a.m }; })(),
       allFilter: { status: 'All', format: 'All', q: '' },
@@ -385,14 +385,16 @@ export default class App extends React.Component<AppProps, any> {
     } catch (e: any) { this.setState({ briefBusy: null }); this.toast('Brief failed — ' + (e.message || e)); }
   }
   mondayOfThisWeek(): Date { const now = new Date(); const d = new Date(now); d.setDate(now.getDate() - ((now.getDay() + 6) % 7)); d.setHours(0, 0, 0, 0); return d; }
+  todayISO(): string { const a = monthAnchor(); return a.y + '-' + a.mm + '-' + String(a.today).padStart(2, '0'); }
+  openNewPost() { this.setState({ modal: { type: 'newpost' }, newPost: { topic: '', angle: '', format: 'opinion', priority: 'Medium', date: this.todayISO() } }); }
   createPost() {
     const np = this.state.newPost;
     if (!np.topic.trim()) { this.toast('Add a topic'); return; }
-    const a = monthAnchor();
-    const date = a.y + '-' + a.mm + '-' + String(a.today).padStart(2, '0');
+    const date = (np.date && /^\d{4}-\d{2}-\d{2}$/.test(np.date)) ? np.date : this.todayISO();
     const post: Post = { id: newId(), date, topic: np.topic.trim(), angle: np.angle.trim(), format: np.format, status: 'Draft', priority: np.priority, change: 'new', scheduledFor: null, versions: null, activeVer: 0 };
     const posts = [post, ...this.state.posts];
-    this.setState({ posts, modal: null, newPost: { topic: '', angle: '', format: 'opinion', priority: 'Medium' } });
+    const [py, pm] = date.split('-');
+    this.setState({ posts, modal: null, viewYM: { y: parseInt(py, 10), m: parseInt(pm, 10) - 1 }, newPost: { topic: '', angle: '', format: 'opinion', priority: 'Medium', date: this.todayISO() } });
     this.persist(posts);
     this.openPost(post.id);
   }
@@ -590,7 +592,7 @@ export default class App extends React.Component<AppProps, any> {
             const label = pb ? (pb.total ? 'Drafting ' + pb.done + '/' + pb.total + '…' : 'Planning…') : 'Plan & draft week';
             return this.Btn(label, () => this.runPlanWeek(), { variant: 'primary', icon: '✦', disabled: busy }); })(),
           this.Btn(this.state.agendaBusy ? 'Generating…' : 'Topics only', () => this.runRefreshAgenda(), { variant: 'soft', icon: '↻', disabled: this.state.agendaBusy || !!this.state.planBusy }),
-          this.Btn('New post', () => this.setState({ modal: { type: 'newpost' } }), { variant: 'soft', icon: '+' }),
+          this.Btn('New post', () => this.openNewPost(), { variant: 'soft', icon: '+' }),
         ),
       ),
       // this week's focus — the main topics in active rotation
@@ -609,7 +611,7 @@ export default class App extends React.Component<AppProps, any> {
           this.connected
             ? this.Btn(this.state.planBusy ? 'Working…' : 'Plan & draft week', () => this.runPlanWeek(), { variant: 'primary', icon: '✦', disabled: !!this.state.planBusy })
             : this.Btn('Connect Claude', () => this.openSettings(), { variant: 'primary' }),
-          this.Btn('New post', () => this.setState({ modal: { type: 'newpost' } }), { variant: 'soft', icon: '+' })),
+          this.Btn('New post', () => this.openNewPost(), { variant: 'soft', icon: '+' })),
       ),
       // sub-header line — only meaningful when there are scheduled posts
       visible.length ? h('div', { style: { display: 'flex', alignItems: 'center', gap: '10px', margin: '2px 2px 14px' } },
@@ -731,7 +733,7 @@ export default class App extends React.Component<AppProps, any> {
         h('div', { style: { display: 'flex', gap: '9px', alignItems: 'center', flexWrap: 'wrap' } },
           this.Btn('Export backup', () => this.exportData(), { variant: 'soft', sm: true, icon: '⤓' }),
           this.Btn('Import', () => this.setState({ modal: { type: 'import' } }), { variant: 'soft', sm: true, icon: '⤒' }),
-          this.Btn('New post', () => this.setState({ modal: { type: 'newpost' } }), { variant: 'primary', sm: true, icon: '+' })),
+          this.Btn('New post', () => this.openNewPost(), { variant: 'primary', sm: true, icon: '+' })),
       ),
       // filters
       h('div', { style: { display: 'flex', gap: '14px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '16px' } },
@@ -1319,17 +1321,19 @@ export default class App extends React.Component<AppProps, any> {
     const label = (t: string) => h('label', { style: { display: 'block', fontFamily: "'Sora',sans-serif", fontWeight: 600, fontSize: '12px', color: C.heading, margin: '14px 0 6px' } }, t);
     return h('div', { style: { padding: '26px' } },
       h('h3', { style: { margin: '0 0 4px', fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '20px', letterSpacing: '-0.02em', color: C.heading } }, 'New post'),
-      h('p', { style: { margin: 0, fontSize: '13px', color: C.dim } }, 'Add a topic to today. Generate drafts from it in Content Generation.'),
+      h('p', { style: { margin: 0, fontSize: '13px', color: C.dim } }, 'Add a topic and pick the day you plan to publish it. Generate drafts from it in Content Generation.'),
       label('Topic'),
       h('input', { value: np.topic, autoFocus: true, placeholder: 'e.g. Raise price to defend margin — or hold to defend volume?', onChange: (e: any) => set({ topic: e.target.value }), style: inputStyle }),
       label('Angle'),
       h('input', { value: np.angle, placeholder: 'One line on the take', onChange: (e: any) => set({ angle: e.target.value }), style: inputStyle }),
       h('div', { style: { display: 'flex', gap: '12px' } },
-        h('div', { style: { flex: 1 } }, label('Format'),
-          h('select', { value: np.format, onChange: (e: any) => set({ format: e.target.value }), style: inputStyle }, formats.map((f) => h('option', { key: f, value: f }, f)))),
+        h('div', { style: { flex: 1 } }, label('Planned publish date'),
+          h('input', { type: 'date', value: np.date || this.todayISO(), onChange: (e: any) => set({ date: e.target.value }), style: { ...inputStyle, fontFamily: "'JetBrains Mono',monospace" } })),
         h('div', { style: { flex: 1 } }, label('Priority'),
           h('select', { value: np.priority, onChange: (e: any) => set({ priority: e.target.value }), style: inputStyle }, prios.map((f) => h('option', { key: f, value: f }, f)))),
       ),
+      label('Format'),
+      h('select', { value: np.format, onChange: (e: any) => set({ format: e.target.value }), style: inputStyle }, formats.map((f) => h('option', { key: f, value: f }, f))),
       h('div', { style: { display: 'flex', gap: '9px', justifyContent: 'flex-end', marginTop: '22px' } },
         this.Btn('Cancel', close, { variant: 'ghost' }),
         this.Btn('Create post', () => this.createPost(), { variant: 'primary', icon: '+' }),
