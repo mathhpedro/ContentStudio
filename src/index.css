@@ -9,7 +9,7 @@
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; height: 100%; }
 #root { height: 100%; }
-body { font-family: 'Cormorant Garamond', Georgia, serif; -webkit-font-smoothing: antialiased; }
+body { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 500; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
 ::selection { background: #C2861E; color: #0F0E0B; }
 
 /* Pragma DS — near-square corners; the elegance is in the type, not the radii. */
