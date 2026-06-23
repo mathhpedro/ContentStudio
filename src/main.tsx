@@ -4,7 +4,7 @@ import App from './App';
 import './index.css';
 import { hasSupabase } from './supabaseClient';
 import {
-  bootstrap, fetchPosts, fetchStyle, savePosts, saveStyle, subscribePosts, deletePosts,
+  bootstrap, fetchPosts, fetchStyle, savePosts, saveStyle, subscribePosts, deletePosts, callImage,
   signOut, onAuthChange, enterWithCode, switchAccount, NOT_GATED, type SessionInfo,
 } from './backend';
 import type { Post } from './data';
@@ -115,6 +115,7 @@ function Root() {
     loadPosts: () => fetchPosts(ws),
     subscribe: (cb: () => void) => subscribePosts(ws, cb),
     deletePosts: (ids: string[]) => deletePosts(ws, ids),
+    generateImage: (postId: string, prompt: string) => callImage({ prompt, workspaceId: ws, postId }),
   };
   const sessionProp = {
     email: session!.email, role: session!.role, workspaceId: ws,

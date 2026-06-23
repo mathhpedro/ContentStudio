@@ -4,7 +4,7 @@ import {
   SEM, NOW, rel, lcsDiff, monthAnchor, weekFocus, type Post, type Version,
 } from './data';
 import {
-  MODELS, DEFAULT_MODEL, generateVersions, regenerateVersion, generateWeeklyAgenda, generateBrief,
+  MODELS, DEFAULT_MODEL, generateVersions, regenerateVersion, generateWeeklyAgenda, generateBrief, generateImagePrompt,
   type Settings,
 } from './anthropic';
 import { loadSettings, saveSettings, loadPosts, savePosts, loadStyle, saveStyle } from './store';
@@ -19,7 +19,7 @@ function newId() {
 // Optional collaborative wiring injected by the Supabase Root gate.
 export interface Account { id: string; name: string; }
 export interface AppSession { email: string; role: string; workspaceId: string; accounts?: Account[]; accountId?: string; switchAccount?: (id: string) => void; signOut: () => void; joinWorkspace: (id: string) => Promise<void>; }
-export interface AppPersistence { savePosts: (posts: Post[]) => Promise<void>; saveStyle: (s: string) => Promise<void>; loadPosts: () => Promise<Post[]>; subscribe: (cb: () => void) => () => void; deletePosts?: (ids: string[]) => Promise<void>; }
+export interface AppPersistence { savePosts: (posts: Post[]) => Promise<void>; saveStyle: (s: string) => Promise<void>; loadPosts: () => Promise<Post[]>; subscribe: (cb: () => void) => () => void; deletePosts?: (ids: string[]) => Promise<void>; generateImage?: (postId: string, prompt: string) => Promise<string>; }
 export interface AppProps { persistence?: AppPersistence; session?: AppSession; initialPosts?: Post[]; initialStyle?: string; }
 
 // Fluid view morph: use the View Transitions API when available so switching
@@ -51,6 +51,7 @@ export default class App extends React.Component<AppProps, any> {
       viewYM: (() => { const a = monthAnchor(); return { y: a.y, m: a.m }; })(),
       allFilter: { status: 'All', format: 'All', q: '' },
       refUrl: '',
+      imgBusy: false, imgPromptOpen: false, imgPromptDraft: '',
     };
     this._tid = 0;
     this.tabRefs = {};
@@ -401,6 +402,29 @@ export default class App extends React.Component<AppProps, any> {
 
   // ---------- publish + analytics ----------
   postText(v: Version) { return ((v.hook || '') + '\n\n' + (v.body || '')).trim(); }
+  // ---------- post image (Imagen) ----------
+  get canImage(): boolean { return !!(this.props.persistence && this.props.persistence.generateImage); }
+  approvedVersion(p: Post): Version | null { return this.getVersions(p).find((x) => x.approved) || null; }
+  async genImage(custom?: string) {
+    const p = this.post(this.state.selectedId)!; if (!p) return;
+    if (!this.canImage) { this.toast('Image generation needs the shared studio'); return; }
+    const v = this.approvedVersion(p);
+    if (!v) { this.toast('Approve a version first'); return; }
+    this.setState({ imgBusy: true });
+    try {
+      let prompt = (custom || '').trim();
+      if (!prompt) prompt = await generateImagePrompt(this.state.settings, p, this.postText(v));
+      const url = await this.props.persistence!.generateImage!(p.id, prompt);
+      p.image = url; p.imagePrompt = prompt;
+      this.setState({ imgBusy: false, imgPromptOpen: false, imgPromptDraft: '', posts: [...this.state.posts] });
+      this.persist(); this.toast('Image generated 🖼️');
+    } catch (e: any) { this.setState({ imgBusy: false }); this.toast('Image failed — ' + (e.message || e)); }
+  }
+  removeImage() {
+    const p = this.post(this.state.selectedId)!; if (!p) return;
+    p.image = null; p.imagePrompt = null;
+    this.setState({ posts: [...this.state.posts] }); this.persist(); this.toast('Image removed');
+  }
   markPublished(vi: number) {
     const p = this.post(this.state.selectedId)!; const vers = this.getVersions(p);
     vers.forEach((v, k) => v.approved = (k === vi)); p.activeVer = vi; p.status = 'Published'; p.publishedAt = NOW();
@@ -1071,6 +1095,49 @@ export default class App extends React.Component<AppProps, any> {
           h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(332px,1fr))', gap: '16px', alignItems: 'start' } },
             vers.map((v, i) => this.renderVersion(p, v, i))))
         : this.renderGeneratePanel(),
+      // image panel — only once a version is approved
+      this.approvedVersion(p) ? this.renderImagePanel(p) : null,
+    );
+  }
+
+  renderImagePanel(p: Post) {
+    const C = this.C; const busy = this.state.imgBusy; const open = this.state.imgPromptOpen;
+    if (!this.canImage) return null;
+    return h('div', {
+      className: 'pcs-glass', style: { marginTop: '20px', borderRadius: '18px', padding: '22px 24px', ...this.glass({ blur: 24 }) },
+    },
+      h('div', { style: { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px', flexWrap: 'wrap', position: 'relative', zIndex: 1 } },
+        h('span', { style: { fontSize: '18px' } }, '🖼️'),
+        h('div', { style: { flex: 1, minWidth: 0 } },
+          h('h2', { style: { margin: 0, fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '18px', letterSpacing: '-0.02em', color: C.heading } }, 'Post image'),
+          h('div', { style: { fontSize: '12.5px', color: C.dim, marginTop: '2px' } }, 'A photographic, on-topic image for the approved version — generated with Imagen.')),
+        busy ? null : h('div', { style: { display: 'flex', gap: '8px', flexWrap: 'wrap' } },
+          this.Btn(p.image ? 'Regenerate' : 'Generate image', () => this.genImage(), { variant: p.image ? 'soft' : 'primary', sm: true, icon: '✦' }),
+          this.Btn('Custom prompt', () => this.setState({ imgPromptOpen: !open, imgPromptDraft: open ? '' : (p.imagePrompt || '') }), { variant: 'soft', sm: true, icon: '✎' }))),
+      open ? h('div', { style: { position: 'relative', zIndex: 1, marginBottom: '14px' } },
+        h('textarea', {
+          value: this.state.imgPromptDraft, autoFocus: true, placeholder: 'Describe the image you want (scene, mood, style)…',
+          onChange: (e: any) => this.setState({ imgPromptDraft: e.target.value }),
+          style: {
+            width: '100%', minHeight: '80px', resize: 'vertical', borderRadius: '12px', padding: '12px 14px',
+            background: C.input, border: '1px solid ' + C.border, color: C.text, fontSize: '13.5px', lineHeight: 1.55,
+            fontFamily: "'Hanken Grotesk',sans-serif", outline: 'none', boxSizing: 'border-box',
+          },
+        }),
+        h('div', { style: { display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '8px' } },
+          this.Btn('Cancel', () => this.setState({ imgPromptOpen: false, imgPromptDraft: '' }), { variant: 'ghost', sm: true }),
+          this.Btn('Generate from prompt', () => this.genImage(this.state.imgPromptDraft), { variant: 'primary', sm: true, icon: '✦', disabled: !this.state.imgPromptDraft.trim() }))) : null,
+      busy
+        ? h('div', { style: { padding: '40px', textAlign: 'center', color: C.dim, position: 'relative', zIndex: 1 } },
+          h('div', { style: { fontSize: '26px', marginBottom: '8px' } }, '✦'), 'Generating image…')
+        : (p.image
+          ? h('div', { style: { position: 'relative', zIndex: 1 } },
+            h('img', { src: p.image, alt: 'Post image', style: { width: '100%', borderRadius: '14px', display: 'block', border: '1px solid ' + C.border } }),
+            h('div', { style: { display: 'flex', gap: '8px', marginTop: '10px', flexWrap: 'wrap' } },
+              this.Btn('Download', () => window.open(p.image as string, '_blank', 'noopener'), { variant: 'soft', sm: true, icon: '⤓' }),
+              this.Btn('Remove', () => this.removeImage(), { variant: 'danger', sm: true, icon: '🗑️' })),
+            p.imagePrompt ? h('div', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '10.5px', color: C.faint, marginTop: '10px', lineHeight: 1.5 } }, 'Prompt · ' + p.imagePrompt) : null)
+          : (open ? null : h('div', { style: { fontSize: '13px', color: C.dim, position: 'relative', zIndex: 1 } }, 'No image yet — generate one automatically from the post, or write a custom prompt.'))),
     );
   }
 
@@ -1419,6 +1486,9 @@ export default class App extends React.Component<AppProps, any> {
         h('h3', { style: { margin: '0 0 6px', fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '20px', letterSpacing: '-0.02em', color: C.heading } }, 'Publish to LinkedIn'),
         h('p', { style: { margin: '0 0 16px', fontSize: '13.5px', color: C.dim, lineHeight: 1.55 } },
           'Copy the post, open LinkedIn to paste and publish, then mark it as published here to track its performance.'),
+        p.image ? h('div', { style: { marginBottom: '14px' } },
+          h('img', { src: p.image, alt: 'Post image', style: { width: '100%', borderRadius: '12px', display: 'block', border: '1px solid ' + C.border } }),
+          h('div', { style: { marginTop: '6px' } }, this.Btn('Download image', () => window.open(p.image as string, '_blank', 'noopener'), { variant: 'soft', sm: true, icon: '⤓' }))) : null,
         h('textarea', {
           readOnly: true, value: text, className: 'pcs-scroll',
           onFocus: (e: any) => e.target.select(),

@@ -268,3 +268,33 @@ export async function generateBrief(
   const b = extractJson(text);
   return { summary: b.summary || '', why: b.why || '', points: Array.isArray(b.points) ? b.points : [] };
 }
+
+// ---- art-directed image prompt for an approved post ----
+// Claude reads the post and writes a single photographic, editorial prompt that
+// avoids the generic "AI render" look. Returns the prompt text only.
+export async function generateImagePrompt(
+  settings: Settings,
+  post: { topic: string; angle: string },
+  postText: string,
+): Promise<string> {
+  const system = 'You are an art director writing a prompt for a photoreal image model. Return ONLY the prompt text — no quotes, no preamble, no explanation.';
+  const user = [
+    'Write ONE image-generation prompt for the illustration of a LinkedIn thought-leadership post.',
+    '',
+    'It MUST read like a real editorial / documentary photograph or a tasteful real-world still life —',
+    'NOT a glossy 3D render, NOT corporate clip-art, NOT a neon "futuristic AI" cliché, NOT obviously AI-made.',
+    'Be concrete and specific: real subject, real setting, composition, focal length, natural lighting, mood,',
+    'texture and depth of field — the kind of brief a photographer could shoot.',
+    'It must be visually relevant to the post’s actual idea (a metaphor or a real scene from the industry it discusses).',
+    'Strictly avoid: any text, letters, words, numbers, logos, watermarks, charts, infographics, UI; and any company or brand name.',
+    '',
+    `Post topic: ${post.topic}`,
+    `Angle: ${post.angle}`,
+    `Post text:\n"""\n${postText}\n"""`,
+    '',
+    'Return only the prompt, about 40–70 words.',
+  ].join('\n');
+  const out = await callClaude(settings, { system, user, maxTokens: 500 });
+  return (out || '').trim().replace(/^["']+|["']+$/g, '').trim();
+}
+

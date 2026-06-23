@@ -62,6 +62,7 @@ function rowToPost(r: any): Post {
     scheduledFor: r.scheduled_for, versions: (r.versions && r.versions.length ? r.versions : null),
     activeVer: r.active_ver || 0, ...(r.brief ? { brief: r.brief } : {}),
     publishedAt: r.published_at || null, ...(r.metrics ? { metrics: r.metrics } : {}),
+    image: r.image_url || null, imagePrompt: r.image_prompt || null,
   } as Post;
 }
 function postToRow(p: Post, ws: string): any {
@@ -70,6 +71,7 @@ function postToRow(p: Post, ws: string): any {
     status: p.status, priority: p.priority, change: p.change, scheduled_for: p.scheduledFor,
     versions: p.versions || [], active_ver: p.activeVer || 0, brief: (p as any).brief || null,
     published_at: p.publishedAt || null, metrics: p.metrics || null,
+    image_url: p.image || null, image_prompt: p.imagePrompt || null,
     updated_at: new Date().toISOString(),
   };
 }
@@ -164,4 +166,20 @@ export async function callEdge(opts: { system: string; user: string; model?: str
   }
   if (data && data.error) throw new Error(data.error);
   return (data && data.text) || '';
+}
+
+// ---------- image generation (Imagen) ----------
+export async function callImage(opts: { prompt: string; workspaceId: string; postId: string; aspectRatio?: string }): Promise<string> {
+  const { data, error } = await supabase.functions.invoke('image', {
+    body: { prompt: opts.prompt, workspaceId: opts.workspaceId, postId: opts.postId, aspectRatio: opts.aspectRatio },
+  });
+  if (error) {
+    let msg = error.message || 'Image generation failed';
+    try { const ctx = (error as any).context; if (ctx && typeof ctx.json === 'function') { const j = await ctx.json(); msg = j.error || msg; } } catch { /* ignore */ }
+    throw new Error(msg);
+  }
+  if (data && data.error) throw new Error(data.error);
+  const u = data && data.url;
+  if (!u) throw new Error('No image returned');
+  return u as string;
 }
