@@ -6,6 +6,8 @@
 // The key lives only in this browser's localStorage — see store.ts.
 
 import { NOW, type Post, type Version } from './data';
+import { hasSupabase } from './supabaseClient';
+import { callEdge } from './backend';
 
 export interface Settings {
   apiKey: string;
@@ -27,6 +29,11 @@ export async function callClaude(
   settings: Settings,
   opts: { system: string; user: string; maxTokens?: number },
 ): Promise<string> {
+  // Collaborative mode: go through the Supabase Edge Function (key stays server-side).
+  if (hasSupabase) {
+    return callEdge({ system: opts.system, user: opts.user, model: (settings && settings.model) || DEFAULT_MODEL, maxTokens: opts.maxTokens });
+  }
+  // Local mode: direct browser call with the user's own key.
   if (!settings || !settings.apiKey) {
     throw new Error('Not connected — add your Anthropic API key in Settings.');
   }
