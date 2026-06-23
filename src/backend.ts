@@ -31,6 +31,13 @@ export async function verifyOtp(email: string, token: string) {
 }
 export async function signOut() { await supabase.auth.signOut(); }
 
+// The workspace the user is currently looking at (per-browser). Lets a user who
+// belongs to several workspaces (e.g. their own + one they joined by invite) land
+// in the right one, and makes "join by code" switch to the joined workspace.
+const ACTIVE_WS_KEY = 'pragma.activeWorkspace';
+function getActiveWs(): string | null { try { return localStorage.getItem(ACTIVE_WS_KEY); } catch { return null; } }
+function setActiveWs(id: string) { try { localStorage.setItem(ACTIVE_WS_KEY, id); } catch { /* ignore */ } }
+
 // ---------- row mapping ----------
 function rowToPost(r: any): Post {
   return {
@@ -58,11 +65,15 @@ export async function bootstrap(): Promise<SessionInfo> {
   const email = user.email || '';
 
   const { data: mems, error: memErr } = await supabase
-    .from('members').select('workspace_id, role').eq('user_id', user.id).limit(1);
+    .from('members').select('workspace_id, role, created_at').eq('user_id', user.id)
+    .order('created_at', { ascending: true });
   if (memErr) throw new Error(memErr.message);
 
   if (mems && mems.length) {
-    return { uid: user.id, email, workspaceId: mems[0].workspace_id, role: mems[0].role };
+    const active = getActiveWs();
+    const chosen = (active && mems.find((m: any) => m.workspace_id === active)) || mems[0];
+    setActiveWs(chosen.workspace_id);
+    return { uid: user.id, email, workspaceId: chosen.workspace_id, role: chosen.role };
   }
 
   // first run for this user → create a workspace + owner membership, import local data once
@@ -77,6 +88,7 @@ export async function bootstrap(): Promise<SessionInfo> {
   if (insErr) throw new Error(insErr.message);
 
   await importLocal(workspaceId);
+  setActiveWs(workspaceId);
   return { uid: user.id, email, workspaceId, role: 'owner' };
 }
 
@@ -93,9 +105,12 @@ async function importLocal(ws: string) {
 export async function joinWorkspace(workspaceId: string): Promise<void> {
   const user = await getUser();
   if (!user) throw new Error('Not signed in');
+  const id = workspaceId.trim();
   const { error } = await supabase.from('members')
-    .insert({ workspace_id: workspaceId.trim(), user_id: user.id, email: user.email, role: 'writer' });
-  if (error) throw new Error(error.message);
+    .insert({ workspace_id: id, user_id: user.id, email: user.email, role: 'writer' });
+  // Already a member → still switch to it. Otherwise surface the error.
+  if (error && !/duplicate key|already (a )?member|violates unique/i.test(error.message)) throw new Error(error.message);
+  setActiveWs(id);
 }
 
 // ---------- data ----------

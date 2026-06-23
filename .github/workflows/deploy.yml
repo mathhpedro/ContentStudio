@@ -35,6 +35,9 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          # Collaborative mode: login + shared workspaces (team by invite).
+          VITE_COLLAB: '1'
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
