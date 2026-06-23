@@ -95,8 +95,14 @@ Deno.serve(async (req) => {
   const { system, user, model: rawModel, max_tokens, search, fetch_url } = body || {};
   if (!user) return json({ error: 'Missing "user" prompt' }, 400);
 
-  // Route by model id. Default to Gemini Flash (free tier).
+  // The text model is configured server-side (app_config.text_model) — the client
+  // can't change it. Falls back to the request model, then Gemini Flash.
   let model = rawModel || 'gemini-2.5-flash';
+  try {
+    const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+    const { data: cfg } = await admin.from('app_config').select('value').eq('key', 'text_model').maybeSingle();
+    if (cfg && cfg.value) model = cfg.value;
+  } catch { /* ignore — use fallback */ }
   const isClaude = String(model).startsWith('claude');
   if (!isClaude && !String(model).startsWith('gemini')) model = 'gemini-2.5-flash';
   const maxTokens = max_tokens || 4096;
