@@ -130,6 +130,29 @@ const LINKEDIN_PLAYBOOK = [
   '   real figures, a clear point of view. Teach something usable (a framework, a test, a number).',
 ].join('\n');
 
+// COMMERCIAL POSITIONING — every post must quietly SELL the author's expertise by
+// attracting (and qualifying) the right buyer. Four things must be true at once.
+const SELLING_PRINCIPLES = [
+  'COMMERCIAL INTENT — the goal of every post is to SELL the author\'s expertise by pulling in the right',
+  'buyer. Do it by resonance, never by pitching. Four things must be true at the same time — bake them in:',
+  '',
+  '1. WRITE FOR THE BUYER, NOT THE EVALUATOR. Address the person who would HIRE or BUY this expertise —',
+  '   the executive who owns the P&L and the commercial×operations trade-off — not peers, analysts, juniors',
+  '   or anyone "grading a résumé." Speak to their decision, their risk and their money; never audition.',
+  '2. LEAD WITH THE RESULT, NOT THE ROLE. The hook names an OUTCOME or a tension the buyer feels (margin',
+  '   recovered, a decision no one owned, volume defended under a price move) — never a title, credential,',
+  '   "I am a…", years of experience, or what the author does for a living.',
+  '3. CONTENT THAT FILTERS. Make the RIGHT prospect think "this problem is exactly mine." Be specific enough',
+  '   that the wrong reader scrolls past — that is the point. A post that pleases everyone converts no one.',
+  '   Name the precise situation, industry, role and stakes so the in-pain buyer feels personally seen.',
+  '4. FIT & TIMING. Write to the person feeling this pain RIGHT NOW, so the post surfaces intent and',
+  '   self-qualifies the few readers who are a real fit (depth over reach). Reward whoever recognises the',
+  '   moment they are living. Favour the high-fit few over a high-volume crowd.',
+  '',
+  'Stay subtle: no pitch, no "DM me", no "I help X do Y", no ad tone. The selling is implicit — the right',
+  'buyer recognises their own problem in your words and wants the person who framed it that precisely.',
+].join('\n');
+
 function styleSystem(style: string): string {
   return [
     'You are a ghostwriter helping an operator become a LINKEDIN TOP VOICE in ENTERPRISE DECISION',
@@ -148,6 +171,8 @@ function styleSystem(style: string): string {
     '- Intelligence commoditizes; judgment compounds. Theory of Constraints as the lens. Prove value in P&L.',
     '',
     LINKEDIN_PLAYBOOK,
+    '',
+    SELLING_PRINCIPLES,
     '',
     'Follow this voice/style profile precisely:',
     '"""',
@@ -185,8 +210,12 @@ export async function generateVersions(
     '- B — Story: a specific situation → complication → resolution that carries one lesson.',
     '- C — Framework / numbered: a usable, skimmable list (a test, checklist or 3-step model).',
     '',
-    'For EACH version, apply the LinkedIn Top Voice rules from the system prompt:',
-    '- "hook": the opening line only — ≤ ~200 chars, scroll-stopping, no greeting.',
+    'For EACH version, apply the LinkedIn Top Voice rules AND the COMMERCIAL INTENT principles from the',
+    'system prompt: write to the BUYER not the evaluator, lead with the RESULT not a role, and make the post',
+    'FILTER so the right-fit prospect thinks "this problem is exactly mine" (specific enough that the wrong',
+    'reader scrolls past). Sell by resonance — never pitch.',
+    '- "hook": the opening line only — ≤ ~200 chars, scroll-stopping, no greeting. Lead with an outcome or a',
+    '  tension the buyer feels, not a title or credential.',
     '- "body": the rest of the post, already formatted for LinkedIn — short paragraphs (1–2 sentences)',
     '  separated by BLANK LINES (use real newlines), an optional tight list, a complete hook→insight→',
     '  takeaway arc, then ONE genuine question as the CTA, then a final line of 3–5 relevant hashtags.',
@@ -276,6 +305,10 @@ export async function generateWeeklyAgenda(
     'Each topic should map to a high-performing LinkedIn archetype — vary them across the week:',
     'contrarian/hot take · personal lesson or war story · how-to framework · data/insight · myth-buster ·',
     'timely trend reaction · prediction. Every topic must imply a strong, specific hook (not a vague theme).',
+    '',
+    'COMMERCIAL INTENT: pick topics that FILTER for the author\'s buyer — the executive who owns the P&L and',
+    'the commercial×operations trade-off. Each topic should make that specific buyer think "this is exactly',
+    'my problem," not please a broad crowd. Frame around the buyer\'s RESULT and risk, never around a role.',
     '- ' + NO_BRAND_RULE,
     'Always return ONLY valid JSON.',
   ].join('\n');
@@ -309,6 +342,8 @@ export async function generateTopic(
     'Lead with a subject that is genuinely TRENDING right now, then apply the author\'s lens of ENTERPRISE',
     'DECISION OPERATIONS (commercial × operations trade-offs in consumer goods, banking/finance, retail,',
     'agribusiness). Timeliness first, lens second — never a generic, evergreen "AI strategy" theme.',
+    'COMMERCIAL INTENT: choose a topic that FILTERS for the author\'s buyer — the P&L-owning executive who',
+    'feels this trade-off — so the right prospect thinks "this is exactly my problem." Frame on RESULT, not role.',
     '- ' + NO_BRAND_RULE,
     'Always return ONLY valid JSON.',
   ].join('\n');
