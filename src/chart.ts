@@ -254,6 +254,67 @@ export function buildSlideSVG(slide: Slide, idx: number, total: number): string 
     + body + counter(idx, total) + `</svg>`;
 }
 
+// ===================== rich editorial poster (single image, 4:5) =====================
+export interface Poster {
+  kicker?: string; title?: string; accent?: string; subhead?: string;
+  stats?: { value: string; label: string; sub?: string }[];
+  barsLabel?: string; bars?: ChartBar[]; unit?: string;
+  notesLabel?: string; notes?: { title: string; text: string }[];
+  illustrative?: boolean;
+}
+export function buildPosterSVG(p: Poster): string {
+  const M = 88; let y = 120; let svg = '';
+  if (p.kicker) { svg += T(M, y, p.kicker.toUpperCase(), { mono: true, size: 24, fill: GOLD, spacing: 4 }); y += 54; }
+  if (p.title) wrap(p.title, 24, 3).forEach((l) => { svg += T(M, y, l, { size: 70, weight: 700, fill: CREAM }); y += 78; });
+  if (p.accent) { y += 2; wrap(p.accent, 28, 2).forEach((l) => { svg += T(M, y, l, { size: 54, italic: true, fill: GOLD }); y += 62; }); }
+  if (p.subhead) { y += 14; wrap(p.subhead, 58, 4).forEach((l) => { svg += T(M, y, l, { mono: true, size: 22, fill: MUTE }); y += 32; }); }
+  y += 22; svg += rule(M, y, PW - M); y += 40;
+
+  const stats = (p.stats || []).slice(0, 3);
+  if (stats.length) {
+    const colW = (PW - M * 2) / stats.length;
+    stats.forEach((s, i) => {
+      const x = M + i * colW;
+      svg += `<rect x="${x}" y="${y - 4}" width="${colW - 34}" height="3" fill="${i === 0 ? GOLD : RULE}"/>`;
+      svg += T(x, y + 58, s.value, { size: 62, weight: 700, fill: i === 0 ? GOLD : CREAM });
+      if (s.sub) svg += T(x + (String(s.value).length * 36) + 8, y + 58, s.sub, { mono: true, size: 22, fill: MUTE });
+      let ly = y + 92;
+      wrap(s.label, 22, 2).forEach((l) => { svg += T(x, ly, l.toUpperCase(), { mono: true, size: 15, fill: MUTE, spacing: 1 }); ly += 22; });
+    });
+    y += 150; svg += rule(M, y, PW - M); y += 38;
+  }
+
+  const bars = (p.bars || []).slice(0, 6); const notes = (p.notes || []).slice(0, 3);
+  const hasBars = bars.length > 0, hasNotes = notes.length > 0;
+  if (hasBars) {
+    const lw = hasNotes ? (PW - M * 2) * 0.56 : (PW - M * 2);
+    if (p.barsLabel) svg += T(M, y, '— ' + p.barsLabel.toUpperCase(), { mono: true, size: 16, fill: GOLD, spacing: 2 });
+    const top = y + 36, max = Math.max(1, ...bars.map((b) => Math.abs(b.value)));
+    const rowH = Math.min(58, (PH - top - 120) / Math.max(1, bars.length));
+    const labelW = 150, barMaxW = lw - labelW - 70;
+    bars.forEach((b, i) => {
+      const cy = top + i * rowH + rowH / 2; const w = Math.max(4, (Math.abs(b.value) / max) * barMaxW);
+      svg += T(M, cy + 8, b.label, { size: 26, fill: CREAM });
+      svg += `<rect x="${M + labelW}" y="${cy - 9}" width="${w}" height="18" rx="2" fill="${kindColor(b.kind)}"/>`;
+      svg += T(M + labelW + w + 12, cy + 8, fmt(b.value, p.unit), { mono: true, size: 22, fill: CREAM });
+    });
+  }
+  if (hasNotes) {
+    const rx = hasBars ? M + (PW - M * 2) * 0.6 : M; const rw = hasBars ? (PW - M * 2) * 0.4 : (PW - M * 2);
+    if (p.notesLabel) svg += T(rx, y, '— ' + p.notesLabel.toUpperCase(), { mono: true, size: 16, fill: GOLD, spacing: 2 });
+    let ny = y + 48;
+    notes.forEach((n) => {
+      wrap(n.title, hasBars ? 24 : 50, 2).forEach((l) => { svg += T(rx, ny, l, { size: 28, weight: 700, fill: CREAM }); ny += 32; });
+      ny += 4;
+      wrap(n.text, hasBars ? 30 : 64, 3).forEach((l) => { svg += T(rx, ny, l, { mono: true, size: 19, fill: MUTE }); ny += 26; });
+      ny += 22;
+    });
+  }
+  const foot = p.illustrative ? T(M, PH - 44, 'Illustrative — figures for illustration', { mono: true, size: 15, fill: FAINT }) : '';
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${PW}" height="${PH}" viewBox="0 0 ${PW} ${PH}">`
+    + `<rect width="${PW}" height="${PH}" fill="${BG}"/>` + svg + foot + `</svg>`;
+}
+
 // ---- embed Google fonts as data-URI @font-face so the PNG is faithful ----
 let _fontCss: string | null = null;
 function abToB64(buf: ArrayBuffer): string {

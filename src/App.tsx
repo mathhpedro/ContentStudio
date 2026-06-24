@@ -4,10 +4,10 @@ import {
   SEM, NOW, rel, lcsDiff, monthAnchor, weekFocus, type Post, type Version,
 } from './data';
 import {
-  MODELS, DEFAULT_MODEL, generateVersions, regenerateVersion, generateWeeklyAgenda, generateBrief, generateImagePrompt, generateChartSpec, generateCarousel,
+  MODELS, DEFAULT_MODEL, generateVersions, regenerateVersion, generateWeeklyAgenda, generateBrief, generateImagePrompt, generateChartSpec, generatePosterSpec, generateCarousel,
   type Settings,
 } from './anthropic';
-import { buildChartSVG, buildSlideSVG, svgToPng } from './chart';
+import { buildChartSVG, buildPosterSVG, buildSlideSVG, svgToPng } from './chart';
 import { loadSettings, saveSettings, loadPosts, savePosts, loadStyle, saveStyle } from './store';
 import { hasSupabase } from './supabaseClient';
 
@@ -412,7 +412,7 @@ export default class App extends React.Component<AppProps, any> {
   get canImage(): boolean { return !!(this.props.persistence && this.props.persistence.generateImage); }
   get canFigure(): boolean { return !!(this.props.persistence && this.props.persistence.uploadImage); }
   approvedVersion(p: Post): Version | null { return this.getVersions(p).find((x) => x.approved) || null; }
-  // Data figure: the model designs a chart spec, we render it as a clean editorial PNG.
+  // Rich editorial poster: the model designs a layered spec, rendered as a PNG.
   async genFigure() {
     const p = this.post(this.state.selectedId)!; if (!p) return;
     if (!this.canFigure) { this.toast('Figures need the shared studio'); return; }
@@ -420,11 +420,11 @@ export default class App extends React.Component<AppProps, any> {
     if (!v) { this.toast('Approve a version first'); return; }
     this.setState({ imgBusy: true });
     try {
-      const spec = await generateChartSpec(this.state.settings, p, this.postText(v));
-      if (!spec || !spec.type) throw new Error('Could not design a figure');
-      const png = await svgToPng(buildChartSVG(spec));
+      const spec = await generatePosterSpec(this.state.settings, p, this.postText(v));
+      if (!spec || !(spec.title || spec.stats || spec.bars)) throw new Error('Could not design an image');
+      const png = await svgToPng(buildPosterSVG(spec));
       const url = await this.props.persistence!.uploadImage!(p.id, png);
-      p.image = url; p.imagePrompt = 'Figure — ' + (spec.title || spec.type);
+      p.image = url; p.imagePrompt = 'Image — ' + (spec.title || spec.kicker || 'editorial');
       this.setState({ imgBusy: false, imgPromptOpen: false, imgPromptDraft: '', posts: [...this.state.posts] });
       this.persist(); this.toast('Figure generated 📊');
     } catch (e: any) { this.setState({ imgBusy: false }); this.toast('Figure failed — ' + (e.message || e)); }
@@ -743,13 +743,13 @@ export default class App extends React.Component<AppProps, any> {
           ? h('span', { style: { display: 'inline-flex', alignItems: 'center', gap: '7px' } },
             h('span', {
               style: {
-                width: '22px', height: '22px', borderRadius: '50%', display: 'grid', placeItems: 'center',
-                fontFamily: "'Cormorant Garamond',serif", fontWeight: 700, fontSize: '14px', background: C.dark ? '#E9EBEF' : '#0F0E0B', color: C.dark ? '#0F0E0B' : '#fff'
+                width: '24px', height: '24px', borderRadius: '50%', display: 'grid', placeItems: 'center',
+                fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: '14px', background: C.dark ? '#E9EBEF' : '#0F0E0B', color: C.dark ? '#0F0E0B' : '#fff'
               }
             }, d),
-            h('span', { style: { fontSize: '8.5px', fontFamily: "'JetBrains Mono',monospace", letterSpacing: '0.1em', color: C.dark ? C.accent : '#0F0E0B', textTransform: 'uppercase', fontWeight: 600 } }, 'Today'))
-          : h('span', { style: { fontFamily: "'Cormorant Garamond',serif", fontWeight: 600, fontSize: '15px', color: weekend ? C.faint : C.dim } }, d),
-        posts.length ? h('span', { style: { fontSize: '11.5px', fontFamily: "'JetBrains Mono',monospace", color: C.faint } }, posts.length) : null,
+            h('span', { style: { fontSize: '11px', fontFamily: "'JetBrains Mono',monospace", letterSpacing: '0.1em', color: C.dark ? C.accent : '#0F0E0B', textTransform: 'uppercase', fontWeight: 600 } }, 'Today'))
+          : h('span', { style: { fontFamily: "'JetBrains Mono',monospace", fontWeight: 600, fontSize: '15px', color: weekend ? C.faint : C.dim } }, d),
+        posts.length ? h('span', { style: { fontSize: '12.5px', fontFamily: "'JetBrains Mono',monospace", color: C.faint } }, posts.length) : null,
       ),
       h('div', { className: 'pcs-scroll', style: { display: 'flex', flexDirection: 'column', gap: '7px', padding: '2px 8px 9px', overflowY: 'auto', flex: 1 } },
         posts.map((p) => this.renderPostCard(p))),
@@ -777,8 +777,8 @@ export default class App extends React.Component<AppProps, any> {
           this.DeleteBtn(p.id, { sm: true, style: { width: '20px', height: '20px', fontSize: '11.5px' } }))),
       h('div', {
         style: {
-          fontFamily: "'Cormorant Garamond',serif", fontWeight: 600, fontSize: '14.5px', letterSpacing: '-0.01em', color: C.heading,
-          lineHeight: 1.32, marginBottom: '10px'
+          fontFamily: "'Cormorant Garamond',serif", fontWeight: 700, fontSize: '17px', letterSpacing: '-0.005em', color: C.heading,
+          lineHeight: 1.28, marginBottom: '10px'
         }
       }, p.topic),
       this.StatusBadge(p.status),
@@ -898,8 +898,8 @@ export default class App extends React.Component<AppProps, any> {
         h('span', { style: { display: 'inline-flex', alignItems: 'center', gap: '7px' } },
           this.Pill(isNew ? 'New' : 'Updated', cc, { bg: cbg, fg: cc, fs: '9.5px', pad: '3px 8px' }),
           this.DeleteBtn(p.id, { sm: true }))),
-      h('div', { style: { fontFamily: "'Cormorant Garamond',serif", fontWeight: 600, fontSize: '16px', letterSpacing: '-0.01em', color: C.heading, lineHeight: 1.3, marginBottom: '5px', position: 'relative', zIndex: 1 } }, p.topic),
-      h('div', { style: { fontSize: '14.5px', color: C.dim, lineHeight: 1.45, marginBottom: '11px', position: 'relative', zIndex: 1 } }, p.angle),
+      h('div', { style: { fontFamily: "'Cormorant Garamond',serif", fontWeight: 700, fontSize: '20px', letterSpacing: '-0.01em', color: C.heading, lineHeight: 1.25, marginBottom: '6px', position: 'relative', zIndex: 1 } }, p.topic),
+      h('div', { style: { fontSize: '16px', color: C.dim, lineHeight: 1.5, marginBottom: '11px', position: 'relative', zIndex: 1 } }, p.angle),
       h('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', position: 'relative', zIndex: 1 } },
         this.StatusBadge(p.status),
         h('span', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '11.5px', color: C.faint } }, wd)),
@@ -1172,9 +1172,9 @@ export default class App extends React.Component<AppProps, any> {
         h('span', { style: { fontSize: '18px' } }, '🖼️'),
         h('div', { style: { flex: 1, minWidth: 0 } },
           h('h2', { style: { margin: 0, fontFamily: "'Cormorant Garamond',serif", fontWeight: 700, fontSize: '18px', letterSpacing: '-0.02em', color: C.heading } }, 'Post image'),
-          h('div', { style: { fontSize: '14.5px', color: C.dim, marginTop: '2px' } }, 'A data figure, a photo, or a 3-slide carousel — built from the approved post.')),
+          h('div', { style: { fontSize: '14.5px', color: C.dim, marginTop: '2px' } }, 'A rich editorial image, a photo, or a 3-slide carousel — built from the approved post.')),
         anyBusy ? null : h('div', { style: { display: 'flex', gap: '8px', flexWrap: 'wrap' } },
-          this.canFigure ? this.Btn(p.image ? 'New figure' : 'Generate figure', () => this.genFigure(), { variant: p.image ? 'soft' : 'primary', sm: true, icon: '📊' }) : null,
+          this.canFigure ? this.Btn(p.image ? 'New image' : 'Generate image', () => this.genFigure(), { variant: p.image ? 'soft' : 'primary', sm: true, icon: '📊' }) : null,
           this.canFigure ? this.Btn(p.images && p.images.length ? 'New carousel' : 'Carousel', () => this.genCarousel(), { variant: 'soft', sm: true, icon: '🎠' }) : null,
           this.Btn('Photo', () => this.genImage(), { variant: 'soft', sm: true, icon: '📷' }),
           this.Btn('Custom prompt', () => this.setState({ imgPromptOpen: !open, imgPromptDraft: open ? '' : (p.imagePrompt || '') }), { variant: 'soft', sm: true, icon: '✎' }))),

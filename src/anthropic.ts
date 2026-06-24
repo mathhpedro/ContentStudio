@@ -405,6 +405,45 @@ export async function generateChartSpec(
   return extractJson(text);
 }
 
+// ---- rich editorial poster spec (single image) ----
+// One layered composition: kicker → headline (+gold italic) → subhead → a row
+// of up to 3 stat callouts → a bar chart and/or a short notes column.
+export async function generatePosterSpec(
+  settings: Settings,
+  post: { topic: string; angle: string },
+  postText: string,
+): Promise<any> {
+  const system = [
+    'You are a data-visualisation editor at a business magazine. You turn an article into ONE rich,',
+    'layered editorial poster (like a magazine page): a headline, a few stat callouts, and a chart with a',
+    'short "what it means" column. Return ONLY valid JSON — no prose, no markdown fences.',
+  ].join('\n');
+  const user = [
+    'Design ONE editorial poster for the article below. Fill these sections (omit any that do not fit):',
+    '- "kicker": short UPPERCASE section label.',
+    '- "title": the headline (the point), ≤ ~10 words. "accent": a short italic continuation (the gold line).',
+    '- "subhead": 1–3 sentences of context (mono paragraph).',
+    '- "stats": up to 3 callouts, each {"value":"50%","label":"WHAT IT MEASURES","sub":"vs 33%"} — the key',
+    '  proof numbers. value is a short string. The first one is the hero (rendered gold).',
+    '- "barsLabel" + "bars": a labelled bar chart (each bar {label,value,kind,unit via top-level "unit"}).',
+    '  COLOUR-CODE bars by "kind": base / gain / result / loss / neutral — distinct, never all the same.',
+    '- "notesLabel" + "notes": up to 3 short points, each {"title":"...","text":"one or two lines"} — the',
+    '  "what it is getting wrong / why it matters" column.',
+    '',
+    'Rules: PREFER numbers already stated in the article; if you invent any, set "illustrative": true and keep',
+    'them realistic. Keep every string short enough to fit a slide. No brand or company names.',
+    '',
+    `Article topic: ${post.topic}`,
+    `Angle: ${post.angle}`,
+    `Article text:\n"""\n${postText}\n"""`,
+    '',
+    'Return JSON exactly like:',
+    '{"kicker":"REVENUE GROWTH MANAGEMENT","title":"...","accent":"...","subhead":"...","stats":[{"value":"50%","label":"...","sub":"vs 33%"},{"value":"58%","label":"..."}],"barsLabel":"WHO LIFTS THE TROPHY","unit":"%","bars":[{"label":"Spain","value":24,"kind":"result"},{"label":"Argentina","value":20,"kind":"base"}],"notesLabel":"WHAT IT IS GETTING WRONG","notes":[{"title":"It can\'t see draws.","text":"4 of 12 finished level."}],"illustrative":true}',
+  ].join('\n');
+  const text = await callClaude(settings, { system, user, maxTokens: 1600, search: settings.webSearch });
+  return extractJson(text);
+}
+
 // ---- 3-slide carousel for an approved post ----
 // A connected set of at most 3 slides (each may be text-only) that tell one story.
 export async function generateCarousel(
