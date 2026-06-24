@@ -6,7 +6,12 @@
 // Secrets:
 //   GEMINI_API_KEY        — Gemini text + (shared with) image
 //   GEMINI_TEXT_API_KEY   — optional: a no-billing key just for free text
-//   ANTHROPIC_API_KEY     — only needed if a claude-* model is selected
+//   GEMINI_TEXT_KEY_<ACCT>— optional: per-account Gemini text key (e.g. _MATHEUS)
+//   ANTHROPIC_API_KEY     — Claude key (used when a claude-* model is selected)
+//   ANTHROPIC_KEY_<ACCT>  — optional: per-account Claude key (e.g. _MATHEUS)
+//   TEXT_MODEL_<ACCT>     — optional: per-account text model override (e.g.
+//                           TEXT_MODEL_MATHEUS=claude-opus-4-8 routes only that
+//                           account to Claude; others stay on the global model)
 //   Deploy:  supabase functions deploy generate
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
@@ -26,8 +31,7 @@ function aWebSearch(model: string) { return { type: MODERN.includes(model) ? 'we
 function aWebFetch(model: string) { return { type: MODERN.includes(model) ? 'web_fetch_20260209' : 'web_fetch_20250910', name: 'web_fetch', max_uses: 4 }; }
 function aText(content: any[]): string { return (content || []).filter((b: any) => b.type === 'text').map((b: any) => b.text).join('\n').trim(); }
 
-async function callAnthropic(model: string, system: string, user: string, maxTokens: number, search: boolean, fetchUrl: string) {
-  const apiKey = Deno.env.get('ANTHROPIC_API_KEY');
+async function callAnthropic(model: string, system: string, user: string, maxTokens: number, search: boolean, fetchUrl: string, apiKey: string) {
   if (!apiKey) return { error: 'Server is missing ANTHROPIC_API_KEY', status: 500 };
   const tools: any[] = [];
   if (search) tools.push(aWebSearch(model));
@@ -100,6 +104,7 @@ Deno.serve(async (req) => {
   // shared GEMINI_TEXT_API_KEY / GEMINI_API_KEY.
   let model = rawModel || 'gemini-2.5-flash';
   let geminiKey = Deno.env.get('GEMINI_TEXT_API_KEY') || Deno.env.get('GEMINI_API_KEY') || '';
+  let anthropicKey = Deno.env.get('ANTHROPIC_API_KEY') || '';
   try {
     const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
     const { data: cfg } = await admin.from('app_config').select('value').eq('key', 'text_model').maybeSingle();
@@ -107,7 +112,13 @@ Deno.serve(async (req) => {
     if (workspace_id) {
       const { data: ws } = await admin.from('workspaces').select('name').eq('id', workspace_id).maybeSingle();
       const nm = ws && ws.name ? String(ws.name).toUpperCase().replace(/[^A-Z0-9]/g, '') : '';
-      if (nm) { const k = Deno.env.get('GEMINI_TEXT_KEY_' + nm); if (k) geminiKey = k; }
+      if (nm) {
+        // Per-account text model override (e.g. TEXT_MODEL_MATHEUS=claude-opus-4-8).
+        const tm = Deno.env.get('TEXT_MODEL_' + nm); if (tm) model = tm;
+        // Per-account keys: Gemini and/or Claude, each with its own rate limits.
+        const gk = Deno.env.get('GEMINI_TEXT_KEY_' + nm); if (gk) geminiKey = gk;
+        const ak = Deno.env.get('ANTHROPIC_KEY_' + nm); if (ak) anthropicKey = ak;
+      }
     }
   } catch { /* ignore — use fallback */ }
   const isClaude = String(model).startsWith('claude');
@@ -115,7 +126,7 @@ Deno.serve(async (req) => {
   const maxTokens = max_tokens || 4096;
 
   const out = isClaude
-    ? await callAnthropic(model, system, user, maxTokens, !!search, fetch_url || '')
+    ? await callAnthropic(model, system, user, maxTokens, !!search, fetch_url || '', anthropicKey)
     : await callGemini(model, system || '', user, maxTokens, !!search, fetch_url || '', geminiKey);
 
   if ((out as any).error) return json({ error: (out as any).error }, (out as any).status || 500);
