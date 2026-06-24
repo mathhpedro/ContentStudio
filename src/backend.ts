@@ -64,6 +64,7 @@ function rowToPost(r: any): Post {
     publishedAt: r.published_at || null, ...(r.metrics ? { metrics: r.metrics } : {}),
     image: r.image_url || null, imagePrompt: r.image_prompt || null,
     images: (r.images && r.images.length ? r.images : null),
+    imageSpec: r.image_spec || null,
   } as Post;
 }
 function postToRow(p: Post, ws: string): any {
@@ -73,7 +74,7 @@ function postToRow(p: Post, ws: string): any {
     versions: p.versions || [], active_ver: p.activeVer || 0, brief: (p as any).brief || null,
     published_at: p.publishedAt || null, metrics: p.metrics || null,
     image_url: p.image || null, image_prompt: p.imagePrompt || null,
-    images: p.images || null,
+    images: p.images || null, image_spec: (p as any).imageSpec || null,
     updated_at: new Date().toISOString(),
   };
 }

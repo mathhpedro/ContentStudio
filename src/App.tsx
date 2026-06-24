@@ -4,7 +4,7 @@ import {
   SEM, NOW, rel, lcsDiff, monthAnchor, weekFocus, type Post, type Version,
 } from './data';
 import {
-  MODELS, DEFAULT_MODEL, generateVersions, regenerateVersion, generateWeeklyAgenda, generateTopic, generateBrief, generateImagePrompt, generateChartSpec, generatePosterSpec, generateCarousel,
+  MODELS, DEFAULT_MODEL, generateVersions, regenerateVersion, generateWeeklyAgenda, generateTopic, generateBrief, generateImagePrompt, generateChartSpec, generatePosterSpec, adjustPosterSpec, generateCarousel,
   type Settings,
 } from './anthropic';
 import { buildChartSVG, buildPosterSVG, buildSlideSVG, svgToPng } from './chart';
@@ -52,7 +52,7 @@ export default class App extends React.Component<AppProps, any> {
       viewYM: (() => { const a = monthAnchor(); return { y: a.y, m: a.m }; })(),
       allFilter: { status: 'All', format: 'All', q: '' },
       refUrl: '',
-      imgBusy: false, imgPromptOpen: false, imgPromptDraft: '', carBusy: false, redoBusy: null,
+      imgBusy: false, imgPromptOpen: false, imgPromptDraft: '', imgAdjustOpen: false, imgAdjustDraft: '', carBusy: false, redoBusy: null,
     };
     this._tid = 0;
     this.tabRefs = {};
@@ -453,9 +453,31 @@ export default class App extends React.Component<AppProps, any> {
       const png = await svgToPng(buildPosterSVG(spec));
       const url = await this.props.persistence!.uploadImage!(p.id, png);
       p.image = url; p.imagePrompt = 'Image — ' + (spec.title || spec.kicker || 'editorial');
-      this.setState({ imgBusy: false, imgPromptOpen: false, imgPromptDraft: '', posts: [...this.state.posts] });
+      (p as any).imageSpec = spec;
+      this.setState({ imgBusy: false, imgPromptOpen: false, imgPromptDraft: '', imgAdjustOpen: false, imgAdjustDraft: '', posts: [...this.state.posts] });
       this.persist(); this.toast('Figure generated 📊');
     } catch (e: any) { this.setState({ imgBusy: false }); this.toast('Figure failed — ' + (e.message || e)); }
+  }
+  // Small, surgical edits to an existing poster — re-render only what the user asks,
+  // reusing the stored spec so the rest of the layout stays exactly as it was.
+  async adjustImage(instruction: string) {
+    const p = this.post(this.state.selectedId)!; if (!p) return;
+    const instr = (instruction || '').trim();
+    if (!instr) { this.toast('Describe the adjustment first'); return; }
+    if (!this.canFigure) { this.toast('Figures need the shared studio'); return; }
+    const current = (p as any).imageSpec;
+    if (!current) { this.toast('Generate an image first'); return; }
+    this.setState({ imgBusy: true });
+    try {
+      const spec = await adjustPosterSpec(this.state.settings, current, instr);
+      if (!spec || !(spec.title || spec.stats || spec.bars)) throw new Error('Could not adjust the image');
+      const png = await svgToPng(buildPosterSVG(spec));
+      const url = await this.props.persistence!.uploadImage!(p.id, png);
+      p.image = url; p.imagePrompt = 'Image — ' + (spec.title || spec.kicker || 'editorial');
+      (p as any).imageSpec = spec;
+      this.setState({ imgBusy: false, imgAdjustOpen: false, imgAdjustDraft: '', posts: [...this.state.posts] });
+      this.persist(); this.toast('Image adjusted ✨');
+    } catch (e: any) { this.setState({ imgBusy: false }); this.toast('Adjust failed — ' + (e.message || e)); }
   }
   async genImage(custom?: string) {
     const p = this.post(this.state.selectedId)!; if (!p) return;
@@ -1193,6 +1215,7 @@ export default class App extends React.Component<AppProps, any> {
 
   renderImagePanel(p: Post) {
     const C = this.C; const busy = this.state.imgBusy; const open = this.state.imgPromptOpen;
+    const adjustOpen = this.state.imgAdjustOpen; const canAdjust = !!(p.image && (p as any).imageSpec && this.canFigure);
     const carBusy = this.state.carBusy; const anyBusy = busy || carBusy;
     if (!this.canImage) return null;
     return h('div', {
@@ -1228,8 +1251,24 @@ export default class App extends React.Component<AppProps, any> {
           ? h('div', { style: { position: 'relative', zIndex: 1 } },
             h('img', { src: p.image, alt: 'Post image', style: { width: '100%', borderRadius: '14px', display: 'block', border: '1px solid ' + C.border } }),
             h('div', { style: { display: 'flex', gap: '8px', marginTop: '10px', flexWrap: 'wrap' } },
+              canAdjust ? this.Btn(adjustOpen ? 'Close adjust' : 'Adjust', () => this.setState({ imgAdjustOpen: !adjustOpen, imgAdjustDraft: '' }), { variant: adjustOpen ? 'soft' : 'primary', sm: true, icon: '✦' }) : null,
               this.Btn('Download', () => window.open(p.image as string, '_blank', 'noopener'), { variant: 'soft', sm: true, icon: '⤓' }),
               this.Btn('Remove', () => this.removeImage(), { variant: 'danger', sm: true, icon: '🗑️' })),
+            canAdjust && adjustOpen ? h('div', { style: { marginTop: '12px', padding: '14px', borderRadius: '12px', background: C.input, border: '1px solid ' + C.border } },
+              h('div', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '11.5px', letterSpacing: '0.1em', textTransform: 'uppercase', color: C.faint, marginBottom: '8px' } }, 'Small adjustments — no full regeneration'),
+              h('textarea', {
+                value: this.state.imgAdjustDraft, autoFocus: true,
+                placeholder: 'e.g. shorten the headline, change the bar value to 66, drop the third stat…',
+                onChange: (e: any) => this.setState({ imgAdjustDraft: e.target.value }),
+                style: {
+                  width: '100%', minHeight: '70px', resize: 'vertical', borderRadius: '10px', padding: '11px 13px',
+                  background: C.bg || C.input, border: '1px solid ' + C.border, color: C.text, fontSize: '15.5px', lineHeight: 1.55,
+                  fontFamily: "'Cormorant Garamond',serif", outline: 'none', boxSizing: 'border-box',
+                },
+              }),
+              h('div', { style: { display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '8px' } },
+                this.Btn('Cancel', () => this.setState({ imgAdjustOpen: false, imgAdjustDraft: '' }), { variant: 'ghost', sm: true }),
+                this.Btn('Apply adjustment', () => this.adjustImage(this.state.imgAdjustDraft), { variant: 'primary', sm: true, icon: '✦', disabled: !this.state.imgAdjustDraft.trim() }))) : null,
             p.imagePrompt ? h('div', { style: { fontFamily: "'JetBrains Mono',monospace", fontSize: '12px', color: C.faint, marginTop: '10px', lineHeight: 1.5 } }, 'Prompt · ' + p.imagePrompt) : null)
           : (open ? null : h('div', { style: { fontSize: '15px', color: C.dim, position: 'relative', zIndex: 1 } }, 'No image yet — generate a figure, a photo, or a carousel from the post.'))),
       // carousel

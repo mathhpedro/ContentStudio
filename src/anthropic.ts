@@ -465,16 +465,51 @@ export async function generatePosterSpec(
     '  "what it is getting wrong / why it matters" column.',
     '',
     'Rules: PREFER numbers already stated in the article; if you invent any, set "illustrative": true and keep',
-    'them realistic. Keep every string short enough to fit a slide. No brand or company names.',
+    'them realistic. No brand or company names.',
+    '',
+    POSTER_LIMITS,
     '',
     `Article topic: ${post.topic}`,
     `Angle: ${post.angle}`,
     `Article text:\n"""\n${postText}\n"""`,
     '',
     'Return JSON exactly like:',
-    '{"kicker":"REVENUE GROWTH MANAGEMENT","title":"...","accent":"...","subhead":"...","stats":[{"value":"50%","label":"...","sub":"vs 33%"},{"value":"58%","label":"..."}],"barsLabel":"WHO LIFTS THE TROPHY","unit":"%","bars":[{"label":"Spain","value":24,"kind":"result"},{"label":"Argentina","value":20,"kind":"base"}],"notesLabel":"WHAT IT IS GETTING WRONG","notes":[{"title":"It can\'t see draws.","text":"4 of 12 finished level."}],"illustrative":true}',
+    '{"kicker":"REVENUE GROWTH MANAGEMENT","title":"...","accent":"...","subhead":"...","stats":[{"value":"50%","label":"MATCH OUTCOMES","sub":"vs 33%"},{"value":"58%","label":"RIGHT SLOT"}],"barsLabel":"WHO LIFTS THE TROPHY","unit":"%","bars":[{"label":"Spain","value":24,"kind":"result"},{"label":"Argentina","value":20,"kind":"base"}],"notesLabel":"GETTING WRONG","notes":[{"title":"Can\'t see draws","text":"4 of 12 finished level."}],"illustrative":true}',
   ].join('\n');
   const text = await callClaude(settings, { system, user, maxTokens: 1600, search: settings.webSearch });
+  return extractJson(text);
+}
+
+// Strict length/count limits so the layout never overflows (the renderer also clips).
+const POSTER_LIMITS = [
+  'STRICT LIMITS (so the layout fits — keep every string within these):',
+  '- title ≤ 46 chars · accent ≤ 34 chars · subhead ≤ 180 chars · kicker ≤ 32 chars.',
+  '- stats: at most 3. value ≤ 6 chars (e.g. "8.3%", "$1.2B", "0/4"). label ≤ 16 chars. sub ≤ 12 chars.',
+  '- bars: at most 5. label ≤ 14 chars. "value" is a plain NUMBER. "unit" MUST be exactly one of "%", "$",',
+  '  "x" or "" — NEVER a word like "points" or "pts" (put any such word in the barsLabel instead).',
+  '- notes: at most 3. title ≤ 20 chars. text ≤ 80 chars (one short sentence).',
+].join('\n');
+
+// Revise an existing poster spec per a short instruction (the "adjust" workflow).
+export async function adjustPosterSpec(
+  settings: Settings,
+  current: any,
+  instruction: string,
+): Promise<any> {
+  const system = [
+    'You revise an existing editorial poster spec (JSON) according to the user\'s instruction. Change ONLY',
+    'what they ask; keep everything else identical. Return ONLY the full revised JSON spec — no prose.',
+  ].join('\n');
+  const user = [
+    'Current spec:',
+    JSON.stringify(current),
+    '',
+    'Instruction: ' + instruction,
+    '',
+    POSTER_LIMITS,
+    'No brand or company names. Return the FULL revised JSON spec.',
+  ].join('\n');
+  const text = await callClaude(settings, { system, user, maxTokens: 1600 });
   return extractJson(text);
 }
 

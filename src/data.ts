@@ -42,6 +42,7 @@ export interface Post {
   image?: string | null;
   imagePrompt?: string | null;
   images?: string[] | null;
+  imageSpec?: any | null;
 }
 
 // Current month anchor — the calendar always shows "today" in the present month/year.

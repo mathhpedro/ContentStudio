@@ -61,6 +61,7 @@ function wrap(s: string, maxChars: number, maxLines: number): string[] {
   if (cur && lines.length < maxLines) lines.push(cur);
   return lines.slice(0, maxLines);
 }
+function clip(s: any, n: number): string { const t = String(s == null ? '' : s); return t.length > n ? t.slice(0, Math.max(1, n - 1)).trimEnd() + '…' : t; }
 // text element
 function T(x: number, y: number, content: string, o: any = {}): string {
   const f = o.mono ? MONO : SERIF;
@@ -263,51 +264,56 @@ export interface Poster {
   illustrative?: boolean;
 }
 export function buildPosterSVG(p: Poster): string {
-  const M = 88; let y = 120; let svg = '';
-  if (p.kicker) { svg += T(M, y, p.kicker.toUpperCase(), { mono: true, size: 24, fill: GOLD, spacing: 4 }); y += 54; }
+  const M = 88; const innerW = PW - M * 2; let y = 120; let svg = '';
+  if (p.kicker) { svg += T(M, y, clip(p.kicker, 36).toUpperCase(), { mono: true, size: 24, fill: GOLD, spacing: 4 }); y += 54; }
   if (p.title) wrap(p.title, 24, 3).forEach((l) => { svg += T(M, y, l, { size: 70, weight: 700, fill: CREAM }); y += 78; });
   if (p.accent) { y += 2; wrap(p.accent, 28, 2).forEach((l) => { svg += T(M, y, l, { size: 54, italic: true, fill: GOLD }); y += 62; }); }
   if (p.subhead) { y += 14; wrap(p.subhead, 58, 4).forEach((l) => { svg += T(M, y, l, { mono: true, size: 22, fill: MUTE }); y += 32; }); }
   y += 22; svg += rule(M, y, PW - M); y += 40;
 
+  // stat callouts — value, then label + sub stacked (never inline, so no column overflow)
   const stats = (p.stats || []).slice(0, 3);
   if (stats.length) {
-    const colW = (PW - M * 2) / stats.length;
+    const colW = innerW / stats.length; const lc = Math.max(8, Math.floor((colW - 24) / 9));
     stats.forEach((s, i) => {
       const x = M + i * colW;
       svg += `<rect x="${x}" y="${y - 4}" width="${colW - 34}" height="3" fill="${i === 0 ? GOLD : RULE}"/>`;
-      svg += T(x, y + 58, s.value, { size: 62, weight: 700, fill: i === 0 ? GOLD : CREAM });
-      if (s.sub) svg += T(x + (String(s.value).length * 36) + 8, y + 58, s.sub, { mono: true, size: 22, fill: MUTE });
-      let ly = y + 92;
-      wrap(s.label, 22, 2).forEach((l) => { svg += T(x, ly, l.toUpperCase(), { mono: true, size: 15, fill: MUTE, spacing: 1 }); ly += 22; });
+      const val = clip(s.value, 8); const vs = val.length > 6 ? 44 : 54;
+      svg += T(x, y + 54, val, { size: vs, weight: 700, fill: i === 0 ? GOLD : CREAM });
+      let ly = y + 90;
+      wrap(s.label || '', lc, 2).forEach((l) => { svg += T(x, ly, l.toUpperCase(), { mono: true, size: 15, fill: MUTE, spacing: 1 }); ly += 22; });
+      if (s.sub) wrap(s.sub, lc, 1).forEach((l) => { svg += T(x, ly + 2, l, { mono: true, size: 14, fill: FAINT }); });
     });
-    y += 150; svg += rule(M, y, PW - M); y += 38;
+    y += 162; svg += rule(M, y, PW - M); y += 38;
   }
 
-  const bars = (p.bars || []).slice(0, 6); const notes = (p.notes || []).slice(0, 3);
+  const bars = (p.bars || []).slice(0, 5); const notes = (p.notes || []).slice(0, 3);
   const hasBars = bars.length > 0, hasNotes = notes.length > 0;
+  const gap = 48;
+  const Lw = (hasBars && hasNotes) ? Math.round((innerW - gap) * 0.54) : innerW;
+  const Rw = innerW - gap - Lw; const leftX = M, rightX = M + Lw + gap;
+  const unit = (p.unit === '%' || p.unit === '$' || p.unit === 'x') ? p.unit : '';
   if (hasBars) {
-    const lw = hasNotes ? (PW - M * 2) * 0.56 : (PW - M * 2);
-    if (p.barsLabel) svg += T(M, y, '— ' + p.barsLabel.toUpperCase(), { mono: true, size: 16, fill: GOLD, spacing: 2 });
-    const top = y + 36, max = Math.max(1, ...bars.map((b) => Math.abs(b.value)));
-    const rowH = Math.min(58, (PH - top - 120) / Math.max(1, bars.length));
-    const labelW = 150, barMaxW = lw - labelW - 70;
+    if (p.barsLabel) svg += T(leftX, y, '— ' + clip(p.barsLabel, Math.floor(Lw / 11)).toUpperCase(), { mono: true, size: 16, fill: GOLD, spacing: 2 });
+    const top = y + 40, max = Math.max(1, ...bars.map((b) => Math.abs(b.value)));
+    const rowH = Math.min(60, (PH - top - 90) / Math.max(1, bars.length));
+    const labelW = Math.round(Lw * 0.40), valueReserve = 96, barX = leftX + labelW;
+    const barMaxW = Math.max(40, Lw - labelW - valueReserve);
     bars.forEach((b, i) => {
       const cy = top + i * rowH + rowH / 2; const w = Math.max(4, (Math.abs(b.value) / max) * barMaxW);
-      svg += T(M, cy + 8, b.label, { size: 26, fill: CREAM });
-      svg += `<rect x="${M + labelW}" y="${cy - 9}" width="${w}" height="18" rx="2" fill="${kindColor(b.kind)}"/>`;
-      svg += T(M + labelW + w + 12, cy + 8, fmt(b.value, p.unit), { mono: true, size: 22, fill: CREAM });
+      svg += T(leftX, cy + 6, clip(b.label, Math.floor(labelW / 12)), { size: 23, fill: CREAM });
+      svg += `<rect x="${barX}" y="${cy - 9}" width="${w}" height="18" rx="2" fill="${kindColor(b.kind)}"/>`;
+      svg += T(leftX + Lw, cy + 6, clip(fmt(b.value, unit), 9), { mono: true, size: 19, fill: CREAM, anchor: 'end' });
     });
   }
   if (hasNotes) {
-    const rx = hasBars ? M + (PW - M * 2) * 0.6 : M; const rw = hasBars ? (PW - M * 2) * 0.4 : (PW - M * 2);
-    if (p.notesLabel) svg += T(rx, y, '— ' + p.notesLabel.toUpperCase(), { mono: true, size: 16, fill: GOLD, spacing: 2 });
-    let ny = y + 48;
+    if (p.notesLabel) svg += T(rightX, y, '— ' + clip(p.notesLabel, Math.floor(Rw / 11)).toUpperCase(), { mono: true, size: 16, fill: GOLD, spacing: 2 });
+    let ny = y + 44; const tc = Math.max(10, Math.floor(Rw / 13)), xc = Math.max(12, Math.floor(Rw / 10));
     notes.forEach((n) => {
-      wrap(n.title, hasBars ? 24 : 50, 2).forEach((l) => { svg += T(rx, ny, l, { size: 28, weight: 700, fill: CREAM }); ny += 32; });
+      wrap(n.title, tc, 2).forEach((l) => { svg += T(rightX, ny, l, { size: 27, weight: 700, fill: CREAM }); ny += 31; });
       ny += 4;
-      wrap(n.text, hasBars ? 30 : 64, 3).forEach((l) => { svg += T(rx, ny, l, { mono: true, size: 19, fill: MUTE }); ny += 26; });
-      ny += 22;
+      wrap(n.text, xc, 3).forEach((l) => { svg += T(rightX, ny, l, { mono: true, size: 18, fill: MUTE }); ny += 25; });
+      ny += 20;
     });
   }
   const foot = p.illustrative ? T(M, PH - 44, 'Illustrative — figures for illustration', { mono: true, size: 15, fill: FAINT }) : '';
