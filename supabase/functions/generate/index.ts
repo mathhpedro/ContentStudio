@@ -50,8 +50,7 @@ async function callAnthropic(model: string, system: string, user: string, maxTok
 }
 
 // ---- Gemini (free tier for Flash) ----
-async function callGemini(model: string, system: string, user: string, maxTokens: number, search: boolean, fetchUrl: string) {
-  const apiKey = Deno.env.get('GEMINI_TEXT_API_KEY') || Deno.env.get('GEMINI_API_KEY');
+async function callGemini(model: string, system: string, user: string, maxTokens: number, search: boolean, fetchUrl: string, apiKey: string) {
   if (!apiKey) return { error: 'Server is missing GEMINI_API_KEY', status: 500 };
   const tools: any[] = [];
   if (fetchUrl) tools.push({ url_context: {} });
@@ -92,16 +91,22 @@ Deno.serve(async (req) => {
 
   let body: any;
   try { body = await req.json(); } catch { return json({ error: 'Invalid JSON body' }, 400); }
-  const { system, user, model: rawModel, max_tokens, search, fetch_url } = body || {};
+  const { system, user, model: rawModel, max_tokens, search, fetch_url, workspace_id } = body || {};
   if (!user) return json({ error: 'Missing "user" prompt' }, 400);
 
-  // The text model is configured server-side (app_config.text_model) — the client
-  // can't change it. Falls back to the request model, then Gemini Flash.
+  // The text model is configured server-side (app_config.text_model). The Gemini
+  // key is per-account (workspace_keys) so each account uses its own quota, with
+  // the shared env key as fallback.
   let model = rawModel || 'gemini-2.5-flash';
+  let geminiKey = Deno.env.get('GEMINI_TEXT_API_KEY') || Deno.env.get('GEMINI_API_KEY') || '';
   try {
     const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
     const { data: cfg } = await admin.from('app_config').select('value').eq('key', 'text_model').maybeSingle();
     if (cfg && cfg.value) model = cfg.value;
+    if (workspace_id) {
+      const { data: wk } = await admin.from('workspace_keys').select('gemini_text_key').eq('workspace_id', workspace_id).maybeSingle();
+      if (wk && wk.gemini_text_key) geminiKey = wk.gemini_text_key;
+    }
   } catch { /* ignore — use fallback */ }
   const isClaude = String(model).startsWith('claude');
   if (!isClaude && !String(model).startsWith('gemini')) model = 'gemini-2.5-flash';
@@ -109,7 +114,7 @@ Deno.serve(async (req) => {
 
   const out = isClaude
     ? await callAnthropic(model, system, user, maxTokens, !!search, fetch_url || '')
-    : await callGemini(model, system || '', user, maxTokens, !!search, fetch_url || '');
+    : await callGemini(model, system || '', user, maxTokens, !!search, fetch_url || '', geminiKey);
 
   if ((out as any).error) return json({ error: (out as any).error }, (out as any).status || 500);
   return json({ text: (out as any).text || '' });

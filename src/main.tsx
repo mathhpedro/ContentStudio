@@ -4,7 +4,7 @@ import App from './App';
 import './index.css';
 import { hasSupabase } from './supabaseClient';
 import {
-  bootstrap, fetchPosts, fetchStyle, savePosts, saveStyle, subscribePosts, deletePosts, callImage, uploadFigure,
+  bootstrap, fetchPosts, fetchStyle, savePosts, saveStyle, subscribePosts, deletePosts, callImage, uploadFigure, setTextKey,
   signOut, onAuthChange, enterWithCode, switchAccount, NOT_GATED, type SessionInfo,
 } from './backend';
 import type { Post } from './data';
@@ -123,6 +123,7 @@ function Root() {
     email: session!.email, role: session!.role, workspaceId: ws,
     accounts: session!.accounts, accountId: ws,
     switchAccount: (id: string) => { if (id !== ws) { switchAccount(id); location.reload(); } },
+    setTextKey: (key: string) => setTextKey(ws, key),
     signOut: () => { signOut().then(() => location.reload()); },
     joinWorkspace: (_id: string) => Promise.resolve(),
   };

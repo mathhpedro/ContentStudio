@@ -19,7 +19,7 @@ function newId() {
 
 // Optional collaborative wiring injected by the Supabase Root gate.
 export interface Account { id: string; name: string; }
-export interface AppSession { email: string; role: string; workspaceId: string; accounts?: Account[]; accountId?: string; switchAccount?: (id: string) => void; signOut: () => void; joinWorkspace: (id: string) => Promise<void>; }
+export interface AppSession { email: string; role: string; workspaceId: string; accounts?: Account[]; accountId?: string; switchAccount?: (id: string) => void; setTextKey?: (key: string) => Promise<boolean>; signOut: () => void; joinWorkspace: (id: string) => Promise<void>; }
 export interface AppPersistence { savePosts: (posts: Post[]) => Promise<void>; saveStyle: (s: string) => Promise<void>; loadPosts: () => Promise<Post[]>; subscribe: (cb: () => void) => () => void; deletePosts?: (ids: string[]) => Promise<void>; generateImage?: (postId: string, prompt: string) => Promise<string>; uploadImage?: (postId: string, pngBase64: string) => Promise<string>; }
 export interface AppProps { persistence?: AppPersistence; session?: AppSession; initialPosts?: Post[]; initialStyle?: string; }
 
@@ -1461,6 +1461,16 @@ export default class App extends React.Component<AppProps, any> {
           h('span', { style: { fontSize: '15px' } }, '✦'),
           h('span', { style: { fontFamily: "'Cormorant Garamond',serif", fontWeight: 600, fontSize: '15px', color: C.heading } }, 'Gemini 2.5 Flash'),
           h('span', { style: { marginLeft: 'auto', fontFamily: "'JetBrains Mono',monospace", fontSize: '11.5px', color: C.faint } }, 'set by admin')),
+        h('label', { style: { display: 'block', fontFamily: "'Cormorant Garamond',serif", fontWeight: 600, fontSize: '14px', color: C.heading, margin: '16px 0 6px' } }, 'This account’s text API key (Gemini)'),
+        h('div', { style: { display: 'flex', gap: '8px' } },
+          h('input', { type: 'password', value: d.acctKey || '', placeholder: 'AIza… (blank = use shared key)', spellCheck: false, onChange: (e: any) => set({ acctKey: e.target.value }), style: { ...inputStyle, fontSize: '12.5px' } }),
+          this.Btn('Save key', () => {
+            if (!s.setTextKey) return;
+            s.setTextKey((d.acctKey || '').trim()).then((on: boolean) => { this.toast(on ? 'Account key saved ✓' : 'Account key cleared'); set({ acctKey: '' }); }).catch((e: any) => this.toast('Save failed — ' + (e.message || e)));
+          }, { variant: 'soft', sm: true })),
+        h('div', { style: { fontSize: '12.5px', color: C.faint, margin: '6px 0 0', lineHeight: 1.5 } },
+          'Used only for ', h('strong', { style: { color: C.dim } }, this.activeAccountName() || 'this account'),
+          ' — so each account has its own rate limit. Stored on the server, never shown again. Get a key at aistudio.google.com/apikey.'),
         h('div', { style: { display: 'flex', gap: '9px', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px' } },
           this.Btn('Leave studio', () => s.signOut(), { variant: 'ghost' }),
           h('div', { style: { display: 'flex', gap: '9px' } },

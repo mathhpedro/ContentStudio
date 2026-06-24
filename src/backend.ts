@@ -158,7 +158,7 @@ export async function addComment(ws: string, postId: string, body: string): Prom
 // ---------- Claude proxy ----------
 export async function callEdge(opts: { system: string; user: string; model?: string; maxTokens?: number; search?: boolean; fetchUrl?: string }): Promise<string> {
   const { data, error } = await supabase.functions.invoke('generate', {
-    body: { system: opts.system, user: opts.user, model: opts.model, max_tokens: opts.maxTokens, search: opts.search, fetch_url: opts.fetchUrl },
+    body: { system: opts.system, user: opts.user, model: opts.model, max_tokens: opts.maxTokens, search: opts.search, fetch_url: opts.fetchUrl, workspace_id: getActiveWs() },
   });
   if (error) {
     // try to surface the function's JSON error message
@@ -168,6 +168,18 @@ export async function callEdge(opts: { system: string; user: string; model?: str
   }
   if (data && data.error) throw new Error(data.error);
   return (data && data.text) || '';
+}
+
+// ---------- per-account text key ----------
+export async function setTextKey(workspaceId: string, key: string): Promise<boolean> {
+  const { data, error } = await supabase.functions.invoke('setkey', { body: { workspaceId, key } });
+  if (error) {
+    let msg = error.message || 'Could not save key';
+    try { const ctx = (error as any).context; if (ctx && typeof ctx.json === 'function') { const j = await ctx.json(); msg = j.error || msg; } } catch { /* ignore */ }
+    throw new Error(msg);
+  }
+  if (data && data.error) throw new Error(data.error);
+  return !!(data && data.set);
 }
 
 // ---------- image generation (Imagen) ----------
