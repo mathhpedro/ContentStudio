@@ -110,10 +110,15 @@ Deno.serve(async (req) => {
     const { data: cfg } = await admin.from('app_config').select('value').eq('key', 'text_model').maybeSingle();
     if (cfg && cfg.value) model = cfg.value;
     if (workspace_id) {
+      // Per-account text model override, stored in app_config as
+      // "text_model:<workspace_id>" (e.g. claude-opus-4-8 for one account only).
+      // This lets a single account run on Claude while others stay on the global model.
+      const { data: perAcct } = await admin.from('app_config').select('value').eq('key', 'text_model:' + workspace_id).maybeSingle();
+      if (perAcct && perAcct.value) model = perAcct.value;
       const { data: ws } = await admin.from('workspaces').select('name').eq('id', workspace_id).maybeSingle();
       const nm = ws && ws.name ? String(ws.name).toUpperCase().replace(/[^A-Z0-9]/g, '') : '';
       if (nm) {
-        // Per-account text model override (e.g. TEXT_MODEL_MATHEUS=claude-opus-4-8).
+        // Optional per-account model override via secret (takes precedence over the row).
         const tm = Deno.env.get('TEXT_MODEL_' + nm); if (tm) model = tm;
         // Per-account keys: Gemini and/or Claude, each with its own rate limits.
         const gk = Deno.env.get('GEMINI_TEXT_KEY_' + nm); if (gk) geminiKey = gk;
