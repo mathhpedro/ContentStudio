@@ -95,8 +95,9 @@ Deno.serve(async (req) => {
   if (!user) return json({ error: 'Missing "user" prompt' }, 400);
 
   // The text model is configured server-side (app_config.text_model). The Gemini
-  // key is per-account (workspace_keys) so each account uses its own quota, with
-  // the shared env key as fallback.
+  // key is per-account: each account maps to its own secret named
+  // GEMINI_TEXT_KEY_<ACCOUNT> (e.g. GEMINI_TEXT_KEY_MATHEUS). Falls back to the
+  // shared GEMINI_TEXT_API_KEY / GEMINI_API_KEY.
   let model = rawModel || 'gemini-2.5-flash';
   let geminiKey = Deno.env.get('GEMINI_TEXT_API_KEY') || Deno.env.get('GEMINI_API_KEY') || '';
   try {
@@ -104,8 +105,9 @@ Deno.serve(async (req) => {
     const { data: cfg } = await admin.from('app_config').select('value').eq('key', 'text_model').maybeSingle();
     if (cfg && cfg.value) model = cfg.value;
     if (workspace_id) {
-      const { data: wk } = await admin.from('workspace_keys').select('gemini_text_key').eq('workspace_id', workspace_id).maybeSingle();
-      if (wk && wk.gemini_text_key) geminiKey = wk.gemini_text_key;
+      const { data: ws } = await admin.from('workspaces').select('name').eq('id', workspace_id).maybeSingle();
+      const nm = ws && ws.name ? String(ws.name).toUpperCase().replace(/[^A-Z0-9]/g, '') : '';
+      if (nm) { const k = Deno.env.get('GEMINI_TEXT_KEY_' + nm); if (k) geminiKey = k; }
     }
   } catch { /* ignore — use fallback */ }
   const isClaude = String(model).startsWith('claude');
