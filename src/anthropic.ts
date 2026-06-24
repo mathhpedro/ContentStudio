@@ -251,12 +251,17 @@ export async function generateWeeklyAgenda(
   weekLabel: string,
 ): Promise<AgendaItem[]> {
   const system = [
-    'You are the editorial strategist building a LINKEDIN TOP VOICE in ENTERPRISE DECISION OPERATIONS —',
-    'the commercial × operations trade-off in consumer goods, banking/finance, retail and agribusiness.',
-    'Goal: pick topics that compound authority in this exact niche (the author\'s "topic DNA"), ride what',
-    'is timely, and are built to earn dwell time and comments — the signals LinkedIn rewards in 2026.',
+    'You are the editorial strategist building a LINKEDIN TOP VOICE. Lead with what is TRENDING RIGHT NOW',
+    'and bring the author\'s expert lens to it — do NOT just restate the author\'s service themes.',
+    'The author\'s lens is ENTERPRISE DECISION OPERATIONS: the commercial × operations trade-off in consumer',
+    'goods, banking/finance, retail and agribusiness. That lens is HOW to read the news, not the topic itself.',
     '',
-    'Niche themes to draw from:',
+    'TOPIC SOURCING (most important): each topic must ride a subject that is genuinely hot this week —',
+    'current news, a fresh product/AI release, a live debate, new data or a viral business story — and then',
+    'apply the author\'s decision-operations angle. Timeliness first, lens second. Use web search to find',
+    'what is actually trending now; never invent stale "AI strategy" themes.',
+    '',
+    'Lens themes to apply to the trend (not topics on their own):',
     '- the unowned gap between commercial (growth) and operations (control), where margin quietly leaks;',
     '- decision-driven vs process-driven organizations — making the decision the unit of work;',
     '- concrete trade-off calls: raise price vs defend volume; run a promotion supply can’t cover; protect',
@@ -276,21 +281,50 @@ export async function generateWeeklyAgenda(
   ].join('\n');
   const user = [
     `Propose a weekly editorial agenda of ${count} LinkedIn posts for the week of ${weekLabel}.`,
-    'Spread them Monday–Friday. Vary archetype, industry and priority. Each topic must be sharp, specific',
-    'and comment-worthy — a concrete trade-off or claim, never generic "AI strategy". The "angle" should',
-    'read like the post\'s core argument / hook so it is ready to draft.',
+    'Use web search FIRST to find this week\'s genuinely trending stories (business, AI, tech, and the',
+    'relevant industries). Each topic must tie to one of those real, current hooks — then apply the',
+    'decision-operations angle. Spread Monday–Friday; vary archetype, industry and priority.',
+    'Each "angle" should read like the post\'s core argument / hook so it is ready to draft.',
     '',
-    settings.webSearch ? 'Use web search to anchor topics in this week’s real developments, announcements or data.' : '',
     'Return JSON exactly:',
     '{"agenda":[{"topic":"...","angle":"...","format":"opinion|educational|technical|case study|trend","priority":"High|Medium|Low","dayOffset":0}]}',
     'dayOffset is 0–4 for Monday–Friday.',
   ].filter(Boolean).join('\n');
-  const text = await callClaude(settings, { system, user, maxTokens: 2048, search: settings.webSearch });
+  const text = await callClaude(settings, { system, user, maxTokens: 2048, search: true });
   const parsed = extractJson(text);
   return (parsed.agenda || []).map((a: any) => ({
     topic: a.topic || 'Untitled', angle: a.angle || '', format: (a.format || 'opinion'),
     priority: a.priority || 'Medium', dayOffset: Math.max(0, Math.min(4, parseInt(a.dayOffset, 10) || 0)),
   }));
+}
+
+// ---- one fresh, trending topic (for "redo this topic") ----
+export async function generateTopic(
+  settings: Settings,
+  _style: string,
+  existing: string[],
+): Promise<AgendaItem> {
+  const system = [
+    'You are a LinkedIn editorial strategist. Propose ONE timely, comment-worthy post topic.',
+    'Lead with a subject that is genuinely TRENDING right now, then apply the author\'s lens of ENTERPRISE',
+    'DECISION OPERATIONS (commercial × operations trade-offs in consumer goods, banking/finance, retail,',
+    'agribusiness). Timeliness first, lens second — never a generic, evergreen "AI strategy" theme.',
+    '- ' + NO_BRAND_RULE,
+    'Always return ONLY valid JSON.',
+  ].join('\n');
+  const user = [
+    'Use web search to find ONE subject that is genuinely hot this week (a current story, fresh release,',
+    'live debate or new data) and turn it into a sharp LinkedIn topic through the author\'s lens.',
+    existing && existing.length ? 'Avoid repeating or overlapping any of these existing topics:\n- ' + existing.slice(0, 40).join('\n- ') : '',
+    'The "angle" should read like the post\'s core argument / hook so it is ready to draft.',
+    'Return JSON exactly: {"topic":"...","angle":"...","format":"opinion|educational|technical|case study|trend","priority":"High|Medium|Low"}',
+  ].filter(Boolean).join('\n');
+  const text = await callClaude(settings, { system, user, maxTokens: 800, search: true });
+  const a = extractJson(text);
+  return {
+    topic: a.topic || 'Untitled', angle: a.angle || '', format: a.format || 'opinion',
+    priority: a.priority || 'Medium', dayOffset: 0,
+  };
 }
 
 // ---- plain-language brief for a topic ----

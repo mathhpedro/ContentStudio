@@ -4,7 +4,7 @@ import {
   SEM, NOW, rel, lcsDiff, monthAnchor, weekFocus, type Post, type Version,
 } from './data';
 import {
-  MODELS, DEFAULT_MODEL, generateVersions, regenerateVersion, generateWeeklyAgenda, generateBrief, generateImagePrompt, generateChartSpec, generatePosterSpec, generateCarousel,
+  MODELS, DEFAULT_MODEL, generateVersions, regenerateVersion, generateWeeklyAgenda, generateTopic, generateBrief, generateImagePrompt, generateChartSpec, generatePosterSpec, generateCarousel,
   type Settings,
 } from './anthropic';
 import { buildChartSVG, buildPosterSVG, buildSlideSVG, svgToPng } from './chart';
@@ -52,7 +52,7 @@ export default class App extends React.Component<AppProps, any> {
       viewYM: (() => { const a = monthAnchor(); return { y: a.y, m: a.m }; })(),
       allFilter: { status: 'All', format: 'All', q: '' },
       refUrl: '',
-      imgBusy: false, imgPromptOpen: false, imgPromptDraft: '', carBusy: false,
+      imgBusy: false, imgPromptOpen: false, imgPromptDraft: '', carBusy: false, redoBusy: null,
     };
     this._tid = 0;
     this.tabRefs = {};
@@ -172,6 +172,20 @@ export default class App extends React.Component<AppProps, any> {
       opt.dot ? h('span', { style: { width: '6px', height: '6px', borderRadius: '50%', background: opt.dot } }) : null, label);
   }
   StatusBadge(s: string) { const m = this.statusMeta(s); return m.solid ? this.Pill(s, m.fg, { solid: true, bg: m.bg, solidFg: m.fg }) : this.Pill(s, m.fg, { bg: m.bg, fg: m.fg, dot: m.dot }); }
+  // Small ↻ that replaces a topic with a fresh, trending one.
+  RedoBtn(id: string, opt: any = {}) {
+    const C = this.C; const busy = this.state.redoBusy === id; const s = opt.sm ? 20 : 24;
+    return h('button', {
+      key: 'redo', className: 'pcs-btn', title: 'Refresh this topic (trending)', disabled: busy,
+      onClick: (e: any) => { e.stopPropagation(); this.redoTopic(id); },
+      style: {
+        width: s + 'px', height: s + 'px', borderRadius: '8px', border: '1px solid ' + C.border, flexShrink: 0,
+        background: C.dark ? 'rgba(194,134,30,0.10)' : 'rgba(194,134,30,0.08)', color: C.accent,
+        fontSize: opt.sm ? '11.5px' : '13px', lineHeight: 1, display: 'grid', placeItems: 'center', opacity: busy ? 0.5 : 1,
+        animation: busy ? 'pcsPulse 1s ease-in-out infinite' : 'none',
+      },
+    }, busy ? '·' : '↻');
+  }
   // Small × that opens the delete-confirm modal. Stops propagation so it doesn't open the post.
   DeleteBtn(id: string, opt: any = {}) {
     const C = this.C; const s = opt.sm ? 24 : 28;
@@ -344,6 +358,20 @@ export default class App extends React.Component<AppProps, any> {
       this.setState({ posts, agendaBusy: false }); this.persist(posts);
       this.toast(made.length + ' topics added for this week');
     } catch (e: any) { this.setState({ agendaBusy: false }); this.toast('Agenda failed — ' + (e.message || e)); }
+  }
+  // Replace a single topic with a fresh, trending one (keeps its calendar slot).
+  async redoTopic(id: string) {
+    if (this.needsConnection()) return;
+    const p = this.post(id); if (!p) return;
+    this.setState({ redoBusy: id });
+    try {
+      const existing = this.state.posts.map((x: Post) => x.topic).filter(Boolean);
+      const t = await generateTopic(this.state.settings, this.state.styleProfile, existing);
+      p.topic = t.topic; p.angle = t.angle; p.format = t.format || p.format; p.priority = t.priority || p.priority;
+      p.change = 'new'; p.versions = null; p.activeVer = 0; p.status = 'In Review';
+      p.image = null; p.images = null; p.imagePrompt = null; (p as any).brief = null;
+      this.setState({ redoBusy: null, posts: [...this.state.posts] }); this.persist(); this.toast('Topic refreshed ↻');
+    } catch (e: any) { this.setState({ redoBusy: null }); this.toast('Redo failed — ' + (e.message || e)); }
   }
   // End-to-end: fetch this week's agenda, populate the calendar, then draft 3 versions for each.
   async runPlanWeek() {
@@ -772,8 +800,9 @@ export default class App extends React.Component<AppProps, any> {
       h('span', { className: 'pcs-sheen-bar' }),
       h('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px', marginBottom: '8px', position: 'relative', zIndex: 1 } },
         this.FormatTag(p.format),
-        h('span', { style: { display: 'inline-flex', alignItems: 'center', gap: '6px', flexShrink: 0 } },
+        h('span', { style: { display: 'inline-flex', alignItems: 'center', gap: '5px', flexShrink: 0 } },
           h('span', { style: { width: '6px', height: '6px', borderRadius: '50%', background: sm.solid ? C.accent : sm.dot } }),
+          this.RedoBtn(p.id, { sm: true }),
           this.DeleteBtn(p.id, { sm: true, style: { width: '20px', height: '20px', fontSize: '11.5px' } }))),
       h('div', {
         style: {
@@ -897,6 +926,7 @@ export default class App extends React.Component<AppProps, any> {
         this.FormatTag(p.format),
         h('span', { style: { display: 'inline-flex', alignItems: 'center', gap: '7px' } },
           this.Pill(isNew ? 'New' : 'Updated', cc, { bg: cbg, fg: cc, fs: '9.5px', pad: '3px 8px' }),
+          this.RedoBtn(p.id),
           this.DeleteBtn(p.id, { sm: true }))),
       h('div', { style: { fontFamily: "'Cormorant Garamond',serif", fontWeight: 700, fontSize: '20px', letterSpacing: '-0.01em', color: C.heading, lineHeight: 1.25, marginBottom: '6px', position: 'relative', zIndex: 1 } }, p.topic),
       h('div', { style: { fontSize: '16px', color: C.dim, lineHeight: 1.5, marginBottom: '11px', position: 'relative', zIndex: 1 } }, p.angle),
