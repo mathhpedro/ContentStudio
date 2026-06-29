@@ -184,40 +184,50 @@ export async function generateVersions(
   refUrl?: string,
 ): Promise<Version[]> {
   const ref = (refUrl || '').trim();
-  const user = [
-    'Create 3 distinct, ready-to-publish LinkedIn posts for the same topic — each a different proven',
-    'archetype so the author can pick the strongest angle.',
-    `Topic: ${post.topic}`,
-    `Angle: ${post.angle}`,
-    `Format hint: ${post.format}`,
-    perfHint ? `\nPerformance signals from past posts: ${perfHint}\nLean into what has worked, without copying.` : '',
-    ref ? `\nReference post: ${ref}\nUse web fetch to read it, then build on its substance, argument and angle — adapt it into our voice and thesis. Do NOT copy it verbatim and do NOT name any company mentioned in it.` : '',
-    '',
-    'Use a DIFFERENT archetype per version:',
-    '- A — Contrarian / answer-first: lead with a bold, against-the-grain claim, then prove it.',
-    '- B — Story: a specific situation → complication → resolution that carries one lesson.',
-    '- C — Framework / numbered: a usable, skimmable list (a test, checklist or 3-step model).',
-    '',
-    'For EACH version apply the CRAFT and COMMERCIAL INTENT rules from the system prompt (Portuguese, tech',
-    'terms in English; lead with the result/tension, make it filter the right reader, sell by resonance).',
-    '- "hook": the opening line only — stops the scroll, no greeting. Lead with the result/tension, not a role.',
-    '- "body": the rest of the post, already formatted for LinkedIn — short paragraphs (1–2 sentences)',
-    '  separated by BLANK LINES (use real newlines), an optional tight list, a complete hook→insight→',
-    '  takeaway arc, ending actionable (a genuine question or a replicable principle).',
-    '  Total post (hook + body) ~900–1,300 characters. No links, no hashtags, at most 1 emoji.',
-    settings.webSearch ? 'Use web search to ground the post in one recent, specific, verifiable fact; weave it in (no link dumps).' : '',
-    NO_BRAND_RULE,
-    '',
-    'Return JSON exactly in this shape (preserve newlines inside "body" as \\n):',
-    '{"versions":[{"label":"A","hook":"...","body":"...","method":"<archetype> — <one line>","methodNote":"why this structure works on LinkedIn","why":"why it drives dwell time & comments"},{"label":"B",...},{"label":"C",...}]}',
-  ].filter(Boolean).join('\n');
-  const text = await callClaude(settings, { system: styleSystem(style), user, maxTokens: 3000, search: settings.webSearch, fetchUrl: ref || undefined });
-  const parsed = extractJson(text);
-  const arr = (parsed.versions || []).slice(0, 3);
-  return arr.map((v: any, i: number) => ({
-    label: v.label || ['A', 'B', 'C'][i] || String(i + 1),
+  // Generate the 3 archetypes as SEPARATE PARALLEL calls (not one big request).
+  // One Claude call producing all 3 full posts is slow on Opus and was hitting the
+  // edge function's 150s wall-clock limit; three small concurrent calls each finish
+  // in seconds and the whole batch resolves in ~the time of one.
+  const ARCHETYPES = [
+    { label: 'A', desc: 'Contrarian / answer-first: lead with a bold, against-the-grain claim, then prove it.' },
+    { label: 'B', desc: 'Story (first person): a specific situation → complication → resolution carrying one lesson.' },
+    { label: 'C', desc: 'Framework / numbered: a usable, skimmable list (a test, checklist or 3-step model).' },
+  ];
+  const tasks = ARCHETYPES.map((a) => {
+    const user = [
+      `Write ONE ready-to-publish LinkedIn post using this archetype: ${a.label} — ${a.desc}`,
+      `Topic: ${post.topic}`,
+      `Angle: ${post.angle}`,
+      `Format hint: ${post.format}`,
+      perfHint ? `Performance signals from past posts: ${perfHint}\nLean into what has worked, without copying.` : '',
+      ref ? `Reference post: ${ref}\nUse web fetch to read it and build on its substance in our voice; do not copy it verbatim or name any company in it.` : '',
+      '',
+      'Apply the CRAFT and COMMERCIAL INTENT rules from the system prompt (Portuguese, tech terms in English;',
+      'lead with the result/tension, make it filter the right reader, sell by resonance).',
+      '- "hook": the opening line only — stops the scroll, no greeting. Lead with the result/tension, not a role.',
+      '- "body": the rest of the post, formatted for LinkedIn — short paragraphs (1–2 sentences) separated by',
+      '  BLANK LINES (use real newlines), an optional tight list, a complete hook→insight→takeaway arc, ending',
+      '  actionable (a genuine question or a replicable principle).',
+      '  Total post (hook + body) ~900–1,300 characters. No links, no hashtags, at most 1 emoji.',
+      settings.webSearch ? 'Use web search to ground the post in one recent, specific, verifiable fact; weave it in (no link dumps).' : '',
+      NO_BRAND_RULE,
+      '',
+      'Return JSON exactly (preserve newlines inside "body" as \\n):',
+      '{"hook":"...","body":"...","method":"<archetype> — <one line>","methodNote":"why this structure works","why":"why it drives engagement"}',
+    ].filter(Boolean).join('\n');
+    return callClaude(settings, { system: styleSystem(style), user, maxTokens: 1500, search: settings.webSearch, fetchUrl: ref || undefined })
+      .then((text) => ({ a, v: extractJson(text) }));
+  });
+  const settled = await Promise.allSettled(tasks);
+  const ok = settled.filter((s): s is PromiseFulfilledResult<{ a: typeof ARCHETYPES[number]; v: any }> => s.status === 'fulfilled');
+  if (!ok.length) {
+    const failed = settled.find((s) => s.status === 'rejected') as PromiseRejectedResult | undefined;
+    throw new Error((failed && failed.reason && failed.reason.message) || 'Generation failed');
+  }
+  return ok.map(({ value: { a, v } }) => ({
+    label: a.label,
     approved: false, editor: 'AI draft', ts: NOW(),
-    hook: v.hook || '', method: v.method || 'Generated', methodNote: v.methodNote || '',
+    hook: v.hook || '', method: v.method || (a.label + ' — Generated'), methodNote: v.methodNote || '',
     why: v.why || '', body: v.body || '', history: [], regenCount: 0,
   }));
 }
