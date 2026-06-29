@@ -201,7 +201,7 @@ export async function generateVersions(
     { label: 'B', desc: 'Story (first person): a specific situation → complication → resolution carrying one lesson.' },
     { label: 'C', desc: 'Framework / numbered: a usable, skimmable list (a test, checklist or 3-step model).' },
   ];
-  const tasks = ARCHETYPES.map((a) => {
+  const runOne = (a: typeof ARCHETYPES[number]) => {
     const user = [
       `Write ONE ready-to-publish LinkedIn post using this archetype: ${a.label} — ${a.desc}`,
       `Topic: ${post.topic}`,
@@ -225,14 +225,20 @@ export async function generateVersions(
     ].filter(Boolean).join('\n');
     return callClaude(settings, { system: styleSystem(style), user, maxTokens: 1500, search: settings.webSearch, fetchUrl: ref || undefined })
       .then((text) => ({ a, v: extractJson(text) }));
-  });
-  const settled = await Promise.allSettled(tasks);
-  const ok = settled.filter((s): s is PromiseFulfilledResult<{ a: typeof ARCHETYPES[number]; v: any }> => s.status === 'fulfilled');
-  if (!ok.length) {
-    const failed = settled.find((s) => s.status === 'rejected') as PromiseRejectedResult | undefined;
-    throw new Error((failed && failed.reason && failed.reason.message) || 'Generation failed');
+  };
+  // First pass: all 3 archetypes in parallel.
+  const settled = await Promise.allSettled(ARCHETYPES.map(runOne));
+  const byLabel: Record<string, { a: typeof ARCHETYPES[number]; v: any }> = {};
+  settled.forEach((s, i) => { if (s.status === 'fulfilled') byLabel[ARCHETYPES[i].label] = s.value; });
+  // Retry any archetype that failed (e.g. a transient Gemini rate-limit) so we
+  // reliably end up with all 3 versions instead of 2.
+  for (const a of ARCHETYPES) {
+    if (byLabel[a.label]) continue;
+    try { byLabel[a.label] = await runOne(a); } catch { /* give up on this one */ }
   }
-  return ok.map(({ value: { a, v } }) => ({
+  const ok = ARCHETYPES.map((a) => byLabel[a.label]).filter(Boolean);
+  if (!ok.length) throw new Error('Generation failed — please try again');
+  return ok.map(({ a, v }) => ({
     label: a.label,
     approved: false, editor: 'AI draft', ts: NOW(),
     hook: v.hook || '', method: v.method || (a.label + ' — Generated'), methodNote: v.methodNote || '',

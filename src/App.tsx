@@ -324,9 +324,9 @@ export default class App extends React.Component<AppProps, any> {
     this.setState({ genBusy: true });
     try {
       const vers = await generateVersions(this.state.settings, p, this.state.styleProfile, this.perfSummary(), this.state.refUrl);
-      p.versions = vers; p.activeVer = 0;
+      p.versions = vers; p.activeVer = 0; if (p.status === 'Draft') p.status = 'In Review';
       this.setState({ posts: [...this.state.posts], genBusy: false }); this.persist();
-      this.toast('Generated 3 versions');
+      this.toast('Drafted ' + vers.length + ' versions');
     } catch (e: any) { this.setState({ genBusy: false }); this.toast('Generation failed — ' + (e.message || e)); }
   }
   async regenerate(vi: number) {
@@ -373,37 +373,6 @@ export default class App extends React.Component<AppProps, any> {
       p.image = null; p.images = null; p.imagePrompt = null; (p as any).brief = null;
       this.setState({ redoBusy: null, posts: [...this.state.posts] }); this.persist(); this.toast('Topic refreshed ↻');
     } catch (e: any) { this.setState({ redoBusy: null }); this.toast('Redo failed — ' + (e.message || e)); }
-  }
-  // End-to-end: fetch this week's agenda, populate the calendar, then draft 3 versions for each.
-  async runPlanWeek() {
-    if (this.needsConnection()) return;
-    this.setState({ planBusy: { done: 0, total: 0 } });
-    try {
-      const { y, m } = monthAnchor();
-      const monday = this.mondayOfThisWeek();
-      const weekLabel = new Date(y, m, monday.getDate()).toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
-      const items = await generateWeeklyAgenda(this.state.settings, this.state.styleProfile, 5, weekLabel + ' (this week)');
-      const made: Post[] = items.map((a) => {
-        const d = new Date(monday); d.setDate(monday.getDate() + a.dayOffset);
-        const date = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-        return { id: newId(), date, topic: a.topic, angle: a.angle, format: a.format, status: 'Draft', priority: a.priority, change: 'new', scheduledFor: null, versions: null, activeVer: 0 };
-      });
-      let posts = [...made, ...this.state.posts];
-      this.setState({ posts, planBusy: { done: 0, total: made.length } }); this.persist(posts);
-      // Draft each topic in turn, surfacing progress and persisting as we go.
-      const hint = this.perfSummary();
-      for (let k = 0; k < made.length; k++) {
-        try {
-          const vers = await generateVersions(this.state.settings, made[k], this.state.styleProfile, hint);
-          const target = this.state.posts.find((p) => p.id === made[k].id);
-          if (target) { target.versions = vers; target.activeVer = 0; target.status = 'In Review'; }
-        } catch { /* skip a failed topic, keep going */ }
-        posts = [...this.state.posts];
-        this.setState({ posts, planBusy: { done: k + 1, total: made.length } }); this.persist(posts);
-      }
-      this.setState({ planBusy: null });
-      this.toast('Week planned — ' + made.length + ' topics drafted ✦');
-    } catch (e: any) { this.setState({ planBusy: null }); this.toast('Planning failed — ' + (e.message || e)); }
   }
   async genBrief(id: string) {
     if (this.needsConnection()) return;
@@ -724,10 +693,7 @@ export default class App extends React.Component<AppProps, any> {
           ),
         ),
         h('div', { style: { display: 'flex', gap: '9px', alignItems: 'center' } },
-          (() => { const pb = this.state.planBusy; const busy = !!pb || this.state.agendaBusy;
-            const label = pb ? (pb.total ? 'Drafting ' + pb.done + '/' + pb.total + '…' : 'Planning…') : 'Plan & draft week';
-            return this.Btn(label, () => this.runPlanWeek(), { variant: 'primary', icon: '✦', disabled: busy }); })(),
-          this.Btn(this.state.agendaBusy ? 'Generating…' : 'Topics only', () => this.runRefreshAgenda(), { variant: 'soft', icon: '↻', disabled: this.state.agendaBusy || !!this.state.planBusy }),
+          this.Btn(this.state.agendaBusy ? 'Planning…' : 'Plan week', () => this.runRefreshAgenda(), { variant: 'primary', icon: '✦', disabled: this.state.agendaBusy }),
           this.Btn('New post', () => this.openNewPost(), { variant: 'soft', icon: '+' }),
         ),
       ),
@@ -741,12 +707,12 @@ export default class App extends React.Component<AppProps, any> {
         h('h2', { style: { margin: '0 0 6px', fontFamily: "'Cormorant Garamond',serif", fontWeight: 700, fontSize: '20px', letterSpacing: '-0.02em', color: C.heading, position: 'relative', zIndex: 1 } }, 'Your week is a blank slate'),
         h('p', { style: { margin: '0 auto 16px', maxWidth: '480px', fontSize: '16px', color: C.dim, lineHeight: 1.55, position: 'relative', zIndex: 1 } },
           this.connected
-            ? 'Let Claude propose this week’s editorial agenda and draft three on-brand versions for every topic — then review, publish and track results.'
-            : 'Connect your Claude account, then let it propose this week’s agenda and draft every topic for you.'),
+            ? 'Let it propose this week’s GTM topics. Approve a topic to draft three on-brand versions — then review, publish and track results.'
+            : 'Connect your account, then let it propose this week’s topics — you approve each one to draft it.'),
         h('div', { style: { display: 'flex', gap: '9px', justifyContent: 'center', flexWrap: 'wrap', position: 'relative', zIndex: 1 } },
           this.connected
-            ? this.Btn(this.state.planBusy ? 'Working…' : 'Plan & draft week', () => this.runPlanWeek(), { variant: 'primary', icon: '✦', disabled: !!this.state.planBusy })
-            : this.Btn('Connect Claude', () => this.openSettings(), { variant: 'primary' }),
+            ? this.Btn(this.state.agendaBusy ? 'Working…' : 'Plan this week', () => this.runRefreshAgenda(), { variant: 'primary', icon: '✦', disabled: this.state.agendaBusy })
+            : this.Btn('Connect', () => this.openSettings(), { variant: 'primary' }),
           this.Btn('New post', () => this.openNewPost(), { variant: 'soft', icon: '+' })),
       ),
       // sub-header line — only meaningful when there are scheduled posts
@@ -1334,17 +1300,17 @@ export default class App extends React.Component<AppProps, any> {
     },
       h('div', { style: { fontSize: '30px', marginBottom: '10px' } }, busy ? '✦' : '✎'),
       h('h2', { style: { margin: '0 0 6px', fontFamily: "'Cormorant Garamond',serif", fontWeight: 700, fontSize: '20px', letterSpacing: '-0.02em', color: C.heading } },
-        busy ? 'Generating with Claude…' : 'No drafts yet'),
+        busy ? 'Drafting versions…' : 'Approve this topic to draft it'),
       h('p', { style: { margin: '0 auto 18px', maxWidth: '460px', fontSize: '16px', color: C.dim, lineHeight: 1.55 } },
         this.connected
-          ? 'Generate three on-brand versions from this topic and your writing style. Optionally paste a reference post to build on.'
-          : 'Connect your Claude account to generate three on-brand versions from this topic.'),
+          ? 'Happy with this topic? Approve it to draft three on-brand versions from your writing style. Optionally paste a reference post to build on.'
+          : 'Connect your account to approve this topic and draft three on-brand versions.'),
       this.connected ? h('div', { style: { display: 'flex', justifyContent: 'center', marginBottom: '14px' } }, this.renderRefUrl({ grow: true })) : null,
       h('div', { style: { display: 'flex', gap: '9px', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap' } },
         this.connected ? this.renderSearchToggle() : null,
         this.connected
-          ? this.Btn(busy ? 'Working…' : 'Generate 3 versions', () => this.generateForSelected(), { variant: 'primary', icon: '✦', disabled: busy })
-          : this.Btn('Connect Claude', () => this.openSettings(), { variant: 'primary' })),
+          ? this.Btn(busy ? 'Working…' : 'Approve topic & draft 3 versions', () => this.generateForSelected(), { variant: 'primary', icon: '✦', disabled: busy })
+          : this.Btn('Connect', () => this.openSettings(), { variant: 'primary' })),
     );
   }
 
