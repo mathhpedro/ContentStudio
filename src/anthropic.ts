@@ -104,88 +104,76 @@ function extractJson(text: string): any {
 // product or coined term (including the author's own) ever appears in the content.
 const NO_BRAND_RULE = 'NEVER name or imply any specific company, product, brand, platform, vendor, consultancy, client or coined/proprietary term — including the author’s own company. Write as an independent operator’s point of view, with no company names anywhere in the text.';
 
-// LinkedIn Top Voice craft rules, distilled from LinkedIn's 2026 algorithm
-// guidance, HBR writing advice and current creator/industry benchmarks.
-// (Sources noted to the user; encoded here so every generation follows them.)
-const LINKEDIN_PLAYBOOK = [
-  'WRITE TO BECOME A LINKEDIN TOP VOICE. The 2026 LinkedIn feed is an interest graph: it distributes',
-  'posts by demonstrated EXPERTISE on a topic ("knowledge and advice"), not by network size, and it',
-  'ranks on DWELL TIME and meaningful COMMENTS far more than likes. Apply these rules precisely:',
-  '',
-  '1. HOOK — the first line is everything. Only ~140 characters show on mobile before "…see more".',
-  '   Open with a scroll-stopping line ≤ ~200 chars: a contrarian claim, a sharp number, a crisp',
-  '   story-teaser or a pointed question. No throat-clearing, no "In today\'s world", no greeting.',
-  '2. ARC — deliver a complete read of ~60–90 seconds: hook → quick context → the insight/payoff →',
-  '   one clear takeaway. Give the reader a reason to expand and to dwell.',
-  '3. FORMATTING — write for the scroll. Very short paragraphs (1–2 sentences, max ~3 lines), with a',
-  '   blank line between them. Use a tight bulleted or numbered list when it earns its place. Generous',
-  '   white space. Plain, direct language — no jargon or big words to sound smart (HBR).',
-  '4. LENGTH — aim for ~1,300–1,900 characters total. Posts under ~1,000 chars lose reach; do not pad.',
-  '5. CTA — end with ONE genuine, specific question that invites real replies and debate. Never use',
-  '   engagement bait ("comment YES", "tag a friend") — it is penalized.',
-  '6. NO LINKS in the body (outbound links cut reach ~60%, and "link in first comment" is also',
-  '   penalized). Keep it fully native.',
-  '7. HASHTAGS — end with a final line of exactly 3–5 specific, relevant hashtags (more than 5 hurts).',
-  '8. AUTHORITY — sound like a practitioner who has actually made these calls: concrete scenarios,',
-  '   real figures, a clear point of view. Teach something usable (a framework, a test, a number).',
+// Author positioning, voice and LinkedIn craft. Kept COMPACT on purpose: this
+// system prompt is sent on every generation, so brevity here directly cuts the
+// input tokens billed per request.
+const POSITIONING = [
+  'You ghostwrite LinkedIn posts for an operator: a Director of SALES INTELLIGENCE, CRM GOVERNANCE and',
+  'GTM ENGINEERING. Write in BRAZILIAN PORTUGUESE, keeping technical terms in English (pipeline, forecast,',
+  'win rate, whitespace, deal owner, ICP, cross-sell, stage). Every post reinforces ONE of three fronts:',
+  '- Sales Intelligence — commercial decisions driven by DATA, not gut; pipeline as a system, not a spreadsheet.',
+  '- CRM Governance — clean data cuts friction and drives revenue; simplify, don\'t bureaucratize.',
+  '- GTM Engineering — growth is engineering: process, automation, experiment.',
+  'VOICE: direct & data-driven (open with the point, back every claim with a number or example); an OPERATOR',
+  'with hands on the CRM (5 platforms that don\'t talk to each other), not a theorist; provoke AND teach —',
+  'never just name a problem, show the path; always end actionable.',
 ].join('\n');
 
-// COMMERCIAL POSITIONING — every post must quietly SELL the author's expertise by
-// attracting (and qualifying) the right buyer. Four things must be true at once.
-const SELLING_PRINCIPLES = [
-  'COMMERCIAL INTENT — the goal of every post is to SELL the author\'s expertise by pulling in the right',
-  'buyer. Do it by resonance, never by pitching. Four things must be true at the same time — bake them in:',
-  '',
-  '1. WRITE FOR THE BUYER, NOT THE EVALUATOR. Address the person who would HIRE or BUY this expertise —',
-  '   the executive who owns the P&L and the commercial×operations trade-off — not peers, analysts, juniors',
-  '   or anyone "grading a résumé." Speak to their decision, their risk and their money; never audition.',
-  '2. LEAD WITH THE RESULT, NOT THE ROLE. The hook names an OUTCOME or a tension the buyer feels (margin',
-  '   recovered, a decision no one owned, volume defended under a price move) — never a title, credential,',
-  '   "I am a…", years of experience, or what the author does for a living.',
-  '3. CONTENT THAT FILTERS. Make the RIGHT prospect think "this problem is exactly mine." Be specific enough',
-  '   that the wrong reader scrolls past — that is the point. A post that pleases everyone converts no one.',
-  '   Name the precise situation, industry, role and stakes so the in-pain buyer feels personally seen.',
-  '4. FIT & TIMING. Write to the person feeling this pain RIGHT NOW, so the post surfaces intent and',
-  '   self-qualifies the few readers who are a real fit (depth over reach). Reward whoever recognises the',
-  '   moment they are living. Favour the high-fit few over a high-volume crowd.',
-  '',
-  'Stay subtle: no pitch, no "DM me", no "I help X do Y", no ad tone. The selling is implicit — the right',
-  'buyer recognises their own problem in your words and wants the person who framed it that precisely.',
+const CRAFT = [
+  'CRAFT (write for the scroll, keep it TIGHT):',
+  '- Hook: the first line stops the scroll (ideally ≤ ~12 words) — a strong claim, a surprising number or a',
+  '  sharp question. No greeting, no "hoje quero falar sobre", no "em um mundo cada vez mais".',
+  '- Body: very short paragraphs (1–2 sentences), one idea each, a blank line between them.',
+  '- Length: aim ~900–1,300 characters TOTAL. Cut empty adjectives (incrível, poderoso, revolucionário).',
+  '- End actionable: a question, a replicable principle or a light invite — never in the void.',
+  '- No links. No engagement bait. At most 1 emoji (or none). No generic hashtags.',
 ].join('\n');
+
+const SELLING = [
+  'COMMERCIAL INTENT (sell by resonance, never pitch): write to the BUYER who would hire this expertise',
+  '(sales leaders, RevOps, founders, the board), not to peers being graded. Lead with the RESULT or the',
+  'tension they feel, not a role. Be specific enough that the wrong reader scrolls past and the right one',
+  'thinks "esse problema é exatamente o meu". No "eu ajudo X a fazer Y", no ad tone.',
+].join('\n');
+
+// Never leak confidential figures — the document's "regra de ouro".
+const SENSITIVE_RULE = 'NEVER expose sensitive or confidential data: use orders of magnitude, percentages and patterns — never a client\'s absolute values, deal names or internal targets. The insight sells; the raw number is risk.';
 
 function styleSystem(style: string): string {
   return [
-    'You are a ghostwriter helping an operator become a LINKEDIN TOP VOICE in ENTERPRISE DECISION',
-    'OPERATIONS: the high-stakes trade-offs between commercial (growth — volume, price, share, promotion)',
-    'and operations (control — capacity, cost, risk, service level) in decision-heavy industries —',
-    'consumer goods, banking/finance, retail and agribusiness. That niche is the author\'s "topic DNA";',
-    'every post must deepen authority in it.',
+    POSITIONING,
     '',
-    'Point of view to write from:',
-    '- The bottleneck was never the intelligence — it is the operating model. Most enterprises use AI, yet',
-    '  few see earnings impact: the gap is how decisions get made, owned and learned from.',
-    '- The most valuable, least-owned decision is the trade-off between revenue and the constraint —',
-    '  resolved late, by whoever shouts loudest, owned by no one. Margin leaks in that gap.',
-    '- Treat the DECISION as the unit of work: frame the constraint, model the trade-off, make the call,',
-    '  implement, and measure against the counterfactual — not plan-vs-actuals.',
-    '- Intelligence commoditizes; judgment compounds. Theory of Constraints as the lens. Prove value in P&L.',
+    CRAFT,
     '',
-    LINKEDIN_PLAYBOOK,
-    '',
-    SELLING_PRINCIPLES,
-    '',
-    'Follow this voice/style profile precisely:',
-    '"""',
-    style,
-    '"""',
+    SELLING,
     '',
     'HARD RULES:',
     '- ' + NO_BRAND_RULE,
-    '- Ground claims in concrete, verifiable specifics (figures, named workflows, real scenarios) without',
-    '  attributing them to a named organization.',
-    '- Always return ONLY valid JSON — no prose, no markdown fences, no commentary.',
-  ].join('\n');
+    '- ' + SENSITIVE_RULE,
+    '- Ground every claim in a concrete number, pattern or example — no vague abstractions.',
+    '- Always return ONLY valid JSON — no prose, no markdown fences.',
+    style && style.trim() ? 'Voice/style profile to follow:\n"""\n' + style + '\n"""' : '',
+  ].filter(Boolean).join('\n');
 }
+
+// The six content pillars — the AUTHORIZED territory for every generated topic.
+// Grounding topic generation here (instead of open web search) keeps topics on-
+// strategy AND removes the large token cost of search results on every call.
+const PILLARS = [
+  'SIX CONTENT PILLARS — every topic MUST belong to exactly one (this is the whole territory):',
+  '1. Sales Intelligence & Pipeline — read a funnel for real (velocity, risk, conversion): aging de deals,',
+  '   weighted vs raw pipeline, cycle time per stage, win/loss patterns, coverage ratio, the "deal zumbi".',
+  '2. CRM Governance & Data Quality — the invisible cost of dirty data, simplify to drive adoption: campos',
+  '   obrigatórios, naming convention, data quality score, validação por stage, multi-CRM, deduplicação.',
+  '3. GTM Engineering & Growth — growth as engineering: whitespace mapping, cross-sell entre BUs, ICP as a',
+  '   filter, lead-to-opportunity, GTM as experiment, qualification > volume, funnel automation.',
+  '4. Bastidores & Aprendizados — first-person operator stories: a forecast mistake, an unpopular governance',
+  '   call, building one consolidated view across 5 CRMs, automating a manual import. Honest, not boastful.',
+  '5. Opinião & Hot Takes — founded opinions that spark debate: dashboards as decoration, AI exposing who',
+  '   never read their own data, the unified-CRM fantasy, forecast by feeling, RevOps hype, vanity metrics.',
+  '6. Educacional & Frameworks — teach a replicable method (high save value): coverage ratio em 3 passos,',
+  '   the 5 questions of a real pipeline review, matriz de campos por stage, a data quality score from zero.',
+].join('\n');
 
 // ---- 3 versions for a post ----
 export async function generateVersions(
@@ -210,23 +198,20 @@ export async function generateVersions(
     '- B — Story: a specific situation → complication → resolution that carries one lesson.',
     '- C — Framework / numbered: a usable, skimmable list (a test, checklist or 3-step model).',
     '',
-    'For EACH version, apply the LinkedIn Top Voice rules AND the COMMERCIAL INTENT principles from the',
-    'system prompt: write to the BUYER not the evaluator, lead with the RESULT not a role, and make the post',
-    'FILTER so the right-fit prospect thinks "this problem is exactly mine" (specific enough that the wrong',
-    'reader scrolls past). Sell by resonance — never pitch.',
-    '- "hook": the opening line only — ≤ ~200 chars, scroll-stopping, no greeting. Lead with an outcome or a',
-    '  tension the buyer feels, not a title or credential.',
+    'For EACH version apply the CRAFT and COMMERCIAL INTENT rules from the system prompt (Portuguese, tech',
+    'terms in English; lead with the result/tension, make it filter the right reader, sell by resonance).',
+    '- "hook": the opening line only — stops the scroll, no greeting. Lead with the result/tension, not a role.',
     '- "body": the rest of the post, already formatted for LinkedIn — short paragraphs (1–2 sentences)',
     '  separated by BLANK LINES (use real newlines), an optional tight list, a complete hook→insight→',
-    '  takeaway arc, then ONE genuine question as the CTA, then a final line of 3–5 relevant hashtags.',
-    '  Total post (hook + body) should land around 1,300–1,900 characters. No links. No engagement bait.',
-    settings.webSearch ? 'Use web search to ground the post in recent, specific, verifiable facts or figures; weave them in naturally (no link dumps).' : '',
+    '  takeaway arc, ending actionable (a genuine question or a replicable principle).',
+    '  Total post (hook + body) ~900–1,300 characters. No links, no hashtags, at most 1 emoji.',
+    settings.webSearch ? 'Use web search to ground the post in one recent, specific, verifiable fact; weave it in (no link dumps).' : '',
     NO_BRAND_RULE,
     '',
     'Return JSON exactly in this shape (preserve newlines inside "body" as \\n):',
     '{"versions":[{"label":"A","hook":"...","body":"...","method":"<archetype> — <one line>","methodNote":"why this structure works on LinkedIn","why":"why it drives dwell time & comments"},{"label":"B",...},{"label":"C",...}]}',
   ].filter(Boolean).join('\n');
-  const text = await callClaude(settings, { system: styleSystem(style), user, maxTokens: 4096, search: settings.webSearch, fetchUrl: ref || undefined });
+  const text = await callClaude(settings, { system: styleSystem(style), user, maxTokens: 3000, search: settings.webSearch, fetchUrl: ref || undefined });
   const parsed = extractJson(text);
   const arr = (parsed.versions || []).slice(0, 3);
   return arr.map((v: any, i: number) => ({
@@ -256,16 +241,15 @@ export async function regenerateVersion(
     perfHint ? `Performance signals from past posts: ${perfHint}` : '',
     ref ? `Reference post: ${ref}\nUse web fetch to read it and build on its substance in our voice; do not copy it verbatim or name any company in it.` : '',
     '',
-    'Apply the LinkedIn Top Voice rules from the system prompt:',
-    '- "hook": opening line only, ≤ ~200 chars, scroll-stopping.',
+    'Apply the CRAFT and COMMERCIAL INTENT rules from the system prompt (Portuguese, tech terms in English):',
+    '- "hook": opening line only, stops the scroll, no greeting; lead with the result/tension, not a role.',
     '- "body": LinkedIn-formatted — short paragraphs separated by BLANK LINES (\\n), optional tight list,',
-    '  hook→insight→takeaway, ONE genuine question as CTA, then a final line of 3–5 relevant hashtags.',
-    '  Total ~1,300–1,900 characters. No links. No engagement bait.',
-    settings.webSearch ? 'Use web search to ground it in recent, specific, verifiable facts.' : '',
+    '  hook→insight→takeaway, ending actionable. Total ~900–1,300 characters. No links, no hashtags, ≤1 emoji.',
+    settings.webSearch ? 'Use web search to ground it in one recent, specific, verifiable fact.' : '',
     NO_BRAND_RULE,
     'Return JSON exactly (newlines in "body" as \\n): {"hook":"...","body":"...","method":"<archetype> — <one line>","methodNote":"...","why":"..."}',
   ].filter(Boolean).join('\n');
-  const text = await callClaude(settings, { system: styleSystem(style), user, maxTokens: 2048, search: settings.webSearch, fetchUrl: ref || undefined });
+  const text = await callClaude(settings, { system: styleSystem(style), user, maxTokens: 1500, search: settings.webSearch, fetchUrl: ref || undefined });
   const v = extractJson(text);
   return { hook: v.hook || '', body: v.body || '', method: v.method || 'Regenerated', methodNote: v.methodNote || '', why: v.why || '' };
 }
@@ -280,50 +264,29 @@ export async function generateWeeklyAgenda(
   weekLabel: string,
 ): Promise<AgendaItem[]> {
   const system = [
-    'You are the editorial strategist building a LINKEDIN TOP VOICE. Lead with what is TRENDING RIGHT NOW',
-    'and bring the author\'s expert lens to it — do NOT just restate the author\'s service themes.',
-    'The author\'s lens is ENTERPRISE DECISION OPERATIONS: the commercial × operations trade-off in consumer',
-    'goods, banking/finance, retail and agribusiness. That lens is HOW to read the news, not the topic itself.',
+    'You are the editorial strategist for the author below. Plan a COHERENT week of LinkedIn posts grounded',
+    'in the SIX PILLARS — every topic must clearly belong to one pillar so the feed stays on-strategy.',
+    POSITIONING,
     '',
-    'TOPIC SOURCING (most important): each topic must ride a subject that is genuinely hot this week —',
-    'current news, a fresh product/AI release, a live debate, new data or a viral business story — and then',
-    'apply the author\'s decision-operations angle. Timeliness first, lens second. Use web search to find',
-    'what is actually trending now; never invent stale "AI strategy" themes.',
+    PILLARS,
     '',
-    'Lens themes to apply to the trend (not topics on their own):',
-    '- the unowned gap between commercial (growth) and operations (control), where margin quietly leaks;',
-    '- decision-driven vs process-driven organizations — making the decision the unit of work;',
-    '- concrete trade-off calls: raise price vs defend volume; run a promotion supply can’t cover; protect',
-    '  the big customer vs the many small ones; grow the loan book vs protect net interest income under a',
-    '  rate scenario; ship now at a worse freight rate vs wait; kill an SKU vs bleed cost-to-serve;',
-    '- revenue growth management (pricing, price-pack, trade & promotion, cost-to-serve) and S&OP / IBP;',
-    '- the AI operating model vs buying more AI tools; judgment compounds while intelligence commoditizes;',
-    '- outcome-based economics and measuring value against the counterfactual;',
-    '- why now: rate volatility & regulation in finance, negative-ROI promotions in consumer goods,',
-    '  omnichannel markdown and working-capital cycles in retail.',
-    '',
-    'Each topic should map to a high-performing LinkedIn archetype — vary them across the week:',
-    'contrarian/hot take · personal lesson or war story · how-to framework · data/insight · myth-buster ·',
-    'timely trend reaction · prediction. Every topic must imply a strong, specific hook (not a vague theme).',
-    '',
-    'COMMERCIAL INTENT: pick topics that FILTER for the author\'s buyer — the executive who owns the P&L and',
-    'the commercial×operations trade-off. Each topic should make that specific buyer think "this is exactly',
-    'my problem," not please a broad crowd. Frame around the buyer\'s RESULT and risk, never around a role.',
+    'Vary pillars and archetypes across the week. A good weekly mix: open with a technical insight (pillar 1',
+    'or 2), mid-week run an opinion or a behind-the-scenes lesson (pillar 5 or 4), close with an educational',
+    'framework (pillar 6); fold in a growth/whitespace topic (pillar 3) regularly. Every topic must imply a',
+    'strong, specific hook — never a vague theme.',
     '- ' + NO_BRAND_RULE,
     'Always return ONLY valid JSON.',
   ].join('\n');
   const user = [
     `Propose a weekly editorial agenda of ${count} LinkedIn posts for the week of ${weekLabel}.`,
-    'Use web search FIRST to find this week\'s genuinely trending stories (business, AI, tech, and the',
-    'relevant industries). Each topic must tie to one of those real, current hooks — then apply the',
-    'decision-operations angle. Spread Monday–Friday; vary archetype, industry and priority.',
-    'Each "angle" should read like the post\'s core argument / hook so it is ready to draft.',
+    'Pick concrete, specific topics from across the six pillars (avoid two of the same pillar back to back).',
+    'Each "angle" should read like the post\'s core argument / hook so it is ready to draft. Spread Monday–Friday.',
     '',
     'Return JSON exactly:',
     '{"agenda":[{"topic":"...","angle":"...","format":"opinion|educational|technical|case study|trend","priority":"High|Medium|Low","dayOffset":0}]}',
     'dayOffset is 0–4 for Monday–Friday.',
   ].filter(Boolean).join('\n');
-  const text = await callClaude(settings, { system, user, maxTokens: 2048, search: true });
+  const text = await callClaude(settings, { system, user, maxTokens: 1500 });
   const parsed = extractJson(text);
   return (parsed.agenda || []).map((a: any) => ({
     topic: a.topic || 'Untitled', angle: a.angle || '', format: (a.format || 'opinion'),
@@ -331,30 +294,28 @@ export async function generateWeeklyAgenda(
   }));
 }
 
-// ---- one fresh, trending topic (for "redo this topic") ----
+// ---- one fresh, on-pillar topic (for "redo this topic") ----
 export async function generateTopic(
   settings: Settings,
   _style: string,
   existing: string[],
 ): Promise<AgendaItem> {
   const system = [
-    'You are a LinkedIn editorial strategist. Propose ONE timely, comment-worthy post topic.',
-    'Lead with a subject that is genuinely TRENDING right now, then apply the author\'s lens of ENTERPRISE',
-    'DECISION OPERATIONS (commercial × operations trade-offs in consumer goods, banking/finance, retail,',
-    'agribusiness). Timeliness first, lens second — never a generic, evergreen "AI strategy" theme.',
-    'COMMERCIAL INTENT: choose a topic that FILTERS for the author\'s buyer — the P&L-owning executive who',
-    'feels this trade-off — so the right prospect thinks "this is exactly my problem." Frame on RESULT, not role.',
+    'You are the editorial strategist for the author below. Propose ONE specific, comment-worthy LinkedIn',
+    'topic that clearly belongs to ONE of the six pillars.',
+    POSITIONING,
+    '',
+    PILLARS,
     '- ' + NO_BRAND_RULE,
     'Always return ONLY valid JSON.',
   ].join('\n');
   const user = [
-    'Use web search to find ONE subject that is genuinely hot this week (a current story, fresh release,',
-    'live debate or new data) and turn it into a sharp LinkedIn topic through the author\'s lens.',
-    existing && existing.length ? 'Avoid repeating or overlapping any of these existing topics:\n- ' + existing.slice(0, 40).join('\n- ') : '',
+    'Pick ONE concrete topic from the pillars and turn it into a sharp LinkedIn topic in the author\'s voice.',
+    existing && existing.length ? 'Avoid repeating or overlapping any of these existing topics:\n- ' + existing.slice(0, 30).join('\n- ') : '',
     'The "angle" should read like the post\'s core argument / hook so it is ready to draft.',
     'Return JSON exactly: {"topic":"...","angle":"...","format":"opinion|educational|technical|case study|trend","priority":"High|Medium|Low"}',
   ].filter(Boolean).join('\n');
-  const text = await callClaude(settings, { system, user, maxTokens: 800, search: true });
+  const text = await callClaude(settings, { system, user, maxTokens: 500 });
   const a = extractJson(text);
   return {
     topic: a.topic || 'Untitled', angle: a.angle || '', format: a.format || 'opinion',
@@ -368,8 +329,8 @@ export async function generateBrief(
   post: Post,
 ): Promise<{ summary: string; why: string; points: string[] }> {
   const system = [
-    'You explain enterprise decision-operations topics in plain language for busy executives —',
-    'the commercial × operations trade-offs in consumer goods, banking/finance, retail and agribusiness.',
+    'You explain Sales Intelligence, CRM Governance and GTM Engineering topics in plain, practical language',
+    'for busy commercial leaders (sales leaders, RevOps, founders). Be concrete; keep tech terms in English.',
     NO_BRAND_RULE,
     'Return ONLY valid JSON.',
   ].join('\n');
@@ -401,12 +362,13 @@ export async function generateImagePrompt(
   ].join('\n');
   const user = [
     'Commission ONE photograph for the article below. Work in this order, but output only the final prompt:',
-    '1. Identify the article’s single concrete idea or tension (e.g. "raise price vs defend volume",',
-    '   "a decision no one owns", "stock sitting in a warehouse while sales chase growth").',
-    '2. Translate it into ONE specific, real, grounded scene from the actual industry it discusses',
-    '   (consumer goods / banking / retail / agribusiness / logistics): a real place, a real moment, real',
-    '   objects and people doing real work — a scene a photojournalist could actually shoot today. It should',
-    '   give the viewer a PERSPECTIVE on the idea, like a literal moment or a tangible visual metaphor.',
+    '1. Identify the article’s single concrete idea or tension (e.g. "a deal stuck in one stage for weeks",',
+    '   "a forecast built on gut, not data", "five disconnected systems, one messy truth").',
+    '2. Translate it into ONE specific, real, grounded scene from a modern commercial / sales operation: a',
+    '   busy sales floor, a deal review around a whiteboard sketched with a funnel, sticky notes on glass, a',
+    '   tense meeting-room moment, someone alone at a desk late with papers and coffee — a real place, a real',
+    '   moment, real people doing real work, that a photojournalist could shoot today (no visible UI screens).',
+    '   Give the viewer a PERSPECTIVE on the idea.',
     '3. Write it as a rich, specific photographic brief.',
     '',
     'The photo MUST feel real and editorial — shot on a real camera, candid, unstaged, with natural',
