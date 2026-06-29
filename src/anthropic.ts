@@ -175,6 +175,18 @@ const PILLARS = [
   '   the 5 questions of a real pipeline review, matriz de campos por stage, a data quality score from zero.',
 ].join('\n');
 
+// Short pillar labels for rotation. CRM Governance is ONE of six — topics must
+// spread across all of them (Sales Intelligence and GTM/Growth especially),
+// never collapse onto CRM.
+const PILLAR_NAMES = [
+  'Sales Intelligence & Pipeline (funnel health, forecast, win/loss, coverage)',
+  'GTM Engineering & Growth (whitespace, cross-sell, ICP, experiments, automation)',
+  'Opinião & Hot Take (a founded, debate-sparking opinion on RevOps / sales / AI in sales)',
+  'Educacional & Framework (a replicable method or checklist)',
+  'Bastidores & Aprendizado (a first-person operator story / lesson)',
+  'CRM Governance & Data Quality (only occasionally — do not over-use)',
+];
+
 // ---- 3 versions for a post ----
 export async function generateVersions(
   settings: Settings,
@@ -280,16 +292,19 @@ export async function generateWeeklyAgenda(
     '',
     PILLARS,
     '',
-    'Vary pillars and archetypes across the week. A good weekly mix: open with a technical insight (pillar 1',
-    'or 2), mid-week run an opinion or a behind-the-scenes lesson (pillar 5 or 4), close with an educational',
-    'framework (pillar 6); fold in a growth/whitespace topic (pillar 3) regularly. Every topic must imply a',
-    'strong, specific hook — never a vague theme.',
+    'BALANCE IS MANDATORY: spread topics across the THREE fronts (Sales Intelligence, GTM Engineering/Growth,',
+    'CRM Governance) and the pillars. Lean toward Sales Intelligence (1), Growth (3), Opinion (5) and',
+    'Frameworks (6); use CRM Governance (2) for AT MOST ONE post in the week. Never make the week CRM-heavy.',
+    'A good rhythm: open with a Sales Intelligence insight, mid-week an opinion or a behind-the-scenes lesson,',
+    'close with an educational framework; fold in a growth/whitespace topic regularly. Every topic must imply',
+    'a strong, specific hook — never a vague theme.',
     '- ' + NO_BRAND_RULE,
     'Always return ONLY valid JSON.',
   ].join('\n');
   const user = [
     `Propose a weekly editorial agenda of ${count} LinkedIn posts for the week of ${weekLabel}.`,
-    'Pick concrete, specific topics from across the six pillars (avoid two of the same pillar back to back).',
+    'Use a DIFFERENT pillar for each post where possible; at most one CRM-governance topic for the whole week.',
+    'Pick concrete, specific topics — no two on the same pillar back to back, no vague themes.',
     'Each "angle" should read like the post\'s core argument / hook so it is ready to draft. Spread Monday–Friday.',
     '',
     'Return JSON exactly:',
@@ -319,8 +334,11 @@ export async function generateTopic(
     '- ' + NO_BRAND_RULE,
     'Always return ONLY valid JSON.',
   ].join('\n');
+  // Rotate the target pillar so topics vary instead of collapsing onto CRM.
+  const target = PILLAR_NAMES[Math.floor(Math.random() * PILLAR_NAMES.length)];
   const user = [
-    'Pick ONE concrete topic from the pillars and turn it into a sharp LinkedIn topic in the author\'s voice.',
+    `Generate the topic SPECIFICALLY within this pillar (do NOT default to CRM): ${target}.`,
+    'Make it concrete and sharp — a real, specific angle, not a broad theme.',
     existing && existing.length ? 'Avoid repeating or overlapping any of these existing topics:\n- ' + existing.slice(0, 30).join('\n- ') : '',
     'The "angle" should read like the post\'s core argument / hook so it is ready to draft.',
     'Return JSON exactly: {"topic":"...","angle":"...","format":"opinion|educational|technical|case study|trend","priority":"High|Medium|Low"}',
