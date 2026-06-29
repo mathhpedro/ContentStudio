@@ -108,15 +108,16 @@ const NO_BRAND_RULE = 'NEVER name or imply any specific company, product, brand,
 // system prompt is sent on every generation, so brevity here directly cuts the
 // input tokens billed per request.
 const POSITIONING = [
-  'You ghostwrite LinkedIn posts for an operator: a Director of SALES INTELLIGENCE, CRM GOVERNANCE and',
-  'GTM ENGINEERING. Write in BRAZILIAN PORTUGUESE, keeping technical terms in English (pipeline, forecast,',
-  'win rate, whitespace, deal owner, ICP, cross-sell, stage). Every post reinforces ONE of three fronts:',
-  '- Sales Intelligence — commercial decisions driven by DATA, not gut; pipeline as a system, not a spreadsheet.',
-  '- CRM Governance — clean data cuts friction and drives revenue; simplify, don\'t bureaucratize.',
-  '- GTM Engineering — growth is engineering: process, automation, experiment.',
+  'You ghostwrite LinkedIn posts for an operator building TOP-VOICE authority in GTM ENGINEERING — growth as',
+  'an engineered system (process, automation, experiment), not heroics. Write in BRAZILIAN PORTUGUESE, keeping',
+  'technical terms in English (pipeline, forecast, win rate, whitespace, ICP, cross-sell, RevOps, PLG, GTM).',
+  'GTM Engineering is the PRIMARY front; its recurring sub-themes are: AI in go-to-market, RevOps, Product /',
+  'PLG, data & experimentation, automation & the GTM tech stack, and the GTM-engineer role itself. Sales',
+  'Intelligence (pipeline/forecast as decisions) and CRM Governance (clean data) are SUPPORTING expertise —',
+  'proof the author has actually built revenue systems, never the headline.',
   'VOICE: direct & data-driven (open with the point, back every claim with a number or example); an OPERATOR',
-  'with hands on the CRM (5 platforms that don\'t talk to each other), not a theorist; provoke AND teach —',
-  'never just name a problem, show the path; always end actionable.',
+  'who BUILDS GTM systems, not a theorist; provoke AND teach — never just name a problem, show the path;',
+  'always end actionable.',
 ].join('\n');
 
 const CRAFT = [
@@ -156,37 +157,17 @@ function styleSystem(style: string): string {
   ].filter(Boolean).join('\n');
 }
 
-// The six content pillars — the AUTHORIZED territory for every generated topic.
-// Grounding topic generation here (instead of open web search) keeps topics on-
-// strategy AND removes the large token cost of search results on every call.
-const PILLARS = [
-  'SIX CONTENT PILLARS — every topic MUST belong to exactly one (this is the whole territory):',
-  '1. Sales Intelligence & Pipeline — read a funnel for real (velocity, risk, conversion): aging de deals,',
-  '   weighted vs raw pipeline, cycle time per stage, win/loss patterns, coverage ratio, the "deal zumbi".',
-  '2. CRM Governance & Data Quality — the invisible cost of dirty data, simplify to drive adoption: campos',
-  '   obrigatórios, naming convention, data quality score, validação por stage, multi-CRM, deduplicação.',
-  '3. GTM Engineering & Growth — growth as engineering: whitespace mapping, cross-sell entre BUs, ICP as a',
-  '   filter, lead-to-opportunity, GTM as experiment, qualification > volume, funnel automation.',
-  '4. Bastidores & Aprendizados — first-person operator stories: a forecast mistake, an unpopular governance',
-  '   call, building one consolidated view across 5 CRMs, automating a manual import. Honest, not boastful.',
-  '5. Opinião & Hot Takes — founded opinions that spark debate: dashboards as decoration, AI exposing who',
-  '   never read their own data, the unified-CRM fantasy, forecast by feeling, RevOps hype, vanity metrics.',
-  '6. Educacional & Frameworks — teach a replicable method (high save value): coverage ratio em 3 passos,',
-  '   the 5 questions of a real pipeline review, matriz de campos por stage, a data quality score from zero.',
-].join('\n');
-
-// GTM Engineering & Growth is the PRIMARY focus — the rotation is weighted heavily
-// toward it (≈half the pool), the other pillars are support, and CRM is excluded
-// from single-topic rotation (the weekly agenda may still use it once).
-const PILLAR_POOL = [
-  'GTM Engineering & Growth (whitespace, cross-sell entre BUs, ICP as a filter, GTM as experiment, funnel automation, qualification > volume)',
-  'GTM Engineering & Growth (the future of go-to-market: building growth as a repeatable SYSTEM, not heroics)',
-  'GTM Engineering & Growth (where revenue teams are heading: process + automation + experiment over raw headcount)',
-  'GTM Engineering & Growth (pipeline as an engineered system — instrumented, tested, compounding)',
-  'Sales Intelligence & Pipeline (funnel health, forecast, win/loss, coverage — framed as decisions, not reports)',
-  'Opinião & Hot Take (a founded, debate-sparking take on RevOps, GTM or AI in selling)',
-  'Educacional & Framework (a replicable GTM / growth method or checklist)',
-  'Bastidores & Aprendizado (a first-person operator story / lesson, ideally about building GTM systems)',
+// The author is building TOP-VOICE authority on the GTM ENGINEERING front. Every
+// topic orbits GTM, rotated across its high-signal sub-themes so the feed stays
+// varied but unmistakably on one front. Sales Intelligence / CRM only as support.
+const GTM_SUBTHEMES = [
+  'GTM × AI — AI agents & copilots in go-to-market, AI-driven pipeline/forecast, where AI actually moves revenue vs hype',
+  'GTM × RevOps — revenue operations as an ENGINEERING discipline: systems, instrumentation, the RevOps operating model',
+  'GTM × Product / PLG — product-led growth, PLG vs sales-led, product signals feeding GTM, product × GTM alignment',
+  'GTM × Data & Experimentation — running go-to-market as experiments with hypothesis + metric; attribution; what to instrument',
+  'GTM × Automation & Tech Stack — what to automate first, the modern GTM stack, build vs buy, killing manual glue',
+  'GTM × Pipeline-as-a-System — whitespace, cross-sell, ICP as a filter, qualification > volume, pipeline engineered to compound',
+  'GTM × Org & Talent — the rise of the GTM engineer, how revenue teams are restructuring, the skills that matter now',
 ];
 
 // Altitude: topics must read as THOUGHT LEADERSHIP, not operational task tips.
@@ -299,26 +280,26 @@ export async function generateWeeklyAgenda(
   weekLabel: string,
 ): Promise<AgendaItem[]> {
   const system = [
-    'You are the editorial strategist for the author below. Plan a COHERENT week of LinkedIn posts grounded',
-    'in the SIX PILLARS — every topic must clearly belong to one pillar so the feed stays on-strategy.',
+    'You are the editorial strategist for the author below, who is building TOP-VOICE authority in GTM',
+    'ENGINEERING. Plan a COHERENT week of LinkedIn posts that compounds that one front.',
     POSITIONING,
     '',
-    PILLARS,
+    'GTM sub-themes to rotate across (this is the territory):\n- ' + GTM_SUBTHEMES.join('\n- '),
     '',
     ALTITUDE,
     '',
-    'PRIMARY FOCUS = GTM ENGINEERING & GROWTH. At least HALF the week must be GTM/Growth topics (growth as an',
-    'engineered system, whitespace, cross-sell, ICP, GTM-as-experiment, funnel automation, the future of',
-    'go-to-market). Use the other pillars as SUPPORT: a Sales Intelligence insight, an opinion/hot take and an',
-    'educational framework — preferably each tied back to GTM. CRM Governance: at most one post, only if it',
-    'earns its place. Every topic must imply a strong, specific hook — never a vague theme.',
+    'PRIMARY FOCUS = GTM ENGINEERING. At least HALF the week must be GTM-engineering topics, each on a',
+    'DIFFERENT sub-theme above (AI, RevOps, Product/PLG, data/experimentation, automation/stack, pipeline-as-',
+    'system, org/talent). The remaining posts SUPPORT that front — a Sales Intelligence insight, an opinion/',
+    'hot take, an educational framework — each tied back to GTM where possible. CRM Governance at most once,',
+    'only if it earns its place. Every topic must imply a strong, specific hook — never a vague theme.',
     '- ' + NO_BRAND_RULE,
     'Always return ONLY valid JSON.',
   ].join('\n');
   const user = [
     `Propose a weekly editorial agenda of ${count} LinkedIn posts for the week of ${weekLabel}.`,
-    'Make GTM Engineering / Growth the spine of the week (at least half the posts); vary the supporting',
-    'pillars; at most one CRM-governance topic. Pick concrete, specific topics — no vague themes.',
+    'Make GTM Engineering the spine (at least half the posts, each on a different GTM sub-theme); the rest',
+    'support that front; at most one CRM-governance topic. Pick concrete, specific topics — no vague themes.',
     'Each "angle" should read like the post\'s core argument / hook so it is ready to draft. Spread Monday–Friday.',
     '',
     'Return JSON exactly:',
@@ -333,29 +314,29 @@ export async function generateWeeklyAgenda(
   }));
 }
 
-// ---- one fresh, on-pillar topic (for "redo this topic") ----
+// ---- one fresh GTM-engineering topic (for "redo this topic") ----
 export async function generateTopic(
   settings: Settings,
   _style: string,
   existing: string[],
 ): Promise<AgendaItem> {
   const system = [
-    'You are the editorial strategist for the author below. Propose ONE specific, comment-worthy LinkedIn',
-    'topic that clearly belongs to ONE of the six pillars.',
+    'You are the editorial strategist for the author below, who is building TOP-VOICE authority in GTM',
+    'ENGINEERING. Propose ONE specific, comment-worthy LinkedIn topic on the GTM Engineering front.',
     POSITIONING,
     '',
-    PILLARS,
+    'GTM sub-themes to draw from:\n- ' + GTM_SUBTHEMES.join('\n- '),
     '',
     ALTITUDE,
     '- ' + NO_BRAND_RULE,
     'Always return ONLY valid JSON.',
   ].join('\n');
-  // Weighted rotation — mostly GTM Engineering, with the rest as support.
-  const target = PILLAR_POOL[Math.floor(Math.random() * PILLAR_POOL.length)];
+  // Rotate across GTM sub-themes so every topic builds the GTM Engineering front.
+  const target = GTM_SUBTHEMES[Math.floor(Math.random() * GTM_SUBTHEMES.length)];
   const user = [
-    `Use this pillar as the LENS (not the literal subject; do NOT default to CRM): ${target}.`,
-    'Frame the topic at a leadership / market altitude — a sharp, specific thought-leadership angle, not an',
-    'internal task tip and not a vague theme.',
+    `Generate a GTM ENGINEERING topic on this sub-theme: ${target}.`,
+    'Frame it at a leadership / market altitude — a sharp, specific thought-leadership angle that builds the',
+    'author\'s GTM-engineering authority. Not an internal CRM task tip, not a vague theme.',
     existing && existing.length ? 'Avoid repeating or overlapping any of these existing topics:\n- ' + existing.slice(0, 30).join('\n- ') : '',
     'The "angle" should read like the post\'s core argument / hook so it is ready to draft.',
     'Return JSON exactly: {"topic":"...","angle":"...","format":"opinion|educational|technical|case study|trend","priority":"High|Medium|Low"}',
