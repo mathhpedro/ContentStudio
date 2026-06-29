@@ -175,16 +175,18 @@ const PILLARS = [
   '   the 5 questions of a real pipeline review, matriz de campos por stage, a data quality score from zero.',
 ].join('\n');
 
-// Short pillar labels for rotation. CRM Governance is ONE of six — topics must
-// spread across all of them (Sales Intelligence and GTM/Growth especially),
-// never collapse onto CRM.
-const PILLAR_NAMES = [
-  'Sales Intelligence & Pipeline (funnel health, forecast, win/loss, coverage)',
-  'GTM Engineering & Growth (whitespace, cross-sell, ICP, experiments, automation)',
-  'Opinião & Hot Take (a founded, debate-sparking opinion on RevOps / sales / AI in sales)',
-  'Educacional & Framework (a replicable method or checklist)',
-  'Bastidores & Aprendizado (a first-person operator story / lesson)',
-  'CRM Governance & Data Quality (only occasionally — do not over-use)',
+// GTM Engineering & Growth is the PRIMARY focus — the rotation is weighted heavily
+// toward it (≈half the pool), the other pillars are support, and CRM is excluded
+// from single-topic rotation (the weekly agenda may still use it once).
+const PILLAR_POOL = [
+  'GTM Engineering & Growth (whitespace, cross-sell entre BUs, ICP as a filter, GTM as experiment, funnel automation, qualification > volume)',
+  'GTM Engineering & Growth (the future of go-to-market: building growth as a repeatable SYSTEM, not heroics)',
+  'GTM Engineering & Growth (where revenue teams are heading: process + automation + experiment over raw headcount)',
+  'GTM Engineering & Growth (pipeline as an engineered system — instrumented, tested, compounding)',
+  'Sales Intelligence & Pipeline (funnel health, forecast, win/loss, coverage — framed as decisions, not reports)',
+  'Opinião & Hot Take (a founded, debate-sparking take on RevOps, GTM or AI in selling)',
+  'Educacional & Framework (a replicable GTM / growth method or checklist)',
+  'Bastidores & Aprendizado (a first-person operator story / lesson, ideally about building GTM systems)',
 ];
 
 // Altitude: topics must read as THOUGHT LEADERSHIP, not operational task tips.
@@ -305,19 +307,18 @@ export async function generateWeeklyAgenda(
     '',
     ALTITUDE,
     '',
-    'BALANCE IS MANDATORY: spread topics across the THREE fronts (Sales Intelligence, GTM Engineering/Growth,',
-    'CRM Governance) and the pillars. Lean toward Sales Intelligence (1), Growth (3), Opinion (5) and',
-    'Frameworks (6); use CRM Governance (2) for AT MOST ONE post in the week. Never make the week CRM-heavy.',
-    'A good rhythm: open with a Sales Intelligence insight, mid-week an opinion or a behind-the-scenes lesson,',
-    'close with an educational framework; fold in a growth/whitespace topic regularly. Every topic must imply',
-    'a strong, specific hook — never a vague theme.',
+    'PRIMARY FOCUS = GTM ENGINEERING & GROWTH. At least HALF the week must be GTM/Growth topics (growth as an',
+    'engineered system, whitespace, cross-sell, ICP, GTM-as-experiment, funnel automation, the future of',
+    'go-to-market). Use the other pillars as SUPPORT: a Sales Intelligence insight, an opinion/hot take and an',
+    'educational framework — preferably each tied back to GTM. CRM Governance: at most one post, only if it',
+    'earns its place. Every topic must imply a strong, specific hook — never a vague theme.',
     '- ' + NO_BRAND_RULE,
     'Always return ONLY valid JSON.',
   ].join('\n');
   const user = [
     `Propose a weekly editorial agenda of ${count} LinkedIn posts for the week of ${weekLabel}.`,
-    'Use a DIFFERENT pillar for each post where possible; at most one CRM-governance topic for the whole week.',
-    'Pick concrete, specific topics — no two on the same pillar back to back, no vague themes.',
+    'Make GTM Engineering / Growth the spine of the week (at least half the posts); vary the supporting',
+    'pillars; at most one CRM-governance topic. Pick concrete, specific topics — no vague themes.',
     'Each "angle" should read like the post\'s core argument / hook so it is ready to draft. Spread Monday–Friday.',
     '',
     'Return JSON exactly:',
@@ -349,8 +350,8 @@ export async function generateTopic(
     '- ' + NO_BRAND_RULE,
     'Always return ONLY valid JSON.',
   ].join('\n');
-  // Rotate the target pillar so topics vary instead of collapsing onto CRM.
-  const target = PILLAR_NAMES[Math.floor(Math.random() * PILLAR_NAMES.length)];
+  // Weighted rotation — mostly GTM Engineering, with the rest as support.
+  const target = PILLAR_POOL[Math.floor(Math.random() * PILLAR_POOL.length)];
   const user = [
     `Use this pillar as the LENS (not the literal subject; do NOT default to CRM): ${target}.`,
     'Frame the topic at a leadership / market altitude — a sharp, specific thought-leadership angle, not an',
