@@ -302,6 +302,7 @@ export async function generateWeeklyAgenda(
     `Propose a weekly editorial agenda of ${count} LinkedIn posts for the week of ${weekLabel}.`,
     'Every post is a GTM ENGINEERING topic on a DIFFERENT sub-theme; vary the archetype. No CRM, no raw',
     'pipeline/forecast topics. Pick concrete, specific topics — no vague themes.',
+    'Write every "topic" and "angle" in ENGLISH.',
     'Each "angle" should read like the post\'s core argument / hook so it is ready to draft. Spread Monday–Friday.',
     '',
     'Return JSON exactly:',
@@ -340,6 +341,7 @@ export async function generateTopic(
     'Frame it at a leadership / market altitude — a sharp, specific thought-leadership angle that builds the',
     'author\'s GTM-engineering authority. The subject is GTM engineering, NOT CRM, data quality, or raw',
     'pipeline/forecast mechanics. Not an internal task tip, not a vague theme.',
+    'Write the "topic" and "angle" in ENGLISH.',
     existing && existing.length ? 'Avoid repeating or overlapping any of these existing topics:\n- ' + existing.slice(0, 30).join('\n- ') : '',
     'The "angle" should read like the post\'s core argument / hook so it is ready to draft.',
     'Return JSON exactly: {"topic":"...","angle":"...","format":"opinion|educational|technical|case study|trend","priority":"High|Medium|Low"}',
@@ -358,8 +360,8 @@ export async function generateBrief(
   post: Post,
 ): Promise<{ summary: string; why: string; points: string[] }> {
   const system = [
-    'You explain Sales Intelligence, CRM Governance and GTM Engineering topics in plain, practical language',
-    'for busy commercial leaders (sales leaders, RevOps, founders). Be concrete; keep tech terms in English.',
+    'You explain GTM Engineering topics in plain, practical language for busy commercial leaders (sales',
+    'leaders, RevOps, founders). Be concrete. Write entirely in ENGLISH.',
     NO_BRAND_RULE,
     'Return ONLY valid JSON.',
   ].join('\n');
@@ -431,7 +433,7 @@ export async function generateChartSpec(
 ): Promise<any> {
   const system = [
     'You are a data-visualisation editor for a business publication. You turn an article into ONE simple,',
-    'honest figure that carries its core point. Return ONLY valid JSON — no prose, no markdown fences.',
+    'honest figure that carries its core point. All labels and text in ENGLISH. Return ONLY valid JSON — no prose, no markdown fences.',
   ].join('\n');
   const user = [
     'Design ONE figure for the article below. Pick the chart type that best carries its single main point:',
@@ -476,7 +478,7 @@ export async function generatePosterSpec(
   const system = [
     'You are a data-visualisation editor at a business magazine. You turn an article into ONE rich,',
     'layered editorial poster (like a magazine page): a headline, a few stat callouts, and a chart with a',
-    'short "what it means" column. Return ONLY valid JSON — no prose, no markdown fences.',
+    'short "what it means" column. All labels and text in ENGLISH. Return ONLY valid JSON — no prose, no markdown fences.',
   ].join('\n');
   const user = [
     'Design ONE editorial poster for the article below. Fill these sections (omit any that do not fit):',
@@ -549,7 +551,7 @@ export async function generateCarousel(
   const system = [
     'You design tight LinkedIn carousels: at most 3 slides that connect into ONE flowing story',
     '(slide 1 hooks, the middle delivers the substance, the last lands the takeaway and asks a question).',
-    'Slides can be text-only. Return ONLY valid JSON — no prose, no markdown fences.',
+    'Slides can be text-only. All text in ENGLISH. Return ONLY valid JSON — no prose, no markdown fences.',
   ].join('\n');
   const user = [
     'Design a carousel of EXACTLY 3 slides for the article below. The slides must reference one through-line',
