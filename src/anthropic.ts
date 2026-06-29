@@ -187,6 +187,17 @@ const PILLAR_NAMES = [
   'CRM Governance & Data Quality (only occasionally — do not over-use)',
 ];
 
+// Altitude: topics must read as THOUGHT LEADERSHIP, not operational task tips.
+const ALTITUDE = [
+  'ALTITUDE — write THOUGHT LEADERSHIP, not task tips. Each topic must rise above day-to-day CRM/ops chores',
+  'to a bigger idea a sales leader, founder or board cares about: where commercial teams are heading, how AI',
+  'is reshaping selling and RevOps, what separates orgs that compound revenue from those that stall, the',
+  'shift from gut to data-driven decisions, the economics of growth. Use the author\'s specific operational',
+  'expertise as PROOF and credibility — never as the headline itself. Always zoom out to the strategic',
+  '"so what" for the business and the market. Avoid purely internal admin topics (which field is mandatory,',
+  'how to dedupe records) as the subject — those belong only as evidence inside a larger point.',
+].join('\n');
+
 // ---- 3 versions for a post ----
 export async function generateVersions(
   settings: Settings,
@@ -292,6 +303,8 @@ export async function generateWeeklyAgenda(
     '',
     PILLARS,
     '',
+    ALTITUDE,
+    '',
     'BALANCE IS MANDATORY: spread topics across the THREE fronts (Sales Intelligence, GTM Engineering/Growth,',
     'CRM Governance) and the pillars. Lean toward Sales Intelligence (1), Growth (3), Opinion (5) and',
     'Frameworks (6); use CRM Governance (2) for AT MOST ONE post in the week. Never make the week CRM-heavy.',
@@ -331,14 +344,17 @@ export async function generateTopic(
     POSITIONING,
     '',
     PILLARS,
+    '',
+    ALTITUDE,
     '- ' + NO_BRAND_RULE,
     'Always return ONLY valid JSON.',
   ].join('\n');
   // Rotate the target pillar so topics vary instead of collapsing onto CRM.
   const target = PILLAR_NAMES[Math.floor(Math.random() * PILLAR_NAMES.length)];
   const user = [
-    `Generate the topic SPECIFICALLY within this pillar (do NOT default to CRM): ${target}.`,
-    'Make it concrete and sharp — a real, specific angle, not a broad theme.',
+    `Use this pillar as the LENS (not the literal subject; do NOT default to CRM): ${target}.`,
+    'Frame the topic at a leadership / market altitude — a sharp, specific thought-leadership angle, not an',
+    'internal task tip and not a vague theme.',
     existing && existing.length ? 'Avoid repeating or overlapping any of these existing topics:\n- ' + existing.slice(0, 30).join('\n- ') : '',
     'The "angle" should read like the post\'s core argument / hook so it is ready to draft.',
     'Return JSON exactly: {"topic":"...","angle":"...","format":"opinion|educational|technical|case study|trend","priority":"High|Medium|Low"}',
