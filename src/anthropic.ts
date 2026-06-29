@@ -109,8 +109,8 @@ const NO_BRAND_RULE = 'NEVER name or imply any specific company, product, brand,
 // input tokens billed per request.
 const POSITIONING = [
   'You ghostwrite LinkedIn posts for an operator building TOP-VOICE authority in GTM ENGINEERING — growth as',
-  'an engineered system (process, automation, experiment), not heroics. Write in BRAZILIAN PORTUGUESE, keeping',
-  'technical terms in English (RevOps, PLG, ICP, go-to-market, GTM stack, attribution, win rate, churn).',
+  'an engineered system (process, automation, experiment), not heroics. Write in ENGLISH (US), natural and',
+  'idiomatic, using GTM vocabulary (RevOps, PLG, ICP, go-to-market, GTM stack, attribution, win rate, churn).',
   'GTM ENGINEERING IS THE ONLY FRONT. Recurring sub-themes: AI in go-to-market, RevOps, Product / PLG,',
   'data & experimentation, automation & the GTM tech stack, designing the GTM motion as a system, and the',
   'GTM-engineer role itself.',
@@ -125,9 +125,9 @@ const POSITIONING = [
 const CRAFT = [
   'CRAFT (write for the scroll, keep it TIGHT):',
   '- Hook: the first line stops the scroll (ideally ≤ ~12 words) — a strong claim, a surprising number or a',
-  '  sharp question. No greeting, no "hoje quero falar sobre", no "em um mundo cada vez mais".',
+  '  sharp question. No greeting, no "I want to talk about", no "in today\'s ever-changing world".',
   '- Body: very short paragraphs (1–2 sentences), one idea each, a blank line between them.',
-  '- Length: aim ~900–1,300 characters TOTAL. Cut empty adjectives (incrível, poderoso, revolucionário).',
+  '- Length: aim ~900–1,300 characters TOTAL. Cut empty adjectives (incredible, powerful, revolutionary).',
   '- End actionable: a question, a replicable principle or a light invite — never in the void.',
   '- No links. No engagement bait. At most 1 emoji (or none). No generic hashtags.',
 ].join('\n');
@@ -136,7 +136,7 @@ const SELLING = [
   'COMMERCIAL INTENT (sell by resonance, never pitch): write to the BUYER who would hire this expertise',
   '(sales leaders, RevOps, founders, the board), not to peers being graded. Lead with the RESULT or the',
   'tension they feel, not a role. Be specific enough that the wrong reader scrolls past and the right one',
-  'thinks "esse problema é exatamente o meu". No "eu ajudo X a fazer Y", no ad tone.',
+  'thinks "this problem is exactly mine". No "I help X do Y", no ad tone.',
 ].join('\n');
 
 // Never leak confidential figures — the document's "regra de ouro".
@@ -210,7 +210,7 @@ export async function generateVersions(
       perfHint ? `Performance signals from past posts: ${perfHint}\nLean into what has worked, without copying.` : '',
       ref ? `Reference post: ${ref}\nUse web fetch to read it and build on its substance in our voice; do not copy it verbatim or name any company in it.` : '',
       '',
-      'Apply the CRAFT and COMMERCIAL INTENT rules from the system prompt (Portuguese, tech terms in English;',
+      'Apply the CRAFT and COMMERCIAL INTENT rules from the system prompt (write in ENGLISH;',
       'lead with the result/tension, make it filter the right reader, sell by resonance).',
       '- "hook": the opening line only — stops the scroll, no greeting. Lead with the result/tension, not a role.',
       '- "body": the rest of the post, formatted for LinkedIn — short paragraphs (1–2 sentences) separated by',
@@ -259,7 +259,7 @@ export async function regenerateVersion(
     perfHint ? `Performance signals from past posts: ${perfHint}` : '',
     ref ? `Reference post: ${ref}\nUse web fetch to read it and build on its substance in our voice; do not copy it verbatim or name any company in it.` : '',
     '',
-    'Apply the CRAFT and COMMERCIAL INTENT rules from the system prompt (Portuguese, tech terms in English):',
+    'Apply the CRAFT and COMMERCIAL INTENT rules from the system prompt (write in ENGLISH):',
     '- "hook": opening line only, stops the scroll, no greeting; lead with the result/tension, not a role.',
     '- "body": LinkedIn-formatted — short paragraphs separated by BLANK LINES (\\n), optional tight list,',
     '  hook→insight→takeaway, ending actionable. Total ~900–1,300 characters. No links, no hashtags, ≤1 emoji.',
