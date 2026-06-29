@@ -42,7 +42,8 @@ export default class App extends React.Component<AppProps, any> {
     super(props);
     const posts = props.initialPosts || loadPosts() || [];
     this.state = {
-      theme: 'dark', tab: 'calendar', selectedId: posts[0] ? posts[0].id : null,
+      theme: (() => { try { return localStorage.getItem('pragma.theme') || 'light'; } catch { return 'light'; } })(),
+      tab: 'calendar', selectedId: posts[0] ? posts[0].id : null,
       posts, styleProfile: props.initialStyle != null ? props.initialStyle : loadStyle(), settings: loadSettings(),
       editingVer: null, draft: '', modal: null,
       toast: null, styleOpen: false, whyOpen: {}, indL: 0, indW: 0,
@@ -216,7 +217,7 @@ export default class App extends React.Component<AppProps, any> {
   toast(msg: string) { this.setState({ toast: msg }); clearTimeout(this._tid); this._tid = setTimeout(() => this.setState({ toast: null }), 2200); }
 
   // ---------- actions ----------
-  setTheme(t: string) { fluid(() => this.setState({ theme: t })); }
+  setTheme(t: string) { try { localStorage.setItem('pragma.theme', t); } catch { /* ignore */ } fluid(() => this.setState({ theme: t })); }
   setTab(t: string) { fluid(() => this.setState({ tab: t })); }
   openPost(id: string) { fluid(() => this.setState({ tab: 'generate', selectedId: id, editingVer: null })); }
   setStatus(id: string, s: string) { const posts = this.state.posts.map((p: Post) => p.id === id ? { ...p, status: s } : p); this.setState({ posts }); this.persist(posts); this.toast('Status → ' + s); }
