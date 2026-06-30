@@ -128,8 +128,11 @@ const CRAFT = [
   '  sharp question. No greeting, no "I want to talk about", no "in today\'s ever-changing world".',
   '- Body: very short paragraphs (1–2 sentences), one idea each, a blank line between them.',
   '- Length: aim ~900–1,300 characters TOTAL. Cut empty adjectives (incredible, powerful, revolutionary).',
-  '- End actionable: a question, a replicable principle or a light invite — never in the void.',
+  '- End actionable: a question, a replicable principle or a light invite. Never end in the void.',
   '- No links. No engagement bait. At most 1 emoji (or none). No generic hashtags.',
+  '- PUNCTUATION (hard rule): NEVER use an em dash, en dash, or " - " as a separator/aside. The author does',
+  '  NOT write with dashes. Use periods, commas, semicolons or colons instead. Hyphens are allowed ONLY',
+  '  inside compound words (go-to-market, self-improving). This applies to every output.',
 ].join('\n');
 
 const SELLING = [
