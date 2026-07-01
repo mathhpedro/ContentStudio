@@ -979,11 +979,24 @@ body{--header-group-height:0px !important; --header-height:0px !important;}
 </footer>
 
 <script>
-/* reveal on scroll */
+/* reveal on scroll — resilient: scroll/resize driven + safety net, never leaves content hidden */
 (function(){
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  const io = new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.12});
-  document.querySelectorAll('.rv').forEach(el=>io.observe(el));
+  var reveal = function(el){ el.classList.add('in'); };
+  var revealAll = function(){ document.querySelectorAll('.rv').forEach(reveal); };
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches){ revealAll(); return; }
+  var check = function(){
+    var vh = window.innerHeight || document.documentElement.clientHeight;
+    document.querySelectorAll('.rv:not(.in)').forEach(function(el){
+      var r = el.getBoundingClientRect();
+      if (r.top < vh * 0.92 && r.bottom > 0) reveal(el);
+    });
+  };
+  check();
+  window.addEventListener('scroll', check, { passive:true });
+  window.addEventListener('resize', check);
+  window.addEventListener('load', check);
+  /* ultimate safety net: nothing stays invisible even if events don't fire */
+  setTimeout(revealAll, 3000);
 })();
 </script>
 {% schema %}
