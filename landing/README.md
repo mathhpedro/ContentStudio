@@ -30,25 +30,26 @@ Três caminhos (do mais simples ao mais flexível):
 > Dica: a página inteira funciona abrindo `index.html` no navegador. Teste localmente
 > antes de publicar.
 
-## O que EDITAR antes de publicar (placeholders)
-Tudo que precisa de dado real está marcado em **laranja** com a classe `.ph` (ou texto
-`[editar]`). Procure por `[` no arquivo. Principais pontos:
+## O que revisar antes de publicar
+Todos os placeholders visuais já foram preenchidos e a página não exibe mais marcações
+`[editar]`. Ainda assim, **confirme com dados reais** os pontos abaixo antes de vender:
 
 - **Preço**: definido como **R$ 197 → R$ 97 (−51%)** no hero e na seção Oferta.
   Para mudar, edite esses valores nos dois pontos.
-- **Prova social do hero**: usa **fotos reais** em `assets/avatars/person-1…5.jpg`
-  (recortadas em círculo). Para trocar, substitua esses arquivos. A **nota 4,7** e o
-  **"+2.000 profissionais já aplicam o método"** são **editáveis** — ajuste para números
-  reais **antes de publicar**.
-- **Botões de compra**: os CTAs de compra usam `href="#"` / `href="#oferta"`. Troque o
+- **Números de prova social**: preenchidos com valores sugeridos — hero **4,7** e
+  **"+2.000 profissionais"**; faixa de métricas **+2.000 / +5.000 / 40% / +5**. **Troque
+  por dados reais** — não anuncie números que você não pode comprovar.
+- **Depoimentos**: usam **fotos reais** (`assets/avatars/person-1…5.jpg`) e cargos, mas o
+  texto é ilustrativo. Substitua por depoimentos reais (com autorização) antes de publicar.
+- **Links de compra**: os CTAs de compra usam `href="#"` / `href="#oferta"`. Troque o
   CTA final da oferta pela **URL de checkout/produto da Shopify**. Os demais CTAs rolam
   até a oferta (funil) — pode manter.
-- **Garantia** (seção 14): ajuste o texto conforme sua **política real** (ou remova).
-- **Métricas de prova social** (`[X]+`, `[X]%`): coloque números reais ou remova a faixa.
-- **Depoimentos**: estão marcados como “exemplo · editável”. Substitua por depoimentos
-  reais (com autorização) antes de publicar.
-- **Logos de clientes**: são placeholders `LOGO`. Só insira logos reais com permissão.
-- **Rodapé**: CNPJ/razão social, links de Termos, Privacidade, Contato e Reembolso.
+- **Garantia** (seção 14): texto padrão de **7 dias** já escrito — ajuste conforme sua
+  **política real** (ou remova a seção).
+- **Rodapé**: adicione **CNPJ/razão social** (removido do texto) e aponte os links de
+  Termos, Privacidade, Contato e Reembolso (`href="#"`) para as páginas reais.
+- **Logos de clientes**: a faixa de logos foi **removida**. Se quiser, reinsira apenas
+  com logos e permissões reais.
 
 ## Responsivo
 - Desktop (>980px): hero em 2 colunas, grids 3+, tabela comparativa, clips lado a lado.
