@@ -1,0 +1,2035 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sua Equipe Invisível — Agentes de IA para Negócios · LEVVL Labs</title>
+<meta name="description" content="O playbook prático para criar Agentes de IA no seu negócio, sem código. Método AGENTES, 5 agentes prontos, canvas e templates.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   LEVVL LABS · SISTEMA DE DESIGN — TOKENS
+   Derivado do Design System v1.0 (2026)
+   ============================================================ */
+:root{
+  /* superfícies dark: vácuo -> elevação */
+  --canvas:#08080C;
+  --bg:#0A0A0F;
+  --s1:#0E0E15;
+  --s2:#13131A;
+  --s3:#1A1A24;
+  /* sinais de marca */
+  --purple:#6C5CE7;
+  --cyan:#00F5D4;
+  --grad:linear-gradient(135deg,#6C5CE7,#00F5D4);
+  /* cor funcional */
+  --amber:#FFA502;
+  --error:#FF4757;
+  --info:#5B8DEF;
+  --accent2:#B26CF0;
+  /* variante clara (superfícies de trabalho / preenchimento) */
+  --l-surface:#FFFFFF;
+  --l-bg:#F6F7FB;
+  --l-raised:#ECEEF6;
+  --l-success:#00B89C;
+  --l-ink:#0A0A0F;
+  --l-border:rgba(10,10,15,.10);
+  /* texto sobre dark */
+  --tx:#ffffff;
+  --tx-70:rgba(255,255,255,.70);
+  --tx-62:rgba(255,255,255,.62);
+  --tx-55:rgba(255,255,255,.55);
+  --tx-45:rgba(255,255,255,.45);
+  --tx-35:rgba(255,255,255,.35);
+  --line:rgba(255,255,255,.07);
+  --line-12:rgba(255,255,255,.12);
+  /* fontes */
+  --f-title:'Space Grotesk',sans-serif;
+  --f-body:'Outfit',sans-serif;
+  --f-mono:'JetBrains Mono',monospace;
+  /* glow */
+  --glow-purple:0 0 20px rgba(108,92,231,.35);
+  --glow-cyan:0 0 20px rgba(0,245,212,.30);
+  --glow-strong:0 0 40px 4px rgba(108,92,231,.5);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+::selection{background:rgba(108,92,231,.35);color:#fff;}
+
+body{
+  background:var(--canvas);
+  color:var(--tx);
+  font-family:var(--f-body);
+  -webkit-font-smoothing:antialiased;
+  font-weight:400;
+}
+
+/* ============ PÁGINA (unidade de impressão) ============ */
+.page{
+  position:relative;
+  width:210mm;
+  height:297mm;
+  margin:0 auto;
+  padding:17mm 19mm 16mm;
+  background:var(--bg);
+  overflow:hidden;
+  border-bottom:1px solid var(--line);
+}
+.page + .page{margin-top:14px;}
+.page--canvas{background:var(--canvas);}
+.page--tight{padding-top:15mm;padding-bottom:13mm;}
+/* páginas de trabalho: variante clara sancionada pelo DS p/ densidade de dados */
+.page--light{background:var(--l-bg);color:var(--l-ink);}
+.page--light .kicker{color:var(--purple);}
+
+/* fundo ambiente (grafo + glow) — só nas capas / separadores */
+.amb{position:absolute;inset:0;pointer-events:none;z-index:0;}
+.amb::before{content:"";position:absolute;inset:0;
+  background-image:radial-gradient(circle, rgba(108,92,231,0.09) 1px, transparent 1px);
+  background-size:28px 28px;}
+.amb-glow-top{position:absolute;top:-160px;left:50%;transform:translateX(-50%);
+  width:760px;height:520px;background:radial-gradient(ellipse at center, rgba(108,92,231,0.22), transparent 68%);filter:blur(30px);}
+.amb-glow-bot{position:absolute;bottom:-220px;right:-120px;width:560px;height:520px;
+  background:radial-gradient(ellipse at center, rgba(0,245,212,0.12), transparent 70%);filter:blur(30px);}
+.page > *{position:relative;z-index:1;}
+
+/* ============ TIPOGRAFIA ============ */
+.kicker{font-family:var(--f-mono);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--purple);margin:0 0 12px;}
+.kicker--cyan{color:var(--cyan);}
+.kicker--mut{color:var(--tx-35);}
+.display{font-family:var(--f-title);font-weight:700;font-size:56px;line-height:1.03;letter-spacing:-2px;margin:0 0 20px;}
+.h1{font-family:var(--f-title);font-weight:700;font-size:37px;line-height:1.07;letter-spacing:-1.5px;margin:0 0 14px;}
+.h2{font-family:var(--f-title);font-weight:700;font-size:27px;letter-spacing:-1px;margin:0 0 12px;}
+.h3{font-family:var(--f-title);font-weight:600;font-size:19px;letter-spacing:-.3px;margin:0 0 8px;}
+.h4{font-family:var(--f-title);font-weight:600;font-size:15px;margin:0 0 7px;}
+.grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+.lead{font-size:16.5px;line-height:1.5;color:var(--tx-62);font-weight:300;margin:0 0 15px;}
+p{font-size:13.5px;line-height:1.55;color:var(--tx-70);font-weight:300;margin:0 0 11px;}
+.page--light p{color:rgba(10,10,15,.72);}
+.page--light .lead{color:rgba(10,10,15,.60);}
+strong{color:#fff;font-weight:500;}
+.page--light strong{color:var(--l-ink);}
+.mono{font-family:var(--f-mono);}
+.small{font-size:13px;line-height:1.55;color:var(--tx-55);font-weight:300;}
+.tiny{font-family:var(--f-mono);font-size:11px;letter-spacing:1px;color:var(--tx-45);}
+.up{text-transform:uppercase;letter-spacing:2px;}
+a{color:var(--cyan);text-decoration:none;}
+
+/* cabeçalho numerado de capítulo */
+.chaphead{display:flex;align-items:baseline;gap:16px;margin-bottom:10px;}
+.chapnum{font-family:var(--f-mono);font-size:14px;color:var(--purple);letter-spacing:1px;}
+.chaphead .h2{margin:0;}
+
+/* rodapé de página */
+.foot{position:absolute;left:19mm;right:19mm;bottom:8mm;display:flex;justify-content:space-between;align-items:center;
+  font-family:var(--f-mono);font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:var(--tx-35);
+  border-top:1px solid var(--line);padding-top:8px;z-index:1;}
+.page--light .foot{color:rgba(10,10,15,.4);border-top-color:var(--l-border);}
+.foot .brand{display:flex;align-items:center;gap:8px;}
+
+/* logo lockup */
+.lockup{display:flex;align-items:center;gap:12px;}
+.wordmark{font-family:var(--f-title);font-weight:700;letter-spacing:4px;font-size:20px;}
+.pill-labs{font-family:var(--f-mono);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--tx-55);
+  border:1px solid var(--line-12);border-radius:999px;padding:4px 11px;}
+.page--light .pill-labs{color:rgba(10,10,15,.55);border-color:var(--l-border);}
+
+/* ============ CARDS & GRIDS ============ */
+.grid{display:grid;gap:13px;}
+.g2{grid-template-columns:repeat(2,1fr);}
+.g3{grid-template-columns:repeat(3,1fr);}
+.g4{grid-template-columns:repeat(4,1fr);}
+.g-hairline{gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden;}
+.g-hairline > *{border-radius:0!important;border:none!important;}
+.card{background:var(--s1);border:1px solid var(--line);border-radius:14px;padding:17px 18px;}
+.card--2{background:var(--s2);}
+.card--flush{background:var(--s1);padding:20px;}
+.card-label{font-family:var(--f-mono);font-size:11px;letter-spacing:2px;color:var(--purple);text-transform:uppercase;margin-bottom:10px;}
+.card-label--cyan{color:var(--cyan);}
+.card-label--mut{color:var(--tx-35);}
+.page--light .card{background:var(--l-surface);border-color:var(--l-border);}
+.page--light .card--2{background:var(--l-raised);}
+.page--light .g-hairline{background:var(--l-border);border-color:var(--l-border);}
+
+/* KPI */
+.kpi{background:var(--s2);border:1px solid var(--line);border-radius:14px;padding:15px 16px;}
+.kpi .k-l{font-family:var(--f-mono);font-size:10px;letter-spacing:1px;color:var(--tx-45);text-transform:uppercase;margin-bottom:9px;}
+.kpi .k-v{font-family:var(--f-title);font-weight:700;font-size:30px;letter-spacing:-1px;line-height:1;}
+.kpi .k-v small{font-size:16px;color:var(--tx-55);}
+.kpi .k-d{font-family:var(--f-mono);font-size:11px;margin-top:8px;}
+.up-cyan{color:var(--cyan);} .up-amber{color:var(--amber);} .up-purple{color:var(--purple);}
+
+/* ============ PILLS / STATUS / TAGS ============ */
+.pill{display:inline-flex;align-items:center;gap:8px;font-family:var(--f-mono);font-size:11px;letter-spacing:1px;
+  border-radius:999px;padding:6px 13px;}
+.pill-run{color:var(--purple);background:rgba(108,92,231,.12);border:1px solid rgba(108,92,231,.4);}
+.pill-ok{color:var(--cyan);background:rgba(0,245,212,.10);border:1px solid rgba(0,245,212,.38);}
+.pill-fail{color:var(--error);background:rgba(255,71,87,.10);border:1px solid rgba(255,71,87,.38);}
+.pill-queue{color:var(--amber);background:rgba(255,165,2,.10);border:1px solid rgba(255,165,2,.38);}
+.pill-mut{color:var(--tx-55);background:rgba(255,255,255,.04);border:1px solid var(--line-12);}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--purple);box-shadow:0 0 8px var(--purple);}
+.tag{display:inline-block;font-family:var(--f-mono);font-size:11px;letter-spacing:1px;color:var(--tx-62);
+  background:rgba(255,255,255,.04);border:1px solid var(--line-12);border-radius:999px;padding:4px 11px;}
+.tag--p{color:var(--purple);border-color:rgba(108,92,231,.4);background:rgba(108,92,231,.1);}
+.tag--c{color:var(--cyan);border-color:rgba(0,245,212,.35);background:rgba(0,245,212,.08);}
+.tags{display:flex;flex-wrap:wrap;gap:8px;}
+
+/* meta-linha de dificuldade / tempo */
+.metaline{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 6px;}
+
+/* ============ CALLOUTS ============ */
+.callout{border-radius:14px;padding:14px 17px;margin:0 0 12px;border:1px solid var(--line);background:var(--s1);}
+.callout .co-h{font-family:var(--f-mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-bottom:7px;display:flex;align-items:center;gap:8px;}
+.callout p{margin:0;color:var(--tx-70);font-size:13px;line-height:1.5;}
+.callout p + p{margin-top:8px;}
+.co--pratica{border-color:rgba(0,245,212,.28);background:rgba(0,245,212,.05);}
+.co--pratica .co-h{color:var(--cyan);}
+.co--erro{border-color:rgba(255,71,87,.28);background:rgba(255,71,87,.05);}
+.co--erro .co-h{color:var(--error);}
+.co--dica{border-color:rgba(108,92,231,.32);background:rgba(108,92,231,.06);}
+.co--dica .co-h{color:var(--purple);}
+.co--info{border-color:rgba(91,141,239,.3);background:rgba(91,141,239,.05);}
+.co--info .co-h{color:var(--info);}
+.co-ico{width:16px;height:16px;display:inline-block;vertical-align:middle;}
+
+/* ============ LISTAS / CHECKLIST ============ */
+.ul{list-style:none;padding:0;margin:0 0 14px;}
+.ul li{position:relative;padding-left:24px;font-size:13px;line-height:1.5;color:var(--tx-70);font-weight:300;margin-bottom:8px;}
+.ul li::before{content:"›";position:absolute;left:6px;top:-1px;color:var(--purple);font-family:var(--f-title);font-weight:700;}
+.ul--ok li::before{content:"✓";color:var(--cyan);font-family:var(--f-body);font-weight:600;left:2px;}
+.page--light .ul li{color:rgba(10,10,15,.75);}
+.page--light .ul--ok li::before{color:var(--l-success);}
+
+.checklist{display:flex;flex-direction:column;gap:11px;}
+.check{display:flex;align-items:flex-start;gap:12px;font-size:14px;line-height:1.45;color:var(--tx-70);font-weight:300;}
+.check .box{flex:none;width:18px;height:18px;border-radius:5px;border:1.5px solid rgba(108,92,231,.55);margin-top:1px;background:rgba(108,92,231,.06);}
+.page--light .check{color:rgba(10,10,15,.78);}
+.page--light .check .box{border-color:rgba(108,92,231,.55);background:#fff;}
+
+/* ============ TABELAS ============ */
+.table{width:100%;border-collapse:separate;border-spacing:0;background:var(--bg);border:1px solid var(--line);border-radius:14px;overflow:hidden;}
+.table th{font-family:var(--f-mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--tx-45);
+  text-align:left;padding:9px 13px;background:var(--s1);border-bottom:1px solid var(--line);font-weight:500;}
+.table td{font-size:12px;line-height:1.4;color:var(--tx-70);padding:9px 13px;border-bottom:1px solid rgba(255,255,255,.05);vertical-align:top;font-weight:300;}
+.table tr:last-child td{border-bottom:none;}
+.table td strong{font-weight:500;}
+.table .mono{font-family:var(--f-mono);font-size:12px;color:var(--tx-62);}
+.page--light .table{background:var(--l-surface);border-color:var(--l-border);}
+.page--light .table th{background:var(--l-raised);color:rgba(10,10,15,.5);border-bottom-color:var(--l-border);}
+.page--light .table td{color:rgba(10,10,15,.75);border-bottom-color:var(--l-border);}
+.table--z td{background:transparent;}
+.c-ok{color:var(--cyan);} .c-amber{color:var(--amber);} .c-err{color:var(--error);} .c-purple{color:var(--purple);} .c-info{color:var(--info);}
+.page--light .c-ok{color:var(--l-success);}
+
+/* ============ FLUXO (nós conectados) ============ */
+.flow{background:var(--canvas);border:1px solid var(--line);border-radius:14px;padding:26px 20px;
+  background-image:radial-gradient(circle, rgba(108,92,231,0.06) 1px, transparent 1px);background-size:24px 24px;}
+.flow-row{display:flex;align-items:stretch;gap:0;flex-wrap:nowrap;justify-content:center;}
+.node{flex:1 1 0;min-width:0;width:auto;background:var(--s2);border:1px solid var(--line-12);border-radius:12px;padding:13px 12px;}
+.node--trigger{border-color:rgba(108,92,231,.45);box-shadow:0 0 22px rgba(108,92,231,.16);}
+.node--action{border-color:rgba(0,245,212,.45);box-shadow:0 0 22px rgba(0,245,212,.16);}
+.node--cond{border-color:rgba(255,165,2,.35);}
+.node-h{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.node-ico{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;}
+.node-ico--p{background:rgba(108,92,231,.18);} .node-ico--c{background:rgba(0,245,212,.15);} .node-ico--a{background:rgba(255,165,2,.15);}
+.node-tag{font-family:var(--f-mono);font-size:9px;letter-spacing:1px;}
+.node-tag--p{color:var(--purple);} .node-tag--c{color:var(--cyan);} .node-tag--a{color:var(--amber);}
+.node-t{font-family:var(--f-title);font-weight:600;font-size:13px;line-height:1.2;}
+.node-d{font-family:var(--f-mono);font-size:10px;color:var(--tx-45);margin-top:4px;line-height:1.3;}
+.arrow{display:flex;align-items:center;padding:0 2px;flex:none;}
+.arrow svg{display:block;width:32px;height:16px;}
+
+/* ============ CAMPO PREENCHÍVEL ============ */
+.field{margin-bottom:16px;}
+.field-l{display:block;font-family:var(--f-mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--tx-45);margin-bottom:8px;}
+.field-b{background:var(--canvas);border:1px dashed rgba(108,92,231,.4);border-radius:10px;min-height:44px;padding:11px 14px;
+  background-image:repeating-linear-gradient(transparent,transparent 27px,rgba(255,255,255,.05) 27px,rgba(255,255,255,.05) 28px);}
+.field-b.lines-3{min-height:88px;}
+.field-b.lines-4{min-height:116px;}
+.page--light .field-l{color:rgba(10,10,15,.5);}
+.page--light .field-b{background:var(--l-surface);border-color:rgba(108,92,231,.4);
+  background-image:repeating-linear-gradient(transparent,transparent 27px,rgba(10,10,15,.08) 27px,rgba(10,10,15,.08) 28px);}
+
+/* área de input “foco” estilo produto */
+.input{background:var(--canvas);border:1px solid var(--line-12);border-radius:12px;padding:12px 15px;font-size:14px;color:var(--tx-70);}
+.input--focus{border-color:var(--purple);box-shadow:var(--glow-purple);color:#fff;}
+
+/* bloco de prompt / código */
+.prompt{background:var(--canvas);border:1px solid rgba(108,92,231,.3);border-radius:14px;padding:18px 20px;
+  font-family:var(--f-mono);font-size:12.5px;line-height:1.7;color:rgba(255,255,255,.82);white-space:pre-wrap;
+  box-shadow:inset 0 0 40px rgba(108,92,231,.05);}
+.prompt .ph{color:var(--cyan);}          /* placeholder que o leitor preenche */
+.prompt .cm{color:var(--tx-35);}          /* comentário */
+.prompt-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.copy{font-family:var(--f-title);font-weight:700;font-size:11px;color:#fff;background:transparent;border:1px solid var(--line-12);border-radius:8px;padding:5px 11px;}
+
+/* logs */
+.logs{background:var(--canvas);border:1px solid var(--line);border-radius:14px;padding:18px 20px;font-family:var(--f-mono);font-size:12px;line-height:1.9;}
+.logs .ts{color:var(--tx-35);} .logs .l-trig{color:var(--purple);} .logs .l-ok{color:var(--cyan);} .logs .l-info{color:var(--info);} .logs .l-txt{color:var(--tx-70);}
+
+/* botões (amostra visual) */
+.btn{display:inline-flex;align-items:center;gap:8px;font-family:var(--f-title);font-weight:700;font-size:14px;border-radius:999px;padding:12px 22px;border:none;}
+.btn--primary{color:#07070B;background:var(--grad);box-shadow:inset 0 1px 0 rgba(255,255,255,.32),0 0 22px rgba(0,245,212,.22);}
+.btn--ghost{color:#fff;background:transparent;border:1px solid var(--line-12);}
+
+/* barra de progresso / indicador */
+.bar{height:8px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;}
+.bar > i{display:block;height:100%;background:var(--grad);border-radius:999px;box-shadow:var(--glow-purple);}
+
+/* divisor */
+.hr{height:1px;background:var(--line);border:none;margin:22px 0;}
+.mt0{margin-top:0;} .mb0{margin-bottom:0!important;} .mt8{margin-top:7px;} .mt14{margin-top:11px;} .mt20{margin-top:15px;} .mt28{margin-top:20px;} .mt36{margin-top:26px;}
+.center{text-align:center;} .right{text-align:right;}
+
+/* número gigante do agente (separador) */
+.bignum{font-family:var(--f-title);font-weight:700;font-size:150px;line-height:.8;letter-spacing:-6px;
+  background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;opacity:.9;}
+
+/* passo numerado */
+.step{display:flex;gap:14px;margin-bottom:13px;}
+.step-n{flex:none;width:30px;height:30px;border-radius:9px;background:rgba(108,92,231,.14);border:1px solid rgba(108,92,231,.4);
+  display:flex;align-items:center;justify-content:center;font-family:var(--f-mono);font-size:13px;color:var(--purple);font-weight:600;}
+.step-b{flex:1;}
+.step-b .h4{margin-bottom:4px;}
+.step-b p{margin:0;font-size:13.5px;}
+
+/* matriz 2x2 */
+.matrix{position:relative;background:var(--s1);border:1px solid var(--line);border-radius:14px;padding:20px;}
+.matrix-grid{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:10px;height:280px;}
+.quad{border-radius:12px;padding:14px;border:1px solid var(--line);display:flex;flex-direction:column;}
+.quad-h{font-family:var(--f-mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;}
+.quad--win{background:rgba(0,245,212,.06);border-color:rgba(0,245,212,.3);} .quad--win .quad-h{color:var(--cyan);}
+.quad--plan{background:rgba(108,92,231,.06);border-color:rgba(108,92,231,.3);} .quad--plan .quad-h{color:var(--purple);}
+.quad--quick{background:rgba(255,165,2,.05);border-color:rgba(255,165,2,.25);} .quad--quick .quad-h{color:var(--amber);}
+.quad--skip{background:rgba(255,71,87,.04);border-color:rgba(255,71,87,.22);} .quad--skip .quad-h{color:var(--error);}
+.quad .chip{font-size:11px;color:var(--tx-62);font-family:var(--f-mono);margin-bottom:5px;line-height:1.3;}
+
+@media print{
+  @page{size:A4;margin:0;}
+  html,body{background:var(--canvas);}
+  .page{margin:0!important;width:210mm;min-height:297mm;page-break-after:always;border-bottom:none;
+    -webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .page:last-child{page-break-after:auto;}
+}
+</style>
+</head>
+<body>
+<!-- ============================================================ 01 · CAPA PRINCIPAL ============================================================ -->
+<section class="page page--canvas" data-p="capa">
+  <div class="amb"><div class="amb-glow-top"></div><div class="amb-glow-bot"></div></div>
+
+  <div class="lockup" style="margin-bottom:64px;">
+    <svg width="40" height="40" viewBox="0 0 48 48" fill="none" aria-hidden="true"><defs><linearGradient id="lg1" x1="6" y1="10" x2="42" y2="38" gradientUnits="userSpaceOnUse"><stop stop-color="#6C5CE7"/><stop offset="1" stop-color="#00F5D4"/></linearGradient></defs><path d="M9 13 L21 24 L9 35" stroke="url(#lg1)" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M24 13 L36 24 L24 35" stroke="url(#lg1)" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span class="wordmark">LEVVL</span>
+    <span class="pill-labs">Labs</span>
+  </div>
+
+  <div class="kicker" style="margin-bottom:26px;">Playbook · Edição 2026 · v1.0</div>
+
+  <h1 class="display" style="font-size:70px;max-width:15ch;margin-bottom:26px;">
+    Sua equipe <span class="grad">invisível</span>.
+  </h1>
+
+  <p class="lead" style="font-size:21px;max-width:38ch;margin-bottom:14px;">
+    O playbook prático dos <strong>Agentes de IA para Negócios</strong>. Crie funcionários digitais que trabalham 24 horas por dia — sem escrever uma linha de código.
+  </p>
+  <p class="small" style="max-width:52ch;margin-bottom:48px;">
+    5 agentes prontos para aplicar · a metodologia <span class="mono" style="color:var(--cyan)">AGENTES</span> · canvas, templates e um plano de implementação em 30 dias.
+  </p>
+
+  <div class="grid g3 g-hairline">
+    <div style="background:var(--s1);padding:22px 24px;">
+      <div class="tiny up" style="margin-bottom:10px;">Formato</div>
+      <div class="h4" style="margin:0;">Playbook acionável</div>
+    </div>
+    <div style="background:var(--s1);padding:22px 24px;">
+      <div class="tiny up" style="margin-bottom:10px;">Nível</div>
+      <div class="h4" style="margin:0;">Zero código · iniciante</div>
+    </div>
+    <div style="background:var(--s1);padding:22px 24px;">
+      <div class="tiny up" style="margin-bottom:10px;">Para quem</div>
+      <div class="h4" style="margin:0;">Gestão · Ops · Founders</div>
+    </div>
+  </div>
+
+  <div style="position:absolute;left:22mm;right:22mm;bottom:20mm;z-index:1;display:flex;justify-content:space-between;align-items:center;">
+    <span class="tiny">LEVVL LABS · A GRAMÁTICA DE QUEM AUTOMATIZA O TRABALHO</span>
+    <span class="tiny mono" style="color:var(--purple)">» » RUN</span>
+  </div>
+</section>
+
+<!-- ============================================================ 02 · PÁGINA DE PROMESSA ============================================================ -->
+<section class="page" data-p="promessa">
+  <div class="amb" style="opacity:.5;"><div class="amb-glow-top"></div></div>
+  <div class="kicker">A promessa deste material</div>
+  <h2 class="h1" style="max-width:20ch;">Você vai sair com agentes <span class="grad">rodando</span> — não com teoria na gaveta.</h2>
+  <p class="lead" style="max-width:60ch;">
+    A maioria dos conteúdos sobre Inteligência Artificial te deixa animado e parado. Este é diferente. Ele foi desenhado como um <strong>manual de montagem</strong>: cada capítulo termina com algo pronto para você usar no seu negócio ainda esta semana.
+  </p>
+
+  <div class="grid g3" style="margin:30px 0;">
+    <div class="kpi"><div class="k-l">O que você economiza</div><div class="k-v">10–20<small>h/sem</small></div><div class="k-d up-cyan">↓ tarefas repetitivas</div></div>
+    <div class="kpi"><div class="k-l">Custo para começar</div><div class="k-v">R$ 0</div><div class="k-d up-cyan">planos gratuitos servem</div></div>
+    <div class="kpi"><div class="k-l">Do zero ao 1º agente</div><div class="k-v">1<small>dia</small></div><div class="k-d up-purple">seguindo o passo a passo</div></div>
+  </div>
+
+  <div class="grid g2">
+    <div class="card">
+      <div class="card-label card-label--cyan">◆ Ao final, você terá</div>
+      <ul class="ul ul--ok mb0">
+        <li>Clareza total sobre o que é (e o que não é) um agente de IA.</li>
+        <li>Uma metodologia própria para desenhar qualquer agente: o <strong>Método AGENTES</strong>.</li>
+        <li>5 agentes prontos, com prompt, checklist e passo a passo.</li>
+        <li>Um canvas e templates para planejar os seus.</li>
+        <li>Um plano de implementação de 30 dias para colocar em prática.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-label">◆ Este material NÃO é</div>
+      <ul class="ul mb0">
+        <li>Um curso de programação — você não vai escrever código.</li>
+        <li>Teoria acadêmica sobre redes neurais.</li>
+        <li>Uma lista de ferramentas que muda toda semana.</li>
+        <li>Promessa de “IA mágica” — é trabalho estruturado, com resultado medido.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout co--dica mt28 mb0">
+    <div class="co-h">» Regra de ouro do playbook</div>
+    <p>Resultado antes do setup. Em todo agente, você vai enxergar <strong>o que ele economiza</strong> antes de configurar qualquer coisa. Mostramos o valor primeiro; o trabalho vem depois.</p>
+  </div>
+
+  <div class="foot"><span class="brand"><span class="mono">LEVVL</span> · LABS</span><span>Sua equipe invisível</span><span>02</span></div>
+</section>
+
+<!-- ============================================================ 03 · SUMÁRIO ============================================================ -->
+<section class="page" data-p="sumario">
+  <div class="kicker">Sumário</div>
+  <h2 class="h1">O caminho completo,<br><span class="grad">do conceito à execução.</span></h2>
+  <p class="lead" style="max-width:56ch;">Sete capítulos e três blocos de trabalho. Leia na ordem na primeira vez; depois use como consulta.</p>
+
+  <div class="grid g2" style="margin-top:26px;gap:26px;">
+    <div>
+      <div class="card-label card-label--mut">Fundamentos</div>
+      <table class="table table--z" style="border:none;background:transparent;">
+        <tr><td class="mono c-purple" style="width:44px;">01</td><td><strong>O que são Agentes de IA</strong><div class="tiny" style="margin-top:3px;">Componentes · chatbot vs. agente · onde aplicar</div></td><td class="mono right" style="width:40px;">06</td></tr>
+        <tr><td class="mono c-purple">02</td><td><strong>Por que empresas estão adotando</strong><div class="tiny" style="margin-top:3px;">A onda da IA · áreas de impacto · vantagem competitiva</div></td><td class="mono right">08</td></tr>
+        <tr><td class="mono c-purple">03</td><td><strong>Conceitos essenciais</strong><div class="tiny" style="margin-top:3px;">Prompt, contexto, memória, RAG, workflows, dados</div></td><td class="mono right">10</td></tr>
+        <tr><td class="mono c-purple">04</td><td><strong>Ferramentas para criar seus agentes</strong><div class="tiny" style="margin-top:3px;">No-code e low-code · comparativo · quando usar cada uma</div></td><td class="mono right">13</td></tr>
+      </table>
+      <div class="card-label card-label--mut" style="margin-top:22px;">Método</div>
+      <table class="table table--z" style="border:none;background:transparent;">
+        <tr><td class="mono c-purple" style="width:44px;">05</td><td><strong>Metodologia AGENTES</strong><div class="tiny" style="margin-top:3px;">O framework de 7 passos para desenhar qualquer agente</div></td><td class="mono right" style="width:40px;">15</td></tr>
+        <tr><td class="mono c-purple">06</td><td><strong>Canvas de planejamento</strong><div class="tiny" style="margin-top:3px;">Uma folha para desenhar o seu agente</div></td><td class="mono right">17</td></tr>
+      </table>
+    </div>
+    <div>
+      <div class="card-label card-label--cyan">Os 5 agentes prontos</div>
+      <table class="table table--z" style="border:none;background:transparent;">
+        <tr><td class="mono c-purple" style="width:44px;">07</td><td><strong>Como usar os agentes</strong><div class="tiny" style="margin-top:3px;">Matriz de priorização impacto × esforço</div></td><td class="mono right" style="width:40px;">18</td></tr>
+        <tr><td class="mono c-ok">A1</td><td>Agente de Atendimento e Triagem</td><td class="mono right">19</td></tr>
+        <tr><td class="mono c-ok">A2</td><td>Agente de Vendas e Qualificação de Leads</td><td class="mono right">22</td></tr>
+        <tr><td class="mono c-ok">A3</td><td>Agente de Conteúdo e Marketing</td><td class="mono right">25</td></tr>
+        <tr><td class="mono c-ok">A4</td><td>Agente de Operações e Processos</td><td class="mono right">28</td></tr>
+        <tr><td class="mono c-ok">A5</td><td>Agente de Análise de Dados e Relatórios</td><td class="mono right">31</td></tr>
+      </table>
+      <div class="card-label card-label--mut" style="margin-top:22px;">Colocar em prática</div>
+      <table class="table table--z" style="border:none;background:transparent;">
+        <tr><td class="mono c-purple" style="width:44px;">08</td><td><strong>Templates práticos</strong></td><td class="mono right" style="width:40px;">34</td></tr>
+        <tr><td class="mono c-purple">09</td><td><strong>Plano de implementação 7·14·30</strong></td><td class="mono right">36</td></tr>
+        <tr><td class="mono c-purple">10</td><td><strong>Checklist final · Glossário · Próximos passos</strong></td><td class="mono right">38</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="foot"><span class="brand"><span class="mono">LEVVL</span> · LABS</span><span>Sumário</span><span>03</span></div>
+</section>
+<!-- ============================================================ 04 · INTRODUÇÃO ============================================================ -->
+<section class="page" data-p="introducao">
+  <div class="kicker">Introdução</div>
+  <h2 class="h1" style="max-width:22ch;">O trabalho que ninguém quer fazer<br><span class="grad">está esperando por um agente.</span></h2>
+
+  <p>Pense na sua semana. Quantas horas você e sua equipe gastam respondendo as mesmas perguntas, copiando dados de um lugar para outro, qualificando o mesmo tipo de lead, montando o mesmo relatório? Esse trabalho é necessário — mas é repetitivo, previsível e, na maioria das vezes, chato. É exatamente o tipo de tarefa que um <strong>Agente de IA</strong> faz bem.</p>
+
+  <p>Até pouco tempo atrás, automatizar esse trabalho exigia um programador, um projeto e um orçamento. Hoje não exige mais. Ferramentas de Inteligência Artificial acessíveis colocaram na mão de qualquer pessoa a capacidade de montar assistentes digitais que entendem linguagem natural, seguem instruções, consultam dados e executam tarefas — <strong>sem código</strong>.</p>
+
+  <div class="callout co--info">
+    <div class="co-h">» O que mudou</div>
+    <p>A IA deixou de ser um assunto de engenheiros para virar uma ferramenta de gestão. Quem entende de <strong>negócio</strong> — e não necessariamente de tecnologia — passou a ter vantagem, porque sabe exatamente quais problemas resolver primeiro.</p>
+  </div>
+
+  <p>Este playbook parte de uma premissa simples: <strong>você não precisa aprender a programar para colocar a IA para trabalhar</strong>. Precisa aprender a pensar como quem desenha processos. E é isso que vamos treinar aqui, capítulo a capítulo, até você ter agentes reais rodando no seu negócio.</p>
+
+  <div class="grid g3 mt20">
+    <div class="card card--2"><div class="card-label">Para o gestor</div><p class="small mb0">Reduz custo operacional e libera o time para o que gera receita.</p></div>
+    <div class="card card--2"><div class="card-label">Para o autônomo</div><p class="small mb0">Multiplica sua capacidade sem precisar contratar.</p></div>
+    <div class="card card--2"><div class="card-label">Para o consultor</div><p class="small mb0">Vira um serviço a mais para oferecer aos seus clientes.</p></div>
+  </div>
+
+  <p class="mt20">Uma última coisa antes de começar: trate este material como uma <strong>bancada de trabalho</strong>, não como um livro. Rabisque, preencha os campos, teste os prompts, quebre e conserte. O valor não está em ler — está em construir.</p>
+
+  <div class="foot"><span class="brand"><span class="mono">LEVVL</span> · LABS</span><span>Introdução</span><span>04</span></div>
+</section>
+
+<!-- ============================================================ 05 · COMO USAR ESTE PLAYBOOK ============================================================ -->
+<section class="page" data-p="como-usar">
+  <div class="kicker">Como usar este playbook</div>
+  <h2 class="h1">Três formas de ler.<br><span class="grad">Escolha a sua.</span></h2>
+  <p class="lead" style="max-width:58ch;">Dependendo da sua pressa e da sua experiência, há um caminho mais curto até o resultado.</p>
+
+  <div class="grid g3" style="margin:24px 0;">
+    <div class="card">
+      <span class="tag tag--p mono">CAPA À CAPA</span>
+      <div class="h3 mt14">A trilha completa</div>
+      <p class="small">Para quem está começando. Leia na ordem: fundamentos, conceitos, método e depois os agentes. É o caminho mais seguro.</p>
+      <div class="tiny up" style="color:var(--cyan)">≈ 3 a 4 horas</div>
+    </div>
+    <div class="card">
+      <span class="tag tag--p mono">MÃO NA MASSA</span>
+      <div class="h3 mt14">Direto ao agente</div>
+      <p class="small">Já sabe o básico? Vá para o Capítulo 7, escolha um dos 5 agentes prontos e implemente hoje. Volte aos conceitos quando travar.</p>
+      <div class="tiny up" style="color:var(--cyan)">≈ 1 hora + setup</div>
+    </div>
+    <div class="card">
+      <span class="tag tag--p mono">CONSULTA</span>
+      <div class="h3 mt14">Referência rápida</div>
+      <p class="small">Use o Método AGENTES (Cap. 5) e o Canvas (Cap. 6) para desenhar um agente do zero, seu. Os templates ficam no fim.</p>
+      <div class="tiny up" style="color:var(--cyan)">quando precisar</div>
+    </div>
+  </div>
+
+  <h3 class="h3 mt20">Os blocos de destaque que você vai encontrar</h3>
+  <p class="small">Ao longo do material, quatro tipos de caixa se repetem. Aprenda a reconhecê-las:</p>
+
+  <div class="grid g2 mt14">
+    <div class="callout co--pratica mb0"><div class="co-h">◆ Na prática</div><p>Um exemplo real, aplicado. Mostra como a ideia funciona em um negócio de verdade.</p></div>
+    <div class="callout co--dica mb0"><div class="co-h">» Dica de implementação</div><p>Um atalho, um ajuste fino ou uma boa prática que economiza seu tempo.</p></div>
+    <div class="callout co--erro mb0"><div class="co-h">✗ Erro comum</div><p>A armadilha que quase todo iniciante cai. Leia para não repetir.</p></div>
+    <div class="callout co--info mb0"><div class="co-h">▸ Conceito-chave</div><p>Um termo técnico explicado com analogia simples, sem jargão.</p></div>
+  </div>
+
+  <div class="callout co--dica mt20 mb0">
+    <div class="co-h">» Como aproveitar os campos preenchíveis</div>
+    <p>Sempre que vir uma caixa tracejada com linhas, ela é sua. Imprima o material ou preencha em um PDF editável. Os quadros do Canvas e dos templates foram feitos para virar o seu plano de trabalho — não deixe em branco.</p>
+  </div>
+
+  <div class="foot"><span class="brand"><span class="mono">LEVVL</span> · LABS</span><span>Como usar</span><span>05</span></div>
+</section>
+<!-- ============================================================ CAP 1 · O QUE SÃO AGENTES DE IA (pg1) ============================================================ -->
+<section class="page" data-p="cap1a">
+  <div class="chaphead"><span class="chapnum">01</span><h2 class="h2">O que são Agentes de IA</h2></div>
+  <p class="lead" style="max-width:60ch;">Antes de construir, é preciso entender o que se está construindo. E a definição mais útil não é técnica — é funcional.</p>
+
+  <div class="callout co--info">
+    <div class="co-h">▸ Conceito-chave · em uma frase</div>
+    <p>Um <strong>Agente de IA</strong> é um assistente digital que recebe um objetivo, entende o pedido em linguagem natural, decide o que fazer, usa ferramentas e dados para executar, e entrega um resultado — com pouca ou nenhuma intervenção humana no meio do caminho.</p>
+  </div>
+
+  <p>A palavra-chave é <strong>agir</strong>. Um modelo de IA comum apenas gera texto. Um agente vai além: ele <strong>faz</strong> coisas — consulta uma planilha, envia um e-mail, cria um registro, resume um documento, classifica um pedido. É a diferença entre um consultor que dá conselhos e um assistente que executa.</p>
+
+  <h3 class="h3 mt14">A anatomia de um agente</h3>
+  <p class="small">Todo agente, por mais simples que seja, é montado a partir de seis peças. Entender cada uma é entender como montar o seu.</p>
+
+  <div class="grid g3 mt14" style="gap:12px;">
+    <div class="card" style="padding:13px 15px;"><div class="card-label" style="margin-bottom:6px;">01 · Objetivo</div><p class="small mb0"><strong>O que resolve.</strong> A missão em uma frase. Sem ela, vira só um chatbot.</p></div>
+    <div class="card" style="padding:13px 15px;"><div class="card-label" style="margin-bottom:6px;">02 · Persona</div><p class="small mb0"><strong>Como ele age.</strong> Tom, regras e limites — o manual de conduta.</p></div>
+    <div class="card" style="padding:13px 15px;"><div class="card-label" style="margin-bottom:6px;">03 · Modelo de IA</div><p class="small mb0"><strong>O cérebro.</strong> O motor que entende e gera linguagem. Você escolhe.</p></div>
+    <div class="card" style="padding:13px 15px;"><div class="card-label card-label--cyan" style="margin-bottom:6px;">04 · Conhecimento</div><p class="small mb0"><strong>O que ele sabe.</strong> Docs, FAQs e políticas que você fornece.</p></div>
+    <div class="card" style="padding:13px 15px;"><div class="card-label card-label--cyan" style="margin-bottom:6px;">05 · Memória</div><p class="small mb0"><strong>O que ele lembra.</strong> O histórico da conversa e de interações.</p></div>
+    <div class="card" style="padding:13px 15px;"><div class="card-label card-label--cyan" style="margin-bottom:6px;">06 · Ferramentas</div><p class="small mb0"><strong>O que ele faz.</strong> Conexões: e-mail, planilha, CRM, agenda.</p></div>
+  </div>
+
+  <h3 class="h3 mt14">Como ele funciona, na prática</h3>
+  <p class="small">Por baixo dos panos, um agente repete um ciclo simples: <strong>recebe → pensa → age → observa</strong> — uma vez, em tarefas diretas, ou várias, até atingir o objetivo.</p>
+
+  <div class="flow mt14">
+    <div class="flow-row">
+      <div class="node node--trigger">
+        <div class="node-h"><span class="node-ico node-ico--p"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6C5CE7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 L4 14 h7 l-2 8 9-12 h-7 z"/></svg></span><span class="node-tag node-tag--p">ENTRADA</span></div>
+        <div class="node-t">Recebe o pedido</div><div class="node-d">“Qual meu status do pedido 4821?”</div>
+      </div>
+      <div class="arrow"><svg width="46" height="20" viewBox="0 0 46 20"><line x1="0" y1="10" x2="36" y2="10" stroke="#6C5CE7" stroke-width="2" stroke-dasharray="5 5"/><path d="M36 5 L44 10 L36 15" stroke="#6C5CE7" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="node">
+        <div class="node-h"><span class="node-ico node-ico--a"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FFA502" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg></span><span class="node-tag node-tag--a">RACIOCÍNIO</span></div>
+        <div class="node-t">Pensa e decide</div><div class="node-d">“Preciso buscar na base de pedidos.”</div>
+      </div>
+      <div class="arrow"><svg width="46" height="20" viewBox="0 0 46 20"><line x1="0" y1="10" x2="36" y2="10" stroke="#FFA502" stroke-width="2" stroke-dasharray="5 5"/><path d="M36 5 L44 10 L36 15" stroke="#FFA502" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="node">
+        <div class="node-h"><span class="node-ico node-ico--p"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6C5CE7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18M3 12h18M3 17h12"/></svg></span><span class="node-tag node-tag--p">FERRAMENTA</span></div>
+        <div class="node-t">Usa um recurso</div><div class="node-d">Consulta a planilha de pedidos.</div>
+      </div>
+      <div class="arrow"><svg width="46" height="20" viewBox="0 0 46 20"><line x1="0" y1="10" x2="36" y2="10" stroke="#00F5D4" stroke-width="2" stroke-dasharray="5 5"/><path d="M36 5 L44 10 L36 15" stroke="#00F5D4" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="node node--action">
+        <div class="node-h"><span class="node-ico node-ico--c"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#00F5D4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 L9 17 L4 12"/></svg></span><span class="node-tag node-tag--c">SAÍDA</span></div>
+        <div class="node-t">Entrega a resposta</div><div class="node-d">“Seu pedido saiu para entrega hoje.”</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot"><span class="brand"><span class="mono">LEVVL</span> · LABS</span><span>Cap. 01 · O que são Agentes de IA</span><span>06</span></div>
+</section>
+
+<!-- ============================================================ CAP 1 · (pg2) comparativo + aplicações ============================================================ -->
+<section class="page" data-p="cap1b">
+  <div class="chaphead"><span class="chapnum">01</span><h2 class="h2">Chatbot, automação, assistente ou agente?</h2></div>
+  <p class="lead" style="max-width:62ch;">Esses quatro termos são usados como sinônimos — e não são. Entender a diferença evita frustração e ajuda a escolher a ferramenta certa.</p>
+
+  <table class="table mt8">
+    <thead><tr><th style="width:20%">Tipo</th><th style="width:30%">O que faz</th><th style="width:28%">Limite</th><th style="width:22%">Analogia</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Chatbot de regras</strong></td><td>Responde a partir de botões e respostas fixas pré-programadas.</td><td>Quebra fora do roteiro. Não entende o que não foi previsto.</td><td>Uma URA de telefone (“digite 1 para…”).</td></tr>
+      <tr><td><strong>Automação</strong></td><td>Executa uma sequência fixa quando algo acontece (gatilho → ação).</td><td>Não “pensa”. Faz sempre igual, sem interpretar.</td><td>Um dominó: cai uma peça, cai a próxima.</td></tr>
+      <tr><td><strong>Assistente virtual</strong></td><td>Entende linguagem natural e responde, mas espera seu comando a cada passo.</td><td>Reativo. Não conclui tarefas sozinho.</td><td>Um estagiário que só age quando você pede.</td></tr>
+      <tr><td style="border-left:2px solid var(--cyan)"><strong class="c-ok">Agente de IA</strong></td><td>Entende o objetivo, <strong>decide os passos</strong>, usa ferramentas e conclui a tarefa.</td><td>Precisa de bons dados e supervisão, mas age com autonomia.</td><td>Um funcionário júnior que resolve e te reporta.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout co--pratica mt20">
+    <div class="co-h">◆ Na prática · a mesma pergunta, quatro respostas</div>
+    <p><strong>Cliente:</strong> “Vocês entregam em Curitiba e quanto custa para o CEP 80010-000?”</p>
+    <p><span class="mono c-err">Chatbot:</span> mostra um menu. <span class="mono c-amber">Automação:</span> não sabe responder, abre um ticket. <span class="mono c-info">Assistente:</span> explica a política de frete genérica. <span class="mono c-ok">Agente:</span> consulta a tabela de frete pelo CEP, confirma a cobertura e responde o valor e o prazo exatos.</p>
+  </div>
+
+  <h3 class="h3 mt20">Onde aplicar em um negócio real</h3>
+  <p class="small">Agentes brilham em tarefas <strong>repetitivas, baseadas em texto e com regras claras</strong>. Um mapa rápido por área:</p>
+
+  <div class="grid g3 mt14" style="gap:14px;">
+    <div class="card card--2"><div class="card-label">Atendimento</div><p class="small mb0">Triagem, dúvidas frequentes, status de pedido, primeiro nível de suporte.</p></div>
+    <div class="card card--2"><div class="card-label">Vendas</div><p class="small mb0">Qualificação de leads, respostas iniciais, follow-up, scripts de abordagem.</p></div>
+    <div class="card card--2"><div class="card-label">Marketing</div><p class="small mb0">Ideias de conteúdo, calendário editorial, roteiros, adaptação por canal.</p></div>
+    <div class="card card--2"><div class="card-label">Operações</div><p class="small mb0">Checklists, padronização de processos, organização de tarefas.</p></div>
+    <div class="card card--2"><div class="card-label">Dados</div><p class="small mb0">Resumo de planilhas, indicadores, alertas e insights simples.</p></div>
+    <div class="card card--2"><div class="card-label">Financeiro / Admin</div><p class="small mb0">Classificação de despesas, conferência de documentos, lembretes.</p></div>
+  </div>
+
+  <div class="callout co--erro mt20 mb0">
+    <div class="co-h">✗ Erro comum</div>
+    <p>Querer que o agente faça tudo. Os melhores agentes são <strong>especialistas em uma tarefa</strong>. “Um agente que cuida do negócio inteiro” não funciona — “um agente que qualifica leads de anúncio” funciona muito bem.</p>
+  </div>
+
+  <div class="foot"><span class="brand"><span class="mono">LEVVL</span> · LABS</span><span>Cap. 01 · O que são Agentes de IA</span><span>07</span></div>
+</section>
+<!-- ============================================================ CAP 2 · POR QUE EMPRESAS ADOTAM (pg1) ============================================================ -->
+<section class="page" data-p="cap2a">
+  <div class="chaphead"><span class="chapnum">02</span><h2 class="h2">Por que empresas estão adotando</h2></div>
+  <p class="lead" style="max-width:62ch;">Não é modismo. É matemática. Quem automatiza o trabalho repetitivo libera as pessoas para o trabalho que gera valor — e faz isso mais rápido e mais barato do que a concorrência.</p>
+
+  <div class="grid g4" style="margin:22px 0;">
+    <div class="kpi"><div class="k-l">Tempo em tarefas repetitivas</div><div class="k-v">40<small>%</small></div><div class="k-d up-amber">da jornada de um time</div></div>
+    <div class="kpi"><div class="k-l">Redução de tempo por tarefa</div><div class="k-v">60<small>–80%</small></div><div class="k-d up-cyan">em fluxos bem desenhados</div></div>
+    <div class="kpi"><div class="k-l">Disponibilidade do agente</div><div class="k-v">24<small>/7</small></div><div class="k-d up-cyan">sem pausa, sem fila</div></div>
+    <div class="kpi"><div class="k-l">Custo para testar</div><div class="k-v">R$ 0</div><div class="k-d up-purple">antes de escalar</div></div>
+  </div>
+  <p class="tiny" style="margin-top:-6px;">Faixas ilustrativas, baseadas em padrões comuns de automação de processos. Meça sempre os números do seu próprio negócio.</p>
+
+  <h3 class="h3 mt14">A lógica estratégica em três movimentos</h3>
+
+  <div class="grid g3 mt14" style="gap:14px;">
+    <div class="card">
+      <div class="card-label">Movimento 1</div>
+      <div class="h4">Tirar peso do time</div>
+      <p class="small mb0">O agente assume o volume repetitivo. As pessoas passam a lidar só com o que exige julgamento, empatia e criatividade — onde elas realmente fazem diferença.</p>
+    </div>
+    <div class="card">
+      <div class="card-label">Movimento 2</div>
+      <div class="h4">Padronizar a qualidade</div>
+      <p class="small mb0">Um agente segue sempre o mesmo padrão. A resposta ao cliente, o filtro do lead, o formato do relatório — tudo fica consistente, independente do dia ou de quem está de plantão.</p>
+    </div>
+    <div class="card">
+      <div class="card-label">Movimento 3</div>
+      <div class="h4">Escalar sem inchar</div>
+      <p class="small mb0">Dobrar o atendimento não significa dobrar a equipe. O mesmo agente atende 10 ou 10 mil pedidos. O crescimento deixa de ser refém da contratação.</p>
+    </div>
+  </div>
+
+  <div class="callout co--pratica mt20">
+    <div class="co-h">◆ Na prática · o efeito composto</div>
+    <p>Uma consultora de marketing sozinha atende 6 clientes — é o teto da agenda dela. Com um agente que gera rascunhos de conteúdo e outro que organiza os relatórios, ela passa a atender 10 sem trabalhar mais horas. O agente não a substitui: <strong>remove o teto</strong>.</p>
+  </div>
+
+  <div class="callout co--dica mt14 mb0">
+    <div class="co-h">» Dica de implementação</div>
+    <p>Não comece pela tarefa mais complexa. Comece pela mais <strong>frequente e chata</strong>. O retorno aparece rápido, o time compra a ideia e você ganha confiança para os próximos.</p>
+  </div>
+
+  <div class="foot"><span class="brand"><span class="mono">LEVVL</span> · LABS</span><span>Cap. 02 · Por que adotar</span><span>08</span></div>
+</section>
+
+<!-- ============================================================ CAP 2 · (pg2) impacto por área ============================================================ -->
+<section class="page" data-p="cap2b">
+  <div class="chaphead"><span class="chapnum">02</span><h2 class="h2">O impacto, área por área</h2></div>
+  <p class="lead" style="max-width:60ch;">O mesmo princípio — tirar o repetitivo do caminho — muda de cara em cada parte do negócio. Veja o antes e o depois.</p>
+
+  <table class="table mt8">
+    <thead><tr><th style="width:16%">Área</th><th style="width:34%">Antes (sem agente)</th><th style="width:34%">Depois (com agente)</th><th style="width:16%">Ganho principal</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Atendimento</strong></td><td>Fila de mensagens, resposta lenta fora do horário, mesma dúvida mil vezes.</td><td>Resposta imediata 24/7, triagem automática, humano só nos casos difíceis.</td><td class="c-ok">Velocidade</td></tr>
+      <tr><td><strong>Vendas</strong></td><td>Vendedor perde tempo com lead frio; lead quente esfria na espera.</td><td>Leads qualificados e priorizados; abordagem sugerida na hora.</td><td class="c-ok">Conversão</td></tr>
+      <tr><td><strong>Marketing</strong></td><td>Bloqueio criativo, calendário vazio, produção artesanal e lenta.</td><td>Pauta cheia, rascunhos em minutos, adaptação por canal automática.</td><td class="c-ok">Volume</td></tr>
+      <tr><td><strong>Operações</strong></td><td>Processo na cabeça das pessoas, retrabalho, passos esquecidos.</td><td>Processo documentado, checklist guiado, padrão garantido.</td><td class="c-ok">Consistência</td></tr>
+      <tr><td><strong>Dados</strong></td><td>Planilha parada, relatório manual que ninguém lê a tempo.</td><td>Resumo automático, alertas de desvio, insight pronto para decidir.</td><td class="c-ok">Decisão</td></tr>
+    </tbody>
+  </table>
+
+  <h3 class="h3 mt20">A vantagem competitiva de quem começa antes</h3>
+  <p>Automatizar não é só cortar custo. É acumular vantagem. Cada agente que você coloca para rodar gera dados, aprende com o uso e libera tempo que vira o próximo projeto. Quem começa agora entra num ciclo que a concorrência vai levar meses para alcançar.</p>
+
+  <div class="grid g2 mt14">
+    <div class="card">
+      <div class="card-label card-label--cyan">◆ O que você ganha ao começar cedo</div>
+      <ul class="ul ul--ok mb0">
+        <li>Aprende a metodologia com processos simples, antes de precisar dela nos complexos.</li>
+        <li>Constrói uma base de conhecimento própria que vira ativo do negócio.</li>
+        <li>Cria cultura: o time passa a pensar em “o que dá para automatizar?”.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-label">◆ O custo de esperar</div>
+      <ul class="ul mb0">
+        <li>Concorrentes respondem em segundos; você ainda em horas.</li>
+        <li>Sua equipe segue presa ao operacional, sem tempo para estratégia.</li>
+        <li>Quando a pressão chegar, você vai improvisar em vez de escalar.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout co--info mt20 mb0">
+    <div class="co-h">▸ Conceito-chave · ROI de um agente</div>
+    <p>Para saber se vale a pena, use esta conta simples: <span class="mono c-ok">(horas economizadas por mês × valor da hora) − custo das ferramentas</span>. Se o resultado for positivo já no primeiro mês, é um bom candidato. A maioria dos agentes deste playbook se paga na primeira semana.</p>
+  </div>
+
+  <div class="foot"><span class="brand"><span class="mono">LEVVL</span> · LABS</span><span>Cap. 02 · Por que adotar</span><span>09</span></div>
+</section>
+<!-- ============================================================ CAP 3 · CONCEITOS ESSENCIAIS (pg1) ============================================================ -->
+<section class="page" data-p="cap3a">
+  <div class="chaphead"><span class="chapnum">03</span><h2 class="h2">Conceitos essenciais</h2></div>
+  <p class="lead" style="max-width:62ch;">Você não precisa dominar tecnologia. Precisa dominar um punhado de conceitos — todos explicados aqui com analogias simples. Este capítulo é sua cola. Volte a ele sempre que travar.</p>
+
+  <h3 class="h3">1 · O trio que define qualquer agente</h3>
+  <p class="small">Antes de qualquer ferramenta, todo agente nasce de três decisões suas.</p>
+
+  <div class="flow mt14" style="padding:24px 18px;">
+    <div class="flow-row">
+      <div class="node node--trigger" style="width:170px;">
+        <div class="node-h"><span class="node-tag node-tag--p">ENTRADA</span></div>
+        <div class="node-t">O que ele recebe</div><div class="node-d">Uma mensagem, um formulário, um dado, um documento.</div>
+      </div>
+      <div class="arrow"><svg width="46" height="20" viewBox="0 0 46 20"><line x1="0" y1="10" x2="36" y2="10" stroke="#6C5CE7" stroke-width="2" stroke-dasharray="5 5"/><path d="M36 5 L44 10 L36 15" stroke="#6C5CE7" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="node node--cond" style="width:170px;">
+        <div class="node-h"><span class="node-tag node-tag--a">PROCESSAMENTO</span></div>
+        <div class="node-t">O que ele faz com isso</div><div class="node-d">Interpreta, consulta dados e decide a resposta.</div>
+      </div>
+      <div class="arrow"><svg width="46" height="20" viewBox="0 0 46 20"><line x1="0" y1="10" x2="36" y2="10" stroke="#00F5D4" stroke-width="2" stroke-dasharray="5 5"/><path d="M36 5 L44 10 L36 15" stroke="#00F5D4" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="node node--action" style="width:170px;">
+        <div class="node-h"><span class="node-tag node-tag--c">SAÍDA</span></div>
+        <div class="node-t">O que ele entrega</div><div class="node-d">Uma resposta, uma ação, um registro, um relatório.</div>
+      </div>
+    </div>
+  </div>
+  <p class="small mt14">Desenhar um agente é, no fundo, responder três perguntas: <strong>o que entra, o que acontece no meio e o que sai</strong>. Guarde isso — é a espinha dorsal do Método AGENTES, no Capítulo 5.</p>
+
+  <div class="grid g2 mt20">
+    <div class="card">
+      <div class="card-label">Objetivo do agente</div>
+      <p class="small mb0"><strong>O que é:</strong> a única tarefa que ele existe para cumprir.<br><span class="c-info">Analogia:</span> a descrição de vaga de um funcionário. Sem ela, ele não sabe o que priorizar.</p>
+    </div>
+    <div class="card">
+      <div class="card-label">Persona do agente</div>
+      <p class="small mb0"><strong>O que é:</strong> o jeito dele se comunicar — tom, vocabulário, limites.<br><span class="c-info">Analogia:</span> o crachá e o manual de conduta. Define se ele é formal, direto, caloroso.</p>
+    </div>
+    <div class="card">
+      <div class="card-label">Prompt (engenharia de prompt)</div>
+      <p class="small mb0"><strong>O que é:</strong> as instruções em texto que você dá ao agente.<br><span class="c-info">Analogia:</span> o briefing. Quanto mais claro e específico, melhor o resultado. Esta é a habilidade central que você vai treinar.</p>
+    </div>
+    <div class="card">
+      <div class="card-label">Contexto</div>
+      <p class="small mb0"><strong>O que é:</strong> tudo que o agente “tem em mente” naquele momento.<br><span class="c-info">Analogia:</span> a mesa de trabalho. Cabe muita coisa, mas não infinita — informação demais atrapalha.</p>
+    </div>
+  </div>
+
+  <div class="callout co--dica mt20 mb0">
+    <div class="co-h">» Dica de implementação · a fórmula de um bom prompt</div>
+    <p><span class="mono c-ok">Persona</span> (quem você é) + <span class="mono c-ok">Objetivo</span> (o que fazer) + <span class="mono c-ok">Contexto</span> (o que considerar) + <span class="mono c-ok">Regras</span> (o que nunca fazer) + <span class="mono c-ok">Formato</span> (como responder). Os 5 agentes deste playbook já seguem essa fórmula.</p>
+  </div>
+
+  <div class="foot"><span class="brand"><span class="mono">LEVVL</span> · LABS</span><span>Cap. 03 · Conceitos essenciais</span><span>10</span></div>
+</section>
+
+<!-- ============================================================ CAP 3 · (pg2) conhecimento, memória, RAG, dados ============================================================ -->
+<section class="page" data-p="cap3b">
+  <div class="chaphead"><span class="chapnum">03</span><h2 class="h2">Memória, conhecimento e dados</h2></div>
+  <p class="lead" style="max-width:60ch;">Um agente só é tão bom quanto aquilo que ele sabe e lembra. Aqui entram os conceitos que dão “cabeça” e “ferramentas” ao agente.</p>
+
+  <div class="grid g2">
+    <div class="card">
+      <div class="card-label card-label--cyan">Base de conhecimento</div>
+      <p class="small mb0"><strong>O que é:</strong> os documentos que você entrega para o agente consultar — FAQ, políticas, catálogo, manuais.<br><span class="c-info">Analogia:</span> a pasta de arquivos na mesa dele. Ele lê dali para responder com precisão, em vez de “inventar”.</p>
+    </div>
+    <div class="card">
+      <div class="card-label card-label--cyan">Memória</div>
+      <p class="small mb0"><strong>O que é:</strong> a capacidade de lembrar o que já foi dito — na conversa atual ou em interações passadas.<br><span class="c-info">Analogia:</span> a memória de um atendente que reconhece o cliente recorrente e não pergunta tudo de novo.</p>
+    </div>
+  </div>
+
+  <h3 class="h3 mt20">RAG · o conceito que faz o agente parar de inventar</h3>
+  <p class="small">RAG (Geração Aumentada por Recuperação) parece técnico, mas a ideia é simples: <strong>antes de responder, o agente busca a informação certa na sua base e responde com base nela</strong>. É a diferença entre um agente que “acha que sabe” e um que “consultou e sabe”.</p>
+
+  <div class="flow mt14" style="padding:22px 18px;">
+    <div class="flow-row">
+      <div class="node" style="width:135px;"><div class="node-h"><span class="node-tag node-tag--p">PERGUNTA</span></div><div class="node-t">Cliente pergunta</div><div class="node-d">“Qual o prazo de troca?”</div></div>
+      <div class="arrow"><svg width="40" height="18" viewBox="0 0 40 18"><line x1="0" y1="9" x2="30" y2="9" stroke="#6C5CE7" stroke-width="2" stroke-dasharray="5 5"/><path d="M30 4 L38 9 L30 14" stroke="#6C5CE7" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="node node--cond" style="width:135px;"><div class="node-h"><span class="node-tag node-tag--a">BUSCA</span></div><div class="node-t">Procura na base</div><div class="node-d">Acha a política de trocas.</div></div>
+      <div class="arrow"><svg width="40" height="18" viewBox="0 0 40 18"><line x1="0" y1="9" x2="30" y2="9" stroke="#FFA502" stroke-width="2" stroke-dasharray="5 5"/><path d="M30 4 L38 9 L30 14" stroke="#FFA502" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="node" style="width:135px;"><div class="node-h"><span class="node-tag node-tag--p">JUNTA</span></div><div class="node-t">Une pergunta + trecho</div><div class="node-d">Monta o contexto certo.</div></div>
+      <div class="arrow"><svg width="40" height="18" viewBox="0 0 40 18"><line x1="0" y1="9" x2="30" y2="9" stroke="#00F5D4" stroke-width="2" stroke-dasharray="5 5"/><path d="M30 4 L38 9 L30 14" stroke="#00F5D4" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="node node--action" style="width:135px;"><div class="node-h"><span class="node-tag node-tag--c">RESPONDE</span></div><div class="node-t">Responde com a fonte</div><div class="node-d">“30 dias, conforme a política.”</div></div>
+    </div>
+  </div>
+
+  <h3 class="h3 mt20">Dados estruturados × não estruturados</h3>
+  <div class="grid g2 mt8">
+    <div class="card card--2">
+      <div class="card-label">Dados estruturados</div>
+      <p class="small mb0">Organizados em colunas e linhas: planilhas, tabelas, CRM. Fáceis de filtrar e contar.<br><span class="c-info">Exemplo:</span> uma planilha de vendas com data, produto e valor.</p>
+    </div>
+    <div class="card card--2">
+      <div class="card-label">Dados não estruturados</div>
+      <p class="small mb0">Texto livre, áudio, e-mails, PDFs. Ricos, mas bagunçados. É aqui que a IA mais ajuda.<br><span class="c-info">Exemplo:</span> 200 e-mails de reclamação que o agente resume em 5 temas.</p>
+    </div>
+  </div>
+
+  <div class="callout co--erro mt20 mb0">
+    <div class="co-h">✗ Erro comum · confiar sem base</div>
+    <p>Sem uma base de conhecimento, o agente pode responder com confiança algo <strong>errado</strong> (o famoso “alucinar”). A solução não é desconfiar da IA — é <strong>dar a ela a fonte certa</strong> e pedir que responda só a partir dela.</p>
+  </div>
+
+  <div class="foot"><span class="brand"><span class="mono">LEVVL</span> · LABS</span><span>Cap. 03 · Conceitos essenciais</span><span>11</span></div>
+</section>
+
+<!-- ============================================================ CAP 3 · (pg3) automação, APIs, supervisão ============================================================ -->
+<section class="page" data-p="cap3c">
+  <div class="chaphead"><span class="chapnum">03</span><h2 class="h2">Automação, conexões e supervisão</h2></div>
+  <p class="lead" style="max-width:60ch;">Os últimos conceitos: como o agente é acionado, como ele fala com outros sistemas e como você mantém o controle.</p>
+
+  <div class="grid g2">
+    <div class="card"><div class="card-label">Automação &amp; workflow</div><p class="small mb0"><strong>O que é:</strong> uma sequência de passos que roda sozinha. O <em>workflow</em> é o desenho desse fluxo.<br><span class="c-info">Analogia:</span> uma linha de montagem — cada etapa entrega para a próxima.</p></div>
+    <div class="card"><div class="card-label">Trigger (gatilho)</div><p class="small mb0"><strong>O que é:</strong> o evento que dá a partida no agente.<br><span class="c-info">Analogia:</span> a campainha. Pode ser uma mensagem nova, um formulário enviado, um horário marcado.</p></div>
+    <div class="card"><div class="card-label">API &amp; integração</div><p class="small mb0"><strong>O que é:</strong> a “tomada” que conecta duas ferramentas para trocarem informação.<br><span class="c-info">Analogia:</span> o garçom entre a cozinha e a mesa — leva o pedido e traz o prato. Você quase nunca vê a API; a ferramenta no-code cuida dela.</p></div>
+    <div class="card"><div class="card-label">Ferramentas externas</div><p class="small mb0"><strong>O que é:</strong> os recursos que o agente pode acionar — enviar e-mail, criar evento, buscar na web, gravar numa planilha.<br><span class="c-info">Analogia:</span> as mãos do agente. Sem elas, ele só fala; com elas, ele age.</p></div>
+  </div>
+
+  <h3 class="h3 mt20">Validação humana &amp; supervisão · o freio que dá segurança</h3>
+  <p class="small">Autonomia não significa perder o controle. Em tarefas sensíveis, você coloca um humano no circuito para aprovar antes da ação final. É o que torna a adoção segura.</p>
+
+  <div class="grid g3 mt14" style="gap:14px;">
+    <div class="card card--2"><div class="card-label">Piloto automático</div><p class="small mb0">O agente age sozinho. Bom para tarefas de baixo risco (responder FAQ, organizar dados).</p></div>
+    <div class="card card--2"><div class="card-label card-label--cyan">Humano no circuito</div><p class="small mb0">O agente prepara, o humano aprova. Ideal para começar e para ações que impactam o cliente.</p></div>
+    <div class="card card--2"><div class="card-label">Supervisão por amostra</div><p class="small mb0">O agente age, você revisa uma parte para garantir qualidade ao longo do tempo.</p></div>
+  </div>
+
+  <div class="callout co--dica mt20">
+    <div class="co-h">» Dica de implementação · comece no manual, evolua para o automático</div>
+    <p>Todo agente novo deve nascer com <strong>humano no circuito</strong>. Depois de uma ou duas semanas vendo que as respostas estão boas, você solta gradualmente. Confiança se constrói com evidência, não com fé.</p>
+  </div>
+
+  <div class="callout co--info mb0">
+    <div class="co-h">▸ Glossário-relâmpago · para colar na parede</div>
+    <p><span class="mono c-ok">Prompt</span> = instrução · <span class="mono c-ok">Contexto</span> = o que ele considera · <span class="mono c-ok">Base</span> = o que ele consulta · <span class="mono c-ok">Memória</span> = o que ele lembra · <span class="mono c-ok">Trigger</span> = o que o aciona · <span class="mono c-ok">Ferramenta</span> = o que ele executa · <span class="mono c-ok">RAG</span> = buscar antes de responder. O glossário completo está no fim do playbook.</p>
+  </div>
+
+  <div class="foot"><span class="brand"><span class="mono">LEVVL</span> · LABS</span><span>Cap. 03 · Conceitos essenciais</span><span>12</span></div>
+</section>
+<!-- ============================================================ CAP 4 · FERRAMENTAS (pg1) ============================================================ -->
+<section class="page" data-p="cap4a">
+  <div class="chaphead"><span class="chapnum">04</span><h2 class="h2">Ferramentas para criar seus agentes</h2></div>
+  <p class="lead" style="max-width:62ch;">Nenhuma ferramenta faz tudo. Elas se combinam. Entenda as quatro famílias e depois escolha a peça certa para cada função do seu agente.</p>
+
+  <div class="grid g4" style="margin:14px 0;gap:12px;">
+    <div class="card" style="padding:13px 15px;"><div class="card-label" style="margin-bottom:6px;">1 · Cérebro</div><p class="small mb0">Onde pensa e conversa. Ex.: ChatGPT, Custom GPTs.</p></div>
+    <div class="card" style="padding:13px 15px;"><div class="card-label" style="margin-bottom:6px;">2 · Automação</div><p class="small mb0">Conecta apps e ações. Ex.: Make, Zapier, n8n.</p></div>
+    <div class="card" style="padding:13px 15px;"><div class="card-label" style="margin-bottom:6px;">3 · Dados</div><p class="small mb0">Guarda e organiza. Ex.: Sheets, Airtable, Notion.</p></div>
+    <div class="card" style="padding:13px 15px;"><div class="card-label" style="margin-bottom:6px;">4 · Construtores</div><p class="small mb0">Montam o agente. Ex.: Voiceflow, Relevance AI.</p></div>
+  </div>
+
+  <h3 class="h3">O comparativo completo</h3>
+  <table class="table mt8">
+    <thead><tr><th style="width:15%">Ferramenta</th><th style="width:14%">Família</th><th style="width:12%">Dificuldade</th><th style="width:31%">Melhor aplicação</th><th style="width:28%">Exemplo de uso</th></tr></thead>
+    <tbody>
+      <tr><td><strong>ChatGPT</strong></td><td>Cérebro</td><td><span class="pill pill-ok">Fácil</span></td><td>Rascunhar, resumir e reescrever textos.</td><td>10 ideias de post a partir de um tema.</td></tr>
+      <tr><td><strong>Custom GPTs</strong></td><td>Cérebro</td><td><span class="pill pill-ok">Fácil</span></td><td>Assistente com instruções fixas e base própria.</td><td>“Assistente de propostas” do seu portfólio.</td></tr>
+      <tr><td><strong>Notion AI</strong></td><td>Dados</td><td><span class="pill pill-ok">Fácil</span></td><td>Escrever e organizar na sua base de docs.</td><td>Resumir atas e gerar tarefas no Notion.</td></tr>
+      <tr><td><strong>Google Sheets</strong></td><td>Dados</td><td><span class="pill pill-ok">Fácil</span></td><td>Guardar dados como base de automações.</td><td>Registrar leads que o agente qualifica.</td></tr>
+      <tr><td><strong>Typeform</strong></td><td>Entrada</td><td><span class="pill pill-ok">Fácil</span></td><td>Coletar respostas que disparam o agente.</td><td>Briefing que aciona a triagem.</td></tr>
+      <tr><td><strong>Airtable</strong></td><td>Dados</td><td><span class="pill pill-queue">Médio</span></td><td>Banco de dados visual com automações.</td><td>CRM leve com status atualizado por IA.</td></tr>
+      <tr><td><strong>Zapier</strong></td><td>Automação</td><td><span class="pill pill-queue">Médio</span></td><td>Conectar apps — o maior catálogo.</td><td>E-mail → IA classifica → cria tarefa.</td></tr>
+      <tr><td><strong>Make</strong></td><td>Automação</td><td><span class="pill pill-queue">Médio</span></td><td>Fluxos visuais poderosos e econômicos.</td><td>Roteirizar e publicar em vários canais.</td></tr>
+      <tr><td><strong>Voiceflow</strong></td><td>Construtor</td><td><span class="pill pill-queue">Médio</span></td><td>Agentes de chat e voz com fluxo visual.</td><td>Atendimento no site e WhatsApp.</td></tr>
+      <tr><td><strong>Botpress</strong></td><td>Construtor</td><td><span class="pill pill-queue">Médio</span></td><td>Chatbots de atendimento com IA.</td><td>Triagem no WhatsApp da empresa.</td></tr>
+      <tr><td><strong>Relevance AI</strong></td><td>Construtor</td><td><span class="pill pill-queue">Médio</span></td><td>“Times” de agentes que executam tarefas.</td><td>Pesquisar e enriquecer dados de leads.</td></tr>
+      <tr><td><strong>Flowise</strong></td><td>Construtor</td><td><span class="pill pill-fail">Avançado</span></td><td>Agentes com RAG, visual (open-source).</td><td>Responder sobre centenas de páginas.</td></tr>
+      <tr><td><strong>n8n</strong></td><td>Automação</td><td><span class="pill pill-fail">Avançado</span></td><td>Automação flexível, self-host, total.</td><td>Orquestrar fluxo com vários agentes.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="foot"><span class="brand"><span class="mono">LEVVL</span> · LABS</span><span>Cap. 04 · Ferramentas</span><span>13</span></div>
+</section>
+
+<!-- ============================================================ CAP 4 · (pg2) como combinar + stack recomendada ============================================================ -->
+<section class="page" data-p="cap4b">
+  <div class="chaphead"><span class="chapnum">04</span><h2 class="h2">Como as peças se encaixam</h2></div>
+  <p class="lead" style="max-width:60ch;">Um agente completo quase sempre junta quatro camadas. Você não precisa de todas de uma vez — mas é útil ver o mapa inteiro.</p>
+
+  <div class="flow mt8" style="padding:26px 18px;">
+    <div class="flow-row">
+      <div class="node node--trigger" style="width:150px;"><div class="node-h"><span class="node-tag node-tag--p">1 · ENTRADA</span></div><div class="node-t">Por onde chega</div><div class="node-d">Typeform, WhatsApp, e-mail, chat do site.</div></div>
+      <div class="arrow"><svg width="42" height="18" viewBox="0 0 42 18"><line x1="0" y1="9" x2="32" y2="9" stroke="#6C5CE7" stroke-width="2" stroke-dasharray="5 5"/><path d="M32 4 L40 9 L32 14" stroke="#6C5CE7" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="node" style="width:150px;"><div class="node-h"><span class="node-tag node-tag--a">2 · CÉREBRO</span></div><div class="node-t">Onde ele pensa</div><div class="node-d">ChatGPT / Custom GPT, Relevance, Voiceflow.</div></div>
+      <div class="arrow"><svg width="42" height="18" viewBox="0 0 42 18"><line x1="0" y1="9" x2="32" y2="9" stroke="#FFA502" stroke-width="2" stroke-dasharray="5 5"/><path d="M32 4 L40 9 L32 14" stroke="#FFA502" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="node" style="width:150px;"><div class="node-h"><span class="node-tag node-tag--p">3 · DADOS</span></div><div class="node-t">O que ele consulta</div><div class="node-d">Sheets, Airtable, Notion, seus documentos.</div></div>
+      <div class="arrow"><svg width="42" height="18" viewBox="0 0 42 18"><line x1="0" y1="9" x2="32" y2="9" stroke="#00F5D4" stroke-width="2" stroke-dasharray="5 5"/><path d="M32 4 L40 9 L32 14" stroke="#00F5D4" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="node node--action" style="width:150px;"><div class="node-h"><span class="node-tag node-tag--c">4 · AÇÃO</span></div><div class="node-t">O que ele executa</div><div class="node-d">Make / Zapier / n8n disparam a ação final.</div></div>
+    </div>
+  </div>
+
+  <h3 class="h3 mt20">Três “kits iniciais” recomendados</h3>
+  <p class="small">Comece com o kit que combina com seu objetivo. Todos usam planos gratuitos ou baratos.</p>
+
+  <div class="grid g3 mt14">
+    <div class="card">
+      <div class="card-label card-label--cyan">Kit “Só conversa”</div>
+      <div class="h4">O mais simples</div>
+      <div class="tags mt8" style="margin-bottom:10px;"><span class="tag tag--p">ChatGPT</span><span class="tag tag--p">Custom GPT</span></div>
+      <p class="small mb0">Para gerar conteúdo, resumir e responder. Zero integração. Você copia e cola o resultado.</p>
+    </div>
+    <div class="card">
+      <div class="card-label card-label--cyan">Kit “Automação leve”</div>
+      <div class="h4">O mais versátil</div>
+      <div class="tags mt8" style="margin-bottom:10px;"><span class="tag tag--p">Typeform</span><span class="tag tag--p">Make</span><span class="tag tag--p">Sheets</span></div>
+      <p class="small mb0">Formulário aciona a IA, que processa e grava numa planilha. Cobre a maioria dos casos deste playbook.</p>
+    </div>
+    <div class="card">
+      <div class="card-label card-label--cyan">Kit “Atendimento”</div>
+      <div class="h4">O mais direto ao cliente</div>
+      <div class="tags mt8" style="margin-bottom:10px;"><span class="tag tag--p">Voiceflow</span><span class="tag tag--p">Airtable</span></div>
+      <p class="small mb0">Agente de chat no site ou WhatsApp, com base de conhecimento própria. Cara de produto.</p>
+    </div>
+  </div>
+
+  <div class="callout co--dica mt20">
+    <div class="co-h">» Dica de implementação · a regra do “bom o suficiente”</div>
+    <p>Não caia na armadilha de escolher a ferramenta mais poderosa. Escolha a <strong>mais simples que resolve</strong>. Você sempre pode migrar depois. Um agente rodando no ChatGPT hoje vale mais que o agente perfeito no n8n que você nunca terminou.</p>
+  </div>
+
+  <div class="callout co--erro mb0">
+    <div class="co-h">✗ Erro comum · colecionar ferramentas</div>
+    <p>Assinar cinco plataformas antes de ter um agente funcionando. Escolha um kit, entregue um agente, meça o resultado. Só então adicione a próxima peça.</p>
+  </div>
+
+  <div class="foot"><span class="brand"><span class="mono">LEVVL</span> · LABS</span><span>Cap. 04 · Ferramentas</span><span>14</span></div>
+</section>
+<!-- ============================================================ CAP 5 · MÉTODO AGENTES (pg1 · framework visual) ============================================================ -->
+<section class="page" data-p="cap5a">
+  <div class="amb" style="opacity:.4;"><div class="amb-glow-top"></div></div>
+  <div class="chaphead"><span class="chapnum">05</span><h2 class="h2">A metodologia AGENTES</h2></div>
+  <p class="lead" style="max-width:60ch;">Um método para desenhar qualquer agente — do mais simples ao mais robusto — sempre na mesma ordem. Sete passos, uma sigla que você nunca esquece: ela é a própria palavra <strong>AGENTES</strong>.</p>
+
+  <div class="card" style="background:var(--canvas);padding:30px 32px;border-color:rgba(108,92,231,.3);box-shadow:inset 0 0 60px rgba(108,92,231,.06);">
+    <div style="display:flex;align-items:baseline;gap:14px;margin-bottom:6px;">
+      <span class="mono" style="font-size:12px;letter-spacing:3px;color:var(--cyan)">FRAMEWORK · 7 PASSOS</span>
+    </div>
+    <div style="font-family:var(--f-title);font-weight:700;font-size:46px;letter-spacing:6px;line-height:1;" class="grad">A·G·E·N·T·E·S</div>
+
+    <div style="margin-top:26px;display:flex;flex-direction:column;gap:0;">
+      <!-- step row template -->
+      <div class="step" style="align-items:center;margin-bottom:0;padding:9px 0;border-bottom:1px solid var(--line);">
+        <div class="step-n" style="width:38px;height:38px;font-size:18px;font-family:var(--f-title);">A</div>
+        <div class="step-b"><div class="h4 mb0">Analisar o processo</div><p class="tiny" style="color:var(--tx-55);margin-top:3px;">Qual tarefa repetitiva vale a pena entregar a um agente?</p></div>
+        <span class="tag tag--c">DIAGNÓSTICO</span>
+      </div>
+      <div class="step" style="align-items:center;margin-bottom:0;padding:9px 0;border-bottom:1px solid var(--line);">
+        <div class="step-n" style="width:38px;height:38px;font-size:18px;font-family:var(--f-title);">G</div>
+        <div class="step-b"><div class="h4 mb0">Guiar por um objetivo</div><p class="tiny" style="color:var(--tx-55);margin-top:3px;">Qual é a única missão do agente, em uma frase mensurável?</p></div>
+        <span class="tag tag--c">OBJETIVO</span>
+      </div>
+      <div class="step" style="align-items:center;margin-bottom:0;padding:9px 0;border-bottom:1px solid var(--line);">
+        <div class="step-n" style="width:38px;height:38px;font-size:18px;font-family:var(--f-title);">E</div>
+        <div class="step-b"><div class="h4 mb0">Estruturar entradas e saídas</div><p class="tiny" style="color:var(--tx-55);margin-top:3px;">O que entra, o que o agente faz no meio e o que precisa sair?</p></div>
+        <span class="tag tag--c">FLUXO</span>
+      </div>
+      <div class="step" style="align-items:center;margin-bottom:0;padding:9px 0;border-bottom:1px solid var(--line);">
+        <div class="step-n" style="width:38px;height:38px;font-size:18px;font-family:var(--f-title);">N</div>
+        <div class="step-b"><div class="h4 mb0">Nomear a persona e as instruções</div><p class="tiny" style="color:var(--tx-55);margin-top:3px;">Quem ele é, como fala e quais regras nunca pode quebrar?</p></div>
+        <span class="tag tag--c">PROMPT</span>
+      </div>
+      <div class="step" style="align-items:center;margin-bottom:0;padding:9px 0;border-bottom:1px solid var(--line);">
+        <div class="step-n" style="width:38px;height:38px;font-size:18px;font-family:var(--f-title);">T</div>
+        <div class="step-b"><div class="h4 mb0">Trazer ferramentas e dados</div><p class="tiny" style="color:var(--tx-55);margin-top:3px;">Que base ele consulta e que ações ele pode executar?</p></div>
+        <span class="tag tag--c">CONEXÕES</span>
+      </div>
+      <div class="step" style="align-items:center;margin-bottom:0;padding:9px 0;border-bottom:1px solid var(--line);">
+        <div class="step-n" style="width:38px;height:38px;font-size:18px;font-family:var(--f-title);">E</div>
+        <div class="step-b"><div class="h4 mb0">Ensaiar com cenários reais</div><p class="tiny" style="color:var(--tx-55);margin-top:3px;">Ele se sai bem nos casos comuns — e nos casos difíceis?</p></div>
+        <span class="tag tag--c">TESTE</span>
+      </div>
+      <div class="step" style="align-items:center;margin-bottom:0;padding:12px 0;">
+        <div class="step-n" style="width:38px;height:38px;font-size:18px;font-family:var(--f-title);background:rgba(0,245,212,.14);border-color:rgba(0,245,212,.4);color:var(--cyan)">S</div>
+        <div class="step-b"><div class="h4 mb0">Supervisionar, medir e otimizar</div><p class="tiny" style="color:var(--tx-55);margin-top:3px;">Está entregando o resultado? O que ajustar para melhorar?</p></div>
+        <span class="tag tag--c">LOOP</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout co--info mt20 mb0">
+    <div class="co-h">▸ Por que sempre nesta ordem</div>
+    <p>Cada passo alimenta o próximo. Pular o diagnóstico (A) leva a automatizar a tarefa errada. Pular o teste (E) leva a soltar um agente que erra na frente do cliente. O último passo (S) reinicia o ciclo — um agente nunca está “pronto”, está sempre <strong>melhorando</strong>.</p>
+  </div>
+
+  <div class="foot"><span class="brand"><span class="mono">LEVVL</span> · LABS</span><span>Cap. 05 · Metodologia AGENTES</span><span>15</span></div>
+</section>
+<!-- ============================================================ CAP 5 · (pg2) AGENTES aplicado ============================================================ -->
+<section class="page" data-p="cap5b">
+  <div class="chaphead"><span class="chapnum">05</span><h2 class="h2">AGENTES na prática, passo a passo</h2></div>
+  <p class="lead" style="max-width:60ch;">O que fazer em cada letra — e o que você tem em mãos ao terminar. Use como roteiro toda vez que for criar um agente novo.</p>
+
+  <table class="table mt8">
+    <thead><tr><th style="width:8%"></th><th style="width:24%">Passo</th><th style="width:40%">O que fazer</th><th style="width:28%">O que sai deste passo</th></tr></thead>
+    <tbody>
+      <tr><td class="mono c-purple" style="font-size:18px;font-family:var(--f-title);">A</td><td><strong>Analisar o processo</strong></td><td>Liste tarefas repetitivas; escolha uma frequente, baseada em texto e com regra clara.</td><td>A tarefa alvo, definida.</td></tr>
+      <tr><td class="mono c-purple" style="font-size:18px;font-family:var(--f-title);">G</td><td><strong>Guiar por um objetivo</strong></td><td>Escreva a missão em uma frase que dá para medir (“qualificar 100% dos leads em 2 min”).</td><td>Objetivo mensurável.</td></tr>
+      <tr><td class="mono c-purple" style="font-size:18px;font-family:var(--f-title);">E</td><td><strong>Estruturar entradas e saídas</strong></td><td>Defina o que entra (fonte, formato) e o que sai (formato, destino).</td><td>Fluxo entrada → saída.</td></tr>
+      <tr><td class="mono c-purple" style="font-size:18px;font-family:var(--f-title);">N</td><td><strong>Nomear persona e instruções</strong></td><td>Escreva o prompt: quem é, como fala, regras e formato. Use a fórmula do Cap. 3.</td><td>Prompt base pronto.</td></tr>
+      <tr><td class="mono c-purple" style="font-size:18px;font-family:var(--f-title);">T</td><td><strong>Trazer ferramentas e dados</strong></td><td>Reúna a base de conhecimento e conecte as ferramentas necessárias.</td><td>Agente “plugado”.</td></tr>
+      <tr><td class="mono c-purple" style="font-size:18px;font-family:var(--f-title);">E</td><td><strong>Ensaiar com cenários reais</strong></td><td>Teste com 5–10 casos reais, incluindo os difíceis e os fora do escopo.</td><td>Agente validado.</td></tr>
+      <tr><td class="mono" style="font-size:18px;font-family:var(--f-title);color:var(--cyan)">S</td><td><strong class="c-ok">Supervisionar e otimizar</strong></td><td>Acompanhe as métricas, ajuste o prompt e a base, solte a autonomia aos poucos.</td><td>Agente em melhoria contínua.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout co--pratica mt20">
+    <div class="co-h">◆ Na prática · AGENTES aplicado a “responder orçamentos”</div>
+    <p><span class="mono c-purple">A</span> A equipe gasta 1h/dia respondendo pedidos de orçamento. &nbsp; <span class="mono c-purple">G</span> Objetivo: responder todo pedido em até 5 min com um orçamento de rascunho. &nbsp; <span class="mono c-purple">E</span> Entra o formulário do site; sai um e-mail de rascunho para o vendedor aprovar. &nbsp; <span class="mono c-purple">N</span> Persona: vendedor consultivo, direto, sempre confirma dados antes de precificar.</p>
+    <p><span class="mono c-purple">T</span> Base: tabela de preços no Sheets. Ferramenta: Make + e-mail. &nbsp; <span class="mono c-purple">E</span> Testado com 8 pedidos antigos; ajustado o cálculo de desconto. &nbsp; <span class="mono c-ok">S</span> Mede tempo de resposta e taxa de aprovação sem edição. Resultado: de 1h para 5 min.</p>
+  </div>
+
+  <div class="callout co--dica mb0">
+    <div class="co-h">» Dica de implementação · o loop nunca fecha</div>
+    <p>Depois do <strong>S</strong>, você volta ao <strong>A</strong>: os dados do agente rodando revelam a próxima tarefa a automatizar. É assim que um agente vira dois, e dois viram um sistema. A próxima página é o Canvas onde você roda esse método pela primeira vez.</p>
+  </div>
+
+  <div class="foot"><span class="brand"><span class="mono">LEVVL</span> · LABS</span><span>Cap. 05 · Metodologia AGENTES</span><span>16</span></div>
+</section>
+<!-- ============================================================ CAP 6 · CANVAS DE PLANEJAMENTO (light) ============================================================ -->
+<section class="page page--light page--tight" data-p="cap6">
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:14px;">
+    <div>
+      <div class="chaphead" style="margin-bottom:6px;"><span class="chapnum">06</span><h2 class="h2">Canvas do Agente</h2></div>
+      <p class="small mb0" style="color:rgba(10,10,15,.6)">Uma folha para desenhar o seu agente com o Método AGENTES. Preencha, revise, construa.</p>
+    </div>
+    <div class="lockup"><span class="wordmark" style="font-size:16px;color:var(--l-ink)">LEVVL</span><span class="pill-labs">Labs</span></div>
+  </div>
+
+  <div class="field" style="margin-bottom:12px;">
+    <span class="field-l">Nome do agente</span>
+    <div class="field-b" style="min-height:38px;background-image:none;display:flex;align-items:center;"><span style="color:rgba(10,10,15,.3);font-family:var(--f-mono);font-size:12px;">Ex.: “Triador de Suporte” · “Qualificador de Leads Ana”</span></div>
+  </div>
+
+  <div class="grid g2" style="gap:12px;margin-bottom:12px;">
+    <div class="card" style="padding:14px 16px;"><span class="field-l" style="color:var(--purple)">A · Processo que ele assume</span><div class="field-b lines-3" style="margin-top:0;"></div></div>
+    <div class="card" style="padding:14px 16px;"><span class="field-l" style="color:var(--purple)">G · Objetivo mensurável (1 frase)</span><div class="field-b lines-3" style="margin-top:0;"></div></div>
+  </div>
+
+  <div class="grid g2" style="gap:12px;margin-bottom:12px;">
+    <div class="card" style="padding:14px 16px;"><span class="field-l" style="color:var(--purple)">E · Entradas (o que chega e de onde)</span><div class="field-b lines-3" style="margin-top:0;"></div></div>
+    <div class="card" style="padding:14px 16px;"><span class="field-l" style="color:var(--purple)">E · Saídas (o que entrega e para onde)</span><div class="field-b lines-3" style="margin-top:0;"></div></div>
+  </div>
+
+  <div class="grid g2" style="gap:12px;margin-bottom:12px;">
+    <div class="card" style="padding:14px 16px;"><span class="field-l" style="color:var(--purple)">N · Persona (quem é, como fala)</span><div class="field-b lines-3" style="margin-top:0;"></div></div>
+    <div class="card" style="padding:14px 16px;"><span class="field-l" style="color:var(--purple)">N · Regras (o que nunca pode fazer)</span><div class="field-b lines-3" style="margin-top:0;"></div></div>
+  </div>
+
+  <div class="grid g2" style="gap:12px;margin-bottom:12px;">
+    <div class="card" style="padding:14px 16px;"><span class="field-l" style="color:var(--purple)">T · Ferramentas (apps que ele usa)</span><div class="field-b" style="margin-top:0;"></div></div>
+    <div class="card" style="padding:14px 16px;"><span class="field-l" style="color:var(--purple)">T · Dados / base de conhecimento</span><div class="field-b" style="margin-top:0;"></div></div>
+  </div>
+
+  <div class="grid" style="grid-template-columns:1.4fr 1fr 1fr;gap:12px;margin-bottom:8px;">
+    <div class="card" style="padding:14px 16px;"><span class="field-l" style="color:var(--purple)">E · Cenários de teste (casos reais)</span><div class="field-b lines-3" style="margin-top:0;"></div></div>
+    <div class="card" style="padding:14px 16px;"><span class="field-l" style="color:var(--l-success)">S · Métrica-chave</span><div class="field-b lines-3" style="margin-top:0;"></div></div>
+    <div class="card" style="padding:14px 16px;">
+      <span class="field-l" style="color:var(--l-success)">S · Autonomia</span>
+      <div class="checklist" style="gap:8px;margin-top:2px;">
+        <div class="check" style="color:rgba(10,10,15,.75)"><span class="box"></span> Humano aprova tudo</div>
+        <div class="check" style="color:rgba(10,10,15,.75)"><span class="box"></span> Amostra revisada</div>
+        <div class="check" style="color:rgba(10,10,15,.75)"><span class="box"></span> Piloto automático</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot"><span class="brand"><span class="mono">LEVVL</span> · LABS</span><span>Cap. 06 · Canvas do Agente</span><span>17</span></div>
+</section>
+<!-- ============================================================ CAP 7 · OS 5 AGENTES (intro + matriz) ============================================================ -->
+<section class="page" data-p="cap7">
+  <div class="amb" style="opacity:.4;"><div class="amb-glow-top"></div></div>
+  <div class="chaphead"><span class="chapnum">07</span><h2 class="h2">Os 5 agentes prontos para aplicar</h2></div>
+  <p class="lead" style="max-width:62ch;">A partir daqui, teoria vira produto. Cinco agentes completos, cada um com prompt, passo a passo e checklist. Escolha por onde começar usando a matriz abaixo.</p>
+
+  <div class="grid g2" style="align-items:start;">
+    <div>
+      <div class="card-label card-label--mut">O catálogo</div>
+      <table class="table table--z" style="border:none;background:transparent;">
+        <tr><td class="mono c-ok" style="width:36px;">A1</td><td><strong>Atendimento &amp; Triagem</strong><div class="tiny" style="margin-top:2px;">Responde dúvidas e encaminha clientes</div></td></tr>
+        <tr><td class="mono c-ok">A2</td><td><strong>Vendas &amp; Qualificação</strong><div class="tiny" style="margin-top:2px;">Pontua leads e sugere a abordagem</div></td></tr>
+        <tr><td class="mono c-ok">A3</td><td><strong>Conteúdo &amp; Marketing</strong><div class="tiny" style="margin-top:2px;">Planeja pauta e gera posts</div></td></tr>
+        <tr><td class="mono c-ok">A4</td><td><strong>Operações &amp; Processos</strong><div class="tiny" style="margin-top:2px;">Padroniza tarefas e checklists</div></td></tr>
+        <tr><td class="mono c-ok">A5</td><td><strong>Análise de Dados</strong><div class="tiny" style="margin-top:2px;">Resume planilhas e aponta insights</div></td></tr>
+      </table>
+      <div class="callout co--dica mt14 mb0">
+        <div class="co-h">» Por onde começar</div>
+        <p>Escolha <strong>um</strong> agente do quadrante “Comece aqui”. Entregue ele por completo, meça o resultado e só então parta para o próximo. Um agente rodando vale mais que cinco pela metade.</p>
+      </div>
+    </div>
+
+    <div class="matrix">
+      <div class="tiny up" style="text-align:center;color:var(--tx-45);margin-bottom:8px;">Matriz Impacto × Esforço</div>
+      <div style="display:flex;">
+        <div class="mono" style="writing-mode:vertical-rl;transform:rotate(180deg);font-size:9px;letter-spacing:2px;color:var(--tx-45);text-align:center;padding-right:6px;">IMPACTO →</div>
+        <div style="flex:1;">
+          <div class="matrix-grid">
+            <div class="quad quad--win"><div class="quad-h">Comece aqui · alto impacto, baixo esforço</div><div class="chip">A1 · Atendimento</div><div class="chip">A3 · Conteúdo</div></div>
+            <div class="quad quad--plan"><div class="quad-h">Planeje · alto impacto, mais esforço</div><div class="chip">A2 · Vendas</div><div class="chip">A5 · Dados</div></div>
+            <div class="quad quad--quick"><div class="quad-h">Ganho rápido · baixo esforço</div><div class="chip">A4 · Operações</div></div>
+            <div class="quad quad--skip"><div class="quad-h">Deixe para depois</div><div class="chip" style="color:var(--tx-35)">Agentes de nicho e alto risco</div></div>
+          </div>
+          <div class="mono" style="text-align:center;font-size:9px;letter-spacing:2px;color:var(--tx-45);margin-top:6px;">ESFORÇO →</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout co--info mt20 mb0">
+    <div class="co-h">▸ Como ler cada agente</div>
+    <p>Todo agente segue a mesma estrutura: uma <strong>capa</strong> com o problema, o perfil e os benefícios; uma página de <strong>montagem</strong> com fluxo, passo a passo e prompt pronto; e uma página de <strong>operação</strong> com checklist, exemplo, métricas, melhorias e cuidados. Tudo desenhado com o Método AGENTES.</p>
+  </div>
+
+  <div class="foot"><span class="brand"><span class="mono">LEVVL</span> · LABS</span><span>Cap. 07 · Os 5 agentes</span><span>18</span></div>
+</section>
+<!-- ======================= AGENTE 1 · SEPARADOR ======================= -->
+<section class="page page--canvas" data-p="a1-sep">
+  <div class="amb"><div class="amb-glow-top"></div><div class="amb-glow-bot"></div></div>
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;">
+    <div>
+      <div class="kicker" style="margin-bottom:10px;">Agente 01 · de 05</div>
+      <div class="bignum">A1</div>
+    </div>
+    <div class="lockup" style="margin-top:6px;"><span class="wordmark" style="font-size:15px;">LEVVL</span><span class="pill-labs">Labs</span></div>
+  </div>
+
+  <h1 class="h1" style="font-size:44px;margin-top:14px;margin-bottom:6px;">Atende <span class="grad">24/7</span></h1>
+  <div class="h3" style="color:var(--tx-55);font-weight:400;margin-bottom:14px;">Agente de Atendimento e Triagem</div>
+  <p class="lead" style="max-width:60ch;">O recepcionista digital que responde na hora, resolve as dúvidas frequentes e só encaminha para um humano o que realmente precisa de atenção.</p>
+
+  <div class="metaline" style="margin:18px 0 22px;">
+    <span class="pill pill-ok">Dificuldade · Fácil</span>
+    <span class="pill pill-run"><span class="dot"></span>Setup · 1 a 2 dias</span>
+    <span class="pill pill-mut">Custo · plano grátis serve</span>
+    <span class="pill pill-mut">Kit · Voiceflow + Sheets</span>
+  </div>
+
+  <div class="grid g2">
+    <div class="card">
+      <div class="card-label">Problema que resolve</div>
+      <p class="small mb0">Fila de mensagens, respostas lentas fora do horário e a equipe respondendo a mesma dúvida dezenas de vezes por dia. Clientes esperam e desistem; o time se esgota no operacional.</p>
+    </div>
+    <div class="card">
+      <div class="card-label">Perfil ideal</div>
+      <p class="small mb0">E-commerces, clínicas, escolas, prestadores de serviço e qualquer negócio que recebe muitas mensagens repetidas por WhatsApp, Instagram ou chat do site.</p>
+    </div>
+  </div>
+
+  <div class="grid g2 mt14">
+    <div class="card">
+      <div class="card-label card-label--cyan">Benefícios esperados</div>
+      <ul class="ul ul--ok mb0">
+        <li>Resposta imediata, 24 horas por dia, 7 dias por semana.</li>
+        <li>Time livre para os casos que exigem gente de verdade.</li>
+        <li>Padrão de atendimento consistente, sem depender do humor do dia.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-label">Ferramentas recomendadas</div>
+      <div class="tags" style="margin-bottom:10px;"><span class="tag tag--p">Voiceflow</span><span class="tag tag--p">Botpress</span><span class="tag tag--p">Google Sheets</span><span class="tag tag--p">WhatsApp</span></div>
+      <p class="small mb0">Voiceflow ou Botpress como cérebro do chat; uma planilha com as dúvidas frequentes como base de conhecimento.</p>
+    </div>
+  </div>
+
+  <div style="position:absolute;left:19mm;right:19mm;bottom:12mm;z-index:1;" class="tiny">MÉTODO AGENTES · A·G·E·N·T·E·S — CONSTRUÍDO PASSO A PASSO NAS PRÓXIMAS DUAS PÁGINAS</div>
+</section>
+
+<!-- ======================= AGENTE 1 · MONTAGEM ======================= -->
+<section class="page" data-p="a1-build">
+  <div class="chaphead"><span class="chapnum mono c-ok">A1</span><h2 class="h2">Atende 24/7 · como montar</h2></div>
+
+  <div class="card-label card-label--mut">Fluxo de funcionamento</div>
+  <div class="flow" style="padding:20px 16px;margin-bottom:16px;">
+    <div class="flow-row">
+      <div class="node node--trigger" style="width:132px;"><div class="node-h"><span class="node-tag node-tag--p">MENSAGEM</span></div><div class="node-t">Cliente escreve</div><div class="node-d">WhatsApp ou chat do site.</div></div>
+      <div class="arrow"><svg width="38" height="16" viewBox="0 0 38 16"><line x1="0" y1="8" x2="28" y2="8" stroke="#6C5CE7" stroke-width="2" stroke-dasharray="5 5"/><path d="M28 3 L36 8 L28 13" stroke="#6C5CE7" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="node node--cond" style="width:132px;"><div class="node-h"><span class="node-tag node-tag--a">ENTENDE</span></div><div class="node-t">Classifica o pedido</div><div class="node-d">Dúvida, pedido ou reclamação?</div></div>
+      <div class="arrow"><svg width="38" height="16" viewBox="0 0 38 16"><line x1="0" y1="8" x2="28" y2="8" stroke="#FFA502" stroke-width="2" stroke-dasharray="5 5"/><path d="M28 3 L36 8 L28 13" stroke="#FFA502" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="node" style="width:132px;"><div class="node-h"><span class="node-tag node-tag--p">CONSULTA</span></div><div class="node-t">Busca na base</div><div class="node-d">Acha a resposta certa na FAQ.</div></div>
+      <div class="arrow"><svg width="38" height="16" viewBox="0 0 38 16"><line x1="0" y1="8" x2="28" y2="8" stroke="#00F5D4" stroke-width="2" stroke-dasharray="5 5"/><path d="M28 3 L36 8 L28 13" stroke="#00F5D4" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="node node--action" style="width:132px;"><div class="node-h"><span class="node-tag node-tag--c">RESPONDE</span></div><div class="node-t">Responde ou encaminha</div><div class="node-d">Resolve ou passa para humano.</div></div>
+    </div>
+  </div>
+
+  <div class="grid g2" style="align-items:start;">
+    <div>
+      <div class="card-label card-label--mut">Passo a passo de criação</div>
+      <div class="step"><div class="step-n">1</div><div class="step-b"><div class="h4">Liste as 20 dúvidas mais comuns</div><p>Puxe do histórico de atendimento. Cada dúvida vira uma linha na sua base.</p></div></div>
+      <div class="step"><div class="step-n">2</div><div class="step-b"><div class="h4">Monte a base na planilha</div><p>Duas colunas: pergunta e resposta oficial. Essa é a fonte da verdade.</p></div></div>
+      <div class="step"><div class="step-n">3</div><div class="step-b"><div class="h4">Crie o agente no Voiceflow</div><p>Cole o prompt base ao lado e conecte a planilha como conhecimento.</p></div></div>
+      <div class="step"><div class="step-n">4</div><div class="step-b"><div class="h4">Defina a regra de escalonamento</div><p>Se não souber ou for reclamação, encaminhar para um humano.</p></div></div>
+      <div class="step"><div class="step-n">5</div><div class="step-b"><div class="h4">Publique no canal</div><p>Conecte ao WhatsApp ou ao chat do site e faça um teste real.</p></div></div>
+    </div>
+    <div>
+      <div class="prompt-h"><span class="card-label card-label--cyan mb0" style="margin:0;">Prompt base pronto</span><span class="copy">copiar</span></div>
+      <div class="prompt">Você é o atendente virtual da <span class="ph">[NOME DA EMPRESA]</span>.
+
+<span class="cm"># Objetivo</span>
+Responder dúvidas de clientes de forma
+rápida, clara e cordial, usando APENAS
+as informações da base de conhecimento.
+
+<span class="cm"># Tom</span>
+<span class="ph">[ex.: simpático, direto, você]</span>.
+
+<span class="cm"># Regras</span>
+- Nunca invente. Se não achar na base,
+  diga que vai chamar um atendente.
+- Encaminhe reclamações a um humano.
+- Confirme dados antes de orientar.
+
+<span class="cm"># Formato</span>
+Respostas curtas, no máximo 4 linhas.</div>
+      <div class="callout co--dica mt14 mb0" style="padding:11px 14px;">
+        <div class="co-h" style="margin-bottom:5px;">» Campos para preencher</div>
+        <p><span class="mono c-ok">[NOME DA EMPRESA]</span> · <span class="mono c-ok">[TOM]</span> · horário de atendimento humano · canal de escalonamento.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot"><span class="brand"><span class="mono">LEVVL</span> · LABS</span><span>Agente A1 · Atende 24/7</span><span>20</span></div>
+</section>
+
+<!-- ======================= AGENTE 1 · OPERAÇÃO ======================= -->
+<section class="page" data-p="a1-run">
+  <div class="chaphead"><span class="chapnum mono c-ok">A1</span><h2 class="h2">Atende 24/7 · operar e medir</h2></div>
+
+  <div class="grid g2" style="align-items:start;">
+    <div class="card">
+      <div class="card-label card-label--cyan">Checklist de configuração</div>
+      <div class="checklist">
+        <div class="check"><span class="box"></span> Base com as 20+ dúvidas frequentes preenchida</div>
+        <div class="check"><span class="box"></span> Prompt base personalizado com nome e tom</div>
+        <div class="check"><span class="box"></span> Regra de escalonamento para humano definida</div>
+        <div class="check"><span class="box"></span> Mensagem de saudação e de despedida prontas</div>
+        <div class="check"><span class="box"></span> Testado com 10 perguntas reais</div>
+        <div class="check"><span class="box"></span> Testado com 1 pergunta fora do escopo</div>
+        <div class="check"><span class="box"></span> Canal (WhatsApp/site) conectado e no ar</div>
+      </div>
+    </div>
+    <div class="callout co--pratica mb0" style="height:100%;">
+      <div class="co-h">◆ Exemplo prático</div>
+      <p>Uma clínica de estética recebia 80 mensagens/dia perguntando preço, horário e endereço. O Atende 24/7 passou a responder tudo isso na hora e a agendar a triagem. Resultado: a recepcionista deixou de responder o repetitivo e passou a confirmar consultas — as respostas fora do horário deixaram de virar cliente perdido.</p>
+    </div>
+  </div>
+
+  <div class="card-label card-label--mut mt20">Métricas para acompanhar</div>
+  <div class="grid g4">
+    <div class="kpi"><div class="k-l">Taxa de resolução</div><div class="k-v">70<small>%</small></div><div class="k-d up-cyan">meta sem humano</div></div>
+    <div class="kpi"><div class="k-l">Tempo de 1ª resposta</div><div class="k-v">&lt;10<small>s</small></div><div class="k-d up-cyan">antes: horas</div></div>
+    <div class="kpi"><div class="k-l">Fora do horário</div><div class="k-v">100<small>%</small></div><div class="k-d up-purple">cobertura noturna</div></div>
+    <div class="kpi"><div class="k-l">Satisfação (CSAT)</div><div class="k-v">≥4,5</div><div class="k-d up-amber">pesquisa rápida</div></div>
+  </div>
+
+  <div class="grid g2 mt20">
+    <div class="callout co--dica mb0">
+      <div class="co-h">» Melhorias futuras</div>
+      <p>Conectar ao sistema de pedidos para dar status em tempo real; adicionar agendamento automático; criar respostas por perfil (novo × recorrente); relatório semanal das dúvidas mais frequentes para melhorar a base.</p>
+    </div>
+    <div class="callout co--erro mb0">
+      <div class="co-h">✗ Cuidados e limitações</div>
+      <p>Não deixe o agente prometer prazos ou preços que mudam sem estarem na base. Sempre ofereça a saída “falar com humano”. Revise semanalmente as conversas em que ele escalou — elas mostram o que falta na base.</p>
+    </div>
+  </div>
+
+  <div class="foot"><span class="brand"><span class="mono">LEVVL</span> · LABS</span><span>Agente A1 · Atende 24/7</span><span>21</span></div>
+</section>
+<!-- ======================= AGENTE 2 · SEPARADOR ======================= -->
+<section class="page page--canvas" data-p="a2-sep">
+  <div class="amb"><div class="amb-glow-top"></div><div class="amb-glow-bot"></div></div>
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;">
+    <div><div class="kicker" style="margin-bottom:10px;">Agente 02 · de 05</div><div class="bignum">A2</div></div>
+    <div class="lockup" style="margin-top:6px;"><span class="wordmark" style="font-size:15px;">LEVVL</span><span class="pill-labs">Labs</span></div>
+  </div>
+
+  <h1 class="h1" style="font-size:44px;margin-top:14px;margin-bottom:6px;">Radar de <span class="grad">Leads</span></h1>
+  <div class="h3" style="color:var(--tx-55);font-weight:400;margin-bottom:14px;">Agente de Vendas e Qualificação de Leads</div>
+  <p class="lead" style="max-width:60ch;">O agente que olha cada lead que chega, dá uma nota, separa quente de frio e ainda entrega ao vendedor a abordagem certa e o primeiro contato pronto.</p>
+
+  <div class="metaline" style="margin:18px 0 22px;">
+    <span class="pill pill-queue">Dificuldade · Médio</span>
+    <span class="pill pill-run"><span class="dot"></span>Setup · 2 a 4 dias</span>
+    <span class="pill pill-mut">Custo · baixo</span>
+    <span class="pill pill-mut">Kit · Typeform + Make + GPT</span>
+  </div>
+
+  <div class="grid g2">
+    <div class="card"><div class="card-label">Problema que resolve</div><p class="small mb0">Leads chegam misturados. O vendedor gasta tempo com quem não vai comprar e o lead quente esfria na fila. Sem critério, todo mundo recebe o mesmo tratamento — e a conversão despenca.</p></div>
+    <div class="card"><div class="card-label">Perfil ideal</div><p class="small mb0">Times comerciais, imobiliárias, consultorias, agências e infoprodutores que recebem leads de anúncios, formulários ou landing pages e precisam priorizar o atendimento.</p></div>
+  </div>
+  <div class="grid g2 mt14">
+    <div class="card"><div class="card-label card-label--cyan">Benefícios esperados</div>
+      <ul class="ul ul--ok mb0"><li>Vendedor foca só nos leads com real chance de compra.</li><li>Resposta rápida ao lead quente, enquanto o interesse está alto.</li><li>Abordagem e script prontos — menos improviso, mais conversão.</li></ul>
+    </div>
+    <div class="card"><div class="card-label">Ferramentas recomendadas</div>
+      <div class="tags" style="margin-bottom:10px;"><span class="tag tag--p">Typeform</span><span class="tag tag--p">Make</span><span class="tag tag--p">ChatGPT</span><span class="tag tag--p">Airtable</span></div>
+      <p class="small mb0">Formulário coleta o lead; o Make aciona a IA que pontua; o resultado cai num CRM leve (Airtable ou Sheets).</p>
+    </div>
+  </div>
+  <div style="position:absolute;left:19mm;right:19mm;bottom:12mm;z-index:1;" class="tiny">MÉTODO AGENTES · A·G·E·N·T·E·S — CONSTRUÍDO PASSO A PASSO NAS PRÓXIMAS DUAS PÁGINAS</div>
+</section>
+
+<!-- ======================= AGENTE 2 · MONTAGEM ======================= -->
+<section class="page" data-p="a2-build">
+  <div class="chaphead"><span class="chapnum mono c-ok">A2</span><h2 class="h2">Radar de Leads · como montar</h2></div>
+  <div class="card-label card-label--mut">Fluxo de funcionamento</div>
+  <div class="flow" style="padding:20px 16px;margin-bottom:16px;">
+    <div class="flow-row">
+      <div class="node node--trigger"><div class="node-h"><span class="node-tag node-tag--p">LEAD</span></div><div class="node-t">Formulário enviado</div><div class="node-d">Nome, contato, respostas.</div></div>
+      <div class="arrow"><svg viewBox="0 0 38 16"><line x1="0" y1="8" x2="28" y2="8" stroke="#6C5CE7" stroke-width="2" stroke-dasharray="5 5"/><path d="M28 3 L36 8 L28 13" stroke="#6C5CE7" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="node node--cond"><div class="node-h"><span class="node-tag node-tag--a">PONTUA</span></div><div class="node-t">Dá uma nota</div><div class="node-d">Score de 0 a 100 pelo perfil.</div></div>
+      <div class="arrow"><svg viewBox="0 0 38 16"><line x1="0" y1="8" x2="28" y2="8" stroke="#FFA502" stroke-width="2" stroke-dasharray="5 5"/><path d="M28 3 L36 8 L28 13" stroke="#FFA502" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="node"><div class="node-h"><span class="node-tag node-tag--p">CLASSIFICA</span></div><div class="node-t">Quente, morno, frio</div><div class="node-d">E sugere a próxima ação.</div></div>
+      <div class="arrow"><svg viewBox="0 0 38 16"><line x1="0" y1="8" x2="28" y2="8" stroke="#00F5D4" stroke-width="2" stroke-dasharray="5 5"/><path d="M28 3 L36 8 L28 13" stroke="#00F5D4" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="node node--action"><div class="node-h"><span class="node-tag node-tag--c">ENTREGA</span></div><div class="node-t">Vendedor recebe</div><div class="node-d">Score, abordagem e script.</div></div>
+    </div>
+  </div>
+  <div class="grid g2" style="align-items:start;">
+    <div>
+      <div class="card-label card-label--mut">Passo a passo de criação</div>
+      <div class="step"><div class="step-n">1</div><div class="step-b"><div class="h4">Defina seu cliente ideal</div><p>Liste 4 a 6 critérios do lead que fecha (segmento, porte, urgência, verba).</p></div></div>
+      <div class="step"><div class="step-n">2</div><div class="step-b"><div class="h4">Monte o formulário</div><p>Faça o Typeform perguntar exatamente esses critérios.</p></div></div>
+      <div class="step"><div class="step-n">3</div><div class="step-b"><div class="h4">Conecte com o Make</div><p>Cada envio dispara a IA com o prompt de pontuação ao lado.</p></div></div>
+      <div class="step"><div class="step-n">4</div><div class="step-b"><div class="h4">Grave no CRM</div><p>O score e o script caem no Airtable, ordenados do mais quente.</p></div></div>
+      <div class="step"><div class="step-n">5</div><div class="step-b"><div class="h4">Calibre com leads antigos</div><p>Rode 20 leads que você já conhece e ajuste os pesos.</p></div></div>
+    </div>
+    <div>
+      <div class="prompt-h"><span class="card-label card-label--cyan mb0" style="margin:0;">Prompt base pronto</span><span class="copy">copiar</span></div>
+      <div class="prompt">Você é analista de pré-vendas da
+<span class="ph">[EMPRESA]</span>, que vende <span class="ph">[PRODUTO]</span>.
+
+<span class="cm"># Tarefa</span>
+Avalie o lead abaixo e devolva:
+1. Score de 0 a 100.
+2. Classificação: quente / morno / frio.
+3. Próxima ação recomendada.
+4. Uma mensagem de 1º contato.
+
+<span class="cm"># Critérios de um bom lead</span>
+<span class="ph">[liste 4 a 6 critérios do seu ICP]</span>.
+
+<span class="cm"># Regras</span>
+- Seja objetivo e justifique o score.
+- Tom da mensagem: <span class="ph">[TOM]</span>.
+
+Lead: <span class="ph">[DADOS DO FORMULÁRIO]</span></div>
+      <div class="callout co--dica mt14 mb0" style="padding:11px 14px;"><div class="co-h" style="margin-bottom:5px;">» Campos para preencher</div><p><span class="mono c-ok">[EMPRESA]</span> · <span class="mono c-ok">[PRODUTO]</span> · <span class="mono c-ok">[CRITÉRIOS ICP]</span> · <span class="mono c-ok">[TOM]</span>.</p></div>
+    </div>
+  </div>
+  <div class="foot"><span class="brand"><span class="mono">LEVVL</span> · LABS</span><span>Agente A2 · Radar de Leads</span><span>23</span></div>
+</section>
+
+<!-- ======================= AGENTE 2 · OPERAÇÃO ======================= -->
+<section class="page" data-p="a2-run">
+  <div class="chaphead"><span class="chapnum mono c-ok">A2</span><h2 class="h2">Radar de Leads · operar e medir</h2></div>
+  <div class="grid g2" style="align-items:start;">
+    <div class="card"><div class="card-label card-label--cyan">Checklist de configuração</div>
+      <div class="checklist">
+        <div class="check"><span class="box"></span> Critérios do cliente ideal (ICP) definidos</div>
+        <div class="check"><span class="box"></span> Formulário perguntando os critérios certos</div>
+        <div class="check"><span class="box"></span> Prompt com ICP, produto e tom preenchido</div>
+        <div class="check"><span class="box"></span> Score e script gravando no CRM</div>
+        <div class="check"><span class="box"></span> Leads ordenados do mais quente ao mais frio</div>
+        <div class="check"><span class="box"></span> Calibrado com 20 leads históricos</div>
+        <div class="check"><span class="box"></span> Alerta para o vendedor quando entra lead quente</div>
+      </div>
+    </div>
+    <div class="callout co--pratica mb0" style="height:100%;">
+      <div class="co-h">◆ Exemplo prático</div>
+      <p>Uma imobiliária recebia 120 leads/mês de portais, todos tratados igual. Com o Radar de Leads, quem tinha verba aprovada e prazo curto virava “quente” e recebia contato em minutos; os demais entravam em nutrição. Em dois meses, o time dobrou as visitas agendadas sem aumentar o volume de leads — só atendendo melhor os certos.</p>
+    </div>
+  </div>
+  <div class="card-label card-label--mut mt20">Métricas para acompanhar</div>
+  <div class="grid g4">
+    <div class="kpi"><div class="k-l">Taxa de conversão</div><div class="k-v">+30<small>%</small></div><div class="k-d up-cyan">nos leads quentes</div></div>
+    <div class="kpi"><div class="k-l">Tempo até 1º contato</div><div class="k-v">&lt;5<small>min</small></div><div class="k-d up-cyan">no lead quente</div></div>
+    <div class="kpi"><div class="k-l">Leads trabalhados</div><div class="k-v">100<small>%</small></div><div class="k-d up-purple">nada esquecido</div></div>
+    <div class="kpi"><div class="k-l">Precisão do score</div><div class="k-v">≥80<small>%</small></div><div class="k-d up-amber">vs. resultado real</div></div>
+  </div>
+  <div class="grid g2 mt20">
+    <div class="callout co--dica mb0"><div class="co-h">» Melhorias futuras</div><p>Enriquecer o lead com dados públicos da empresa; disparar o 1º contato automático (com aprovação); reordenar a fila do vendedor em tempo real; treinar o score com os negócios que realmente fecharam.</p></div>
+    <div class="callout co--erro mb0"><div class="co-h">✗ Cuidados e limitações</div><p>Score é sugestão, não sentença — um lead “frio” pode comprar. Revise os critérios a cada trimestre. E cuidado com dados pessoais: colete só o necessário e siga a LGPD.</p></div>
+  </div>
+  <div class="foot"><span class="brand"><span class="mono">LEVVL</span> · LABS</span><span>Agente A2 · Radar de Leads</span><span>24</span></div>
+</section>
+<!-- ======================= AGENTE 3 · SEPARADOR ======================= -->
+<section class="page page--canvas" data-p="a3-sep">
+  <div class="amb"><div class="amb-glow-top"></div><div class="amb-glow-bot"></div></div>
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;">
+    <div><div class="kicker" style="margin-bottom:10px;">Agente 03 · de 05</div><div class="bignum">A3</div></div>
+    <div class="lockup" style="margin-top:6px;"><span class="wordmark" style="font-size:15px;">LEVVL</span><span class="pill-labs">Labs</span></div>
+  </div>
+  <h1 class="h1" style="font-size:44px;margin-top:14px;margin-bottom:6px;">Máquina de <span class="grad">Conteúdo</span></h1>
+  <div class="h3" style="color:var(--tx-55);font-weight:400;margin-bottom:14px;">Agente de Conteúdo e Marketing</div>
+  <p class="lead" style="max-width:60ch;">O agente que nunca fica sem ideia: planeja a pauta do mês, escreve os posts na voz da sua marca e adapta cada peça para o canal certo.</p>
+  <div class="metaline" style="margin:18px 0 22px;">
+    <span class="pill pill-ok">Dificuldade · Fácil</span>
+    <span class="pill pill-run"><span class="dot"></span>Setup · 1 a 2 dias</span>
+    <span class="pill pill-mut">Custo · plano grátis serve</span>
+    <span class="pill pill-mut">Kit · Custom GPT + Notion</span>
+  </div>
+  <div class="grid g2">
+    <div class="card"><div class="card-label">Problema que resolve</div><p class="small mb0">Bloqueio criativo, calendário vazio e produção artesanal que consome horas. O conteúdo sai irregular, some por semanas e perde a consistência de voz que constrói audiência.</p></div>
+    <div class="card"><div class="card-label">Perfil ideal</div><p class="small mb0">Social media, autônomos, consultores, infoprodutores e pequenas empresas que precisam publicar com frequência e não têm um time de conteúdo dedicado.</p></div>
+  </div>
+  <div class="grid g2 mt14">
+    <div class="card"><div class="card-label card-label--cyan">Benefícios esperados</div>
+      <ul class="ul ul--ok mb0"><li>Calendário editorial de um mês em minutos.</li><li>Rascunhos prontos para revisar, não a página em branco.</li><li>Voz de marca consistente em todos os canais.</li></ul>
+    </div>
+    <div class="card"><div class="card-label">Ferramentas recomendadas</div>
+      <div class="tags" style="margin-bottom:10px;"><span class="tag tag--p">Custom GPT</span><span class="tag tag--p">ChatGPT</span><span class="tag tag--p">Notion</span><span class="tag tag--p">Make</span></div>
+      <p class="small mb0">Um Custom GPT treinado na sua voz gera tudo; o Notion guarda o calendário; o Make publica se você quiser automatizar.</p>
+    </div>
+  </div>
+  <div style="position:absolute;left:19mm;right:19mm;bottom:12mm;z-index:1;" class="tiny">MÉTODO AGENTES · A·G·E·N·T·E·S — CONSTRUÍDO PASSO A PASSO NAS PRÓXIMAS DUAS PÁGINAS</div>
+</section>
+
+<!-- ======================= AGENTE 3 · MONTAGEM ======================= -->
+<section class="page" data-p="a3-build">
+  <div class="chaphead"><span class="chapnum mono c-ok">A3</span><h2 class="h2">Máquina de Conteúdo · como montar</h2></div>
+  <div class="card-label card-label--mut">Fluxo de funcionamento</div>
+  <div class="flow" style="padding:20px 16px;margin-bottom:16px;">
+    <div class="flow-row">
+      <div class="node node--trigger"><div class="node-h"><span class="node-tag node-tag--p">BRIEFING</span></div><div class="node-t">Você dá o tema</div><div class="node-d">Pilar, público e mês.</div></div>
+      <div class="arrow"><svg viewBox="0 0 38 16"><line x1="0" y1="8" x2="28" y2="8" stroke="#6C5CE7" stroke-width="2" stroke-dasharray="5 5"/><path d="M28 3 L36 8 L28 13" stroke="#6C5CE7" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="node node--cond"><div class="node-h"><span class="node-tag node-tag--a">PAUTA</span></div><div class="node-t">Gera o calendário</div><div class="node-d">Ideias e formatos do mês.</div></div>
+      <div class="arrow"><svg viewBox="0 0 38 16"><line x1="0" y1="8" x2="28" y2="8" stroke="#FFA502" stroke-width="2" stroke-dasharray="5 5"/><path d="M28 3 L36 8 L28 13" stroke="#FFA502" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="node"><div class="node-h"><span class="node-tag node-tag--p">ESCREVE</span></div><div class="node-t">Redige os posts</div><div class="node-d">Na voz da marca.</div></div>
+      <div class="arrow"><svg viewBox="0 0 38 16"><line x1="0" y1="8" x2="28" y2="8" stroke="#00F5D4" stroke-width="2" stroke-dasharray="5 5"/><path d="M28 3 L36 8 L28 13" stroke="#00F5D4" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="node node--action"><div class="node-h"><span class="node-tag node-tag--c">ADAPTA</span></div><div class="node-t">Versão por canal</div><div class="node-d">Instagram, LinkedIn, e-mail.</div></div>
+    </div>
+  </div>
+  <div class="grid g2" style="align-items:start;">
+    <div>
+      <div class="card-label card-label--mut">Passo a passo de criação</div>
+      <div class="step"><div class="step-n">1</div><div class="step-b"><div class="h4">Defina público e pilares</div><p>Escolha 3 a 5 temas centrais que sua marca defende.</p></div></div>
+      <div class="step"><div class="step-n">2</div><div class="step-b"><div class="h4">Crie o Custom GPT da marca</div><p>Cole o prompt e exemplos de posts que representam sua voz.</p></div></div>
+      <div class="step"><div class="step-n">3</div><div class="step-b"><div class="h4">Gere o calendário do mês</div><p>Peça 12 a 20 ideias distribuídas pelos pilares.</p></div></div>
+      <div class="step"><div class="step-n">4</div><div class="step-b"><div class="h4">Produza os posts</div><p>Para cada ideia, gere o texto e as variações por canal.</p></div></div>
+      <div class="step"><div class="step-n">5</div><div class="step-b"><div class="h4">Revise e agende</div><p>Ajuste o toque humano e publique — direto ou pelo Make.</p></div></div>
+    </div>
+    <div>
+      <div class="prompt-h"><span class="card-label card-label--cyan mb0" style="margin:0;">Prompt base pronto</span><span class="copy">copiar</span></div>
+      <div class="prompt">Você é o estrategista de conteúdo da
+<span class="ph">[MARCA]</span>, que fala com <span class="ph">[PÚBLICO]</span>.
+
+<span class="cm"># Voz da marca</span>
+<span class="ph">[descreva o tom: ex. próximo, direto]</span>.
+
+<span class="cm"># Pilares de conteúdo</span>
+<span class="ph">[liste de 3 a 5 pilares]</span>.
+
+<span class="cm"># Tarefa</span>
+Gere <span class="ph">[N]</span> ideias de post para o mês,
+com: título, formato (carrossel, reels,
+texto), gancho e 1 CTA. Depois, escreva
+o post pedido e adapte para cada canal.
+
+<span class="cm"># Regras</span>
+- Nada genérico. Traga ângulos específicos.
+- Um CTA claro por post.</div>
+      <div class="callout co--dica mt14 mb0" style="padding:11px 14px;"><div class="co-h" style="margin-bottom:5px;">» Campos para preencher</div><p><span class="mono c-ok">[MARCA]</span> · <span class="mono c-ok">[PÚBLICO]</span> · <span class="mono c-ok">[VOZ]</span> · <span class="mono c-ok">[PILARES]</span> · <span class="mono c-ok">[N]</span> · canais.</p></div>
+    </div>
+  </div>
+  <div class="foot"><span class="brand"><span class="mono">LEVVL</span> · LABS</span><span>Agente A3 · Máquina de Conteúdo</span><span>26</span></div>
+</section>
+
+<!-- ======================= AGENTE 3 · OPERAÇÃO ======================= -->
+<section class="page" data-p="a3-run">
+  <div class="chaphead"><span class="chapnum mono c-ok">A3</span><h2 class="h2">Máquina de Conteúdo · operar e medir</h2></div>
+  <div class="grid g2" style="align-items:start;">
+    <div class="card"><div class="card-label card-label--cyan">Checklist de configuração</div>
+      <div class="checklist">
+        <div class="check"><span class="box"></span> Público-alvo e 3–5 pilares definidos</div>
+        <div class="check"><span class="box"></span> Voz da marca descrita com exemplos reais</div>
+        <div class="check"><span class="box"></span> Custom GPT criado e testado</div>
+        <div class="check"><span class="box"></span> Calendário do mês gerado</div>
+        <div class="check"><span class="box"></span> Modelos de post por canal definidos</div>
+        <div class="check"><span class="box"></span> Fluxo de revisão humana antes de publicar</div>
+        <div class="check"><span class="box"></span> Primeiro lote publicado e agendado</div>
+      </div>
+    </div>
+    <div class="callout co--pratica mb0" style="height:100%;">
+      <div class="co-h">◆ Exemplo prático</div>
+      <p>Uma nutricionista publicava “quando dava tempo” — às vezes uma vez por semana, às vezes sumia por um mês. Com a Máquina de Conteúdo, ela passou a gerar o calendário inteiro numa tarde de domingo e a publicar 4x por semana, sempre na mesma voz. Em três meses, o perfil dobrou de seguidores e virou fonte estável de clientes.</p>
+    </div>
+  </div>
+  <div class="card-label card-label--mut mt20">Métricas para acompanhar</div>
+  <div class="grid g4">
+    <div class="kpi"><div class="k-l">Posts por semana</div><div class="k-v">4<small>+</small></div><div class="k-d up-cyan">frequência estável</div></div>
+    <div class="kpi"><div class="k-l">Tempo por post</div><div class="k-v">-70<small>%</small></div><div class="k-d up-cyan">do rascunho ao ar</div></div>
+    <div class="kpi"><div class="k-l">Engajamento</div><div class="k-v">↑</div><div class="k-d up-amber">acompanhe por pilar</div></div>
+    <div class="kpi"><div class="k-l">Pauta antecipada</div><div class="k-v">30<small>d</small></div><div class="k-d up-purple">calendário cheio</div></div>
+  </div>
+  <div class="grid g2 mt20">
+    <div class="callout co--dica mb0"><div class="co-h">» Melhorias futuras</div><p>Alimentar o agente com os posts de melhor desempenho para ele repetir o que funciona; gerar roteiros de reels e carrosséis prontos; criar variações de teste A/B de gancho; conectar ao agendador para publicação automática.</p></div>
+    <div class="callout co--erro mb0"><div class="co-h">✗ Cuidados e limitações</div><p>Nunca publique sem revisar — a IA erra fatos e datas. Mantenha o toque humano nas histórias pessoais. E evite o “genérico de IA”: quanto mais específico o briefing, menos padrão sai o texto.</p></div>
+  </div>
+  <div class="foot"><span class="brand"><span class="mono">LEVVL</span> · LABS</span><span>Agente A3 · Máquina de Conteúdo</span><span>27</span></div>
+</section>
+<!-- ======================= AGENTE 4 · SEPARADOR ======================= -->
+<section class="page page--canvas" data-p="a4-sep">
+  <div class="amb"><div class="amb-glow-top"></div><div class="amb-glow-bot"></div></div>
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;">
+    <div><div class="kicker" style="margin-bottom:10px;">Agente 04 · de 05</div><div class="bignum">A4</div></div>
+    <div class="lockup" style="margin-top:6px;"><span class="wordmark" style="font-size:15px;">LEVVL</span><span class="pill-labs">Labs</span></div>
+  </div>
+  <h1 class="h1" style="font-size:44px;margin-top:14px;margin-bottom:6px;">Copiloto de <span class="grad">Operações</span></h1>
+  <div class="h3" style="color:var(--tx-55);font-weight:400;margin-bottom:14px;">Agente de Operações e Processos Internos</div>
+  <p class="lead" style="max-width:60ch;">O agente que tira o processo da cabeça das pessoas e o coloca em checklists claros — para que qualquer um execute com o mesmo padrão, na ordem certa.</p>
+  <div class="metaline" style="margin:18px 0 22px;">
+    <span class="pill pill-ok">Dificuldade · Fácil</span>
+    <span class="pill pill-run"><span class="dot"></span>Setup · 1 a 3 dias</span>
+    <span class="pill pill-mut">Custo · plano grátis serve</span>
+    <span class="pill pill-mut">Kit · Custom GPT + Notion</span>
+  </div>
+  <div class="grid g2">
+    <div class="card"><div class="card-label">Problema que resolve</div><p class="small mb0">O processo mora na cabeça de uma ou duas pessoas. Quando elas faltam, tudo trava; quando alguém novo entra, o onboarding é lento e cheio de retrabalho. Passos são esquecidos e o padrão se perde.</p></div>
+    <div class="card"><div class="card-label">Perfil ideal</div><p class="small mb0">Franquias, restaurantes, e-commerces, agências e qualquer PME com tarefas repetíveis que precisam ser executadas sempre do mesmo jeito, por pessoas diferentes.</p></div>
+  </div>
+  <div class="grid g2 mt14">
+    <div class="card"><div class="card-label card-label--cyan">Benefícios esperados</div>
+      <ul class="ul ul--ok mb0"><li>Processos documentados e fáceis de seguir.</li><li>Onboarding de novos membros muito mais rápido.</li><li>Padrão garantido — menos erro, menos retrabalho.</li></ul>
+    </div>
+    <div class="card"><div class="card-label">Ferramentas recomendadas</div>
+      <div class="tags" style="margin-bottom:10px;"><span class="tag tag--p">Custom GPT</span><span class="tag tag--p">Notion</span><span class="tag tag--p">Google Sheets</span><span class="tag tag--p">Make</span></div>
+      <p class="small mb0">Um Custom GPT transforma processos em checklists; o Notion guarda os POPs; o Make envia lembretes e cria tarefas.</p>
+    </div>
+  </div>
+  <div style="position:absolute;left:19mm;right:19mm;bottom:12mm;z-index:1;" class="tiny">MÉTODO AGENTES · A·G·E·N·T·E·S — CONSTRUÍDO PASSO A PASSO NAS PRÓXIMAS DUAS PÁGINAS</div>
+</section>
+
+<!-- ======================= AGENTE 4 · MONTAGEM ======================= -->
+<section class="page" data-p="a4-build">
+  <div class="chaphead"><span class="chapnum mono c-ok">A4</span><h2 class="h2">Copiloto de Operações · como montar</h2></div>
+  <div class="card-label card-label--mut">Fluxo de funcionamento</div>
+  <div class="flow" style="padding:20px 16px;margin-bottom:16px;">
+    <div class="flow-row">
+      <div class="node node--trigger"><div class="node-h"><span class="node-tag node-tag--p">GATILHO</span></div><div class="node-t">Tarefa começa</div><div class="node-d">Novo pedido, cliente ou turno.</div></div>
+      <div class="arrow"><svg viewBox="0 0 38 16"><line x1="0" y1="8" x2="28" y2="8" stroke="#6C5CE7" stroke-width="2" stroke-dasharray="5 5"/><path d="M28 3 L36 8 L28 13" stroke="#6C5CE7" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="node node--cond"><div class="node-h"><span class="node-tag node-tag--a">IDENTIFICA</span></div><div class="node-t">Qual processo?</div><div class="node-d">Escolhe o POP certo.</div></div>
+      <div class="arrow"><svg viewBox="0 0 38 16"><line x1="0" y1="8" x2="28" y2="8" stroke="#FFA502" stroke-width="2" stroke-dasharray="5 5"/><path d="M28 3 L36 8 L28 13" stroke="#FFA502" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="node"><div class="node-h"><span class="node-tag node-tag--p">GERA</span></div><div class="node-t">Monta o checklist</div><div class="node-d">Passos na ordem certa.</div></div>
+      <div class="arrow"><svg viewBox="0 0 38 16"><line x1="0" y1="8" x2="28" y2="8" stroke="#00F5D4" stroke-width="2" stroke-dasharray="5 5"/><path d="M28 3 L36 8 L28 13" stroke="#00F5D4" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="node node--action"><div class="node-h"><span class="node-tag node-tag--c">GUIA</span></div><div class="node-t">Acompanha e registra</div><div class="node-d">Confirma cada etapa.</div></div>
+    </div>
+  </div>
+  <div class="grid g2" style="align-items:start;">
+    <div>
+      <div class="card-label card-label--mut">Passo a passo de criação</div>
+      <div class="step"><div class="step-n">1</div><div class="step-b"><div class="h4">Liste os processos-chave</div><p>Escolha os 5 que mais geram dúvida ou erro no dia a dia.</p></div></div>
+      <div class="step"><div class="step-n">2</div><div class="step-b"><div class="h4">Descreva um processo em texto</div><p>Conte, com suas palavras, como ele é feito hoje.</p></div></div>
+      <div class="step"><div class="step-n">3</div><div class="step-b"><div class="h4">Transforme em POP com a IA</div><p>Cole o prompt: ela vira o texto em um checklist padrão.</p></div></div>
+      <div class="step"><div class="step-n">4</div><div class="step-b"><div class="h4">Publique no Notion</div><p>Guarde cada POP num lugar que a equipe acessa fácil.</p></div></div>
+      <div class="step"><div class="step-n">5</div><div class="step-b"><div class="h4">Teste com a equipe</div><p>Peça para alguém executar seguindo só o checklist e ajuste.</p></div></div>
+    </div>
+    <div>
+      <div class="prompt-h"><span class="card-label card-label--cyan mb0" style="margin:0;">Prompt base pronto</span><span class="copy">copiar</span></div>
+      <div class="prompt">Você é gerente de operações da <span class="ph">[EMPRESA]</span>.
+
+<span class="cm"># Tarefa</span>
+Transforme a descrição abaixo em um
+Procedimento Operacional Padrão (POP):
+1. Objetivo do processo.
+2. Responsável e ferramentas usadas.
+3. Checklist numerado, passo a passo.
+4. Critério de "concluído com sucesso".
+5. Erros comuns a evitar.
+
+<span class="cm"># Regras</span>
+- Linguagem simples, verbos no imperativo.
+- Cada passo deve caber em uma linha.
+
+Processo: <span class="ph">[DESCREVA O PROCESSO]</span></div>
+      <div class="callout co--dica mt14 mb0" style="padding:11px 14px;"><div class="co-h" style="margin-bottom:5px;">» Campos para preencher</div><p><span class="mono c-ok">[EMPRESA]</span> · <span class="mono c-ok">[PROCESSO]</span> · responsável · ferramentas · critério de pronto.</p></div>
+    </div>
+  </div>
+  <div class="foot"><span class="brand"><span class="mono">LEVVL</span> · LABS</span><span>Agente A4 · Copiloto de Operações</span><span>29</span></div>
+</section>
+
+<!-- ======================= AGENTE 4 · OPERAÇÃO ======================= -->
+<section class="page" data-p="a4-run">
+  <div class="chaphead"><span class="chapnum mono c-ok">A4</span><h2 class="h2">Copiloto de Operações · operar e medir</h2></div>
+  <div class="grid g2" style="align-items:start;">
+    <div class="card"><div class="card-label card-label--cyan">Checklist de configuração</div>
+      <div class="checklist">
+        <div class="check"><span class="box"></span> 5 processos-chave escolhidos</div>
+        <div class="check"><span class="box"></span> Cada processo descrito em texto</div>
+        <div class="check"><span class="box"></span> POPs gerados e revisados</div>
+        <div class="check"><span class="box"></span> Checklists publicados no Notion</div>
+        <div class="check"><span class="box"></span> Responsável definido por processo</div>
+        <div class="check"><span class="box"></span> Testado por alguém que não criou o POP</div>
+        <div class="check"><span class="box"></span> Lembretes/tarefas conectados (opcional)</div>
+      </div>
+    </div>
+    <div class="callout co--pratica mb0" style="height:100%;">
+      <div class="co-h">◆ Exemplo prático</div>
+      <p>Uma cafeteria com alta rotatividade perdia tempo e qualidade a cada contratação. O Copiloto de Operações transformou abertura, fechamento e preparo em checklists guiados no celular. O onboarding caiu de duas semanas para três dias, e as reclamações por padrão inconsistente praticamente sumiram.</p>
+    </div>
+  </div>
+  <div class="card-label card-label--mut mt20">Métricas para acompanhar</div>
+  <div class="grid g4">
+    <div class="kpi"><div class="k-l">Tempo de onboarding</div><div class="k-v">-60<small>%</small></div><div class="k-d up-cyan">novo colaborador</div></div>
+    <div class="kpi"><div class="k-l">Retrabalho / erros</div><div class="k-v">↓</div><div class="k-d up-cyan">menos falhas</div></div>
+    <div class="kpi"><div class="k-l">Aderência ao POP</div><div class="k-v">≥90<small>%</small></div><div class="k-d up-purple">passos cumpridos</div></div>
+    <div class="kpi"><div class="k-l">Processos documentados</div><div class="k-v">100<small>%</small></div><div class="k-d up-amber">nada só na cabeça</div></div>
+  </div>
+  <div class="grid g2 mt20">
+    <div class="callout co--dica mb0"><div class="co-h">» Melhorias futuras</div><p>Registrar automaticamente cada checklist concluído; gerar alertas quando um passo é pulado; criar um agente de dúvidas sobre os POPs; transformar os processos em treinamento interno automático para novos membros.</p></div>
+    <div class="callout co--erro mb0"><div class="co-h">✗ Cuidados e limitações</div><p>Um POP desatualizado é pior que nenhum. Revise quando o processo mudar. E não engesse demais: deixe espaço para o julgamento humano nos casos que fogem do padrão.</p></div>
+  </div>
+  <div class="foot"><span class="brand"><span class="mono">LEVVL</span> · LABS</span><span>Agente A4 · Copiloto de Operações</span><span>30</span></div>
+</section>
+<!-- ======================= AGENTE 5 · SEPARADOR ======================= -->
+<section class="page page--canvas" data-p="a5-sep">
+  <div class="amb"><div class="amb-glow-top"></div><div class="amb-glow-bot"></div></div>
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;">
+    <div><div class="kicker" style="margin-bottom:10px;">Agente 05 · de 05</div><div class="bignum">A5</div></div>
+    <div class="lockup" style="margin-top:6px;"><span class="wordmark" style="font-size:15px;">LEVVL</span><span class="pill-labs">Labs</span></div>
+  </div>
+  <h1 class="h1" style="font-size:44px;margin-top:14px;margin-bottom:6px;">Analista de <span class="grad">Bolso</span></h1>
+  <div class="h3" style="color:var(--tx-55);font-weight:400;margin-bottom:14px;">Agente de Análise de Dados e Relatórios</div>
+  <p class="lead" style="max-width:60ch;">O agente que lê sua planilha, resume os números em português claro, aponta o que mudou e sugere o que fazer a respeito — sem você precisar de um analista.</p>
+  <div class="metaline" style="margin:18px 0 22px;">
+    <span class="pill pill-queue">Dificuldade · Médio</span>
+    <span class="pill pill-run"><span class="dot"></span>Setup · 2 a 3 dias</span>
+    <span class="pill pill-mut">Custo · baixo</span>
+    <span class="pill pill-mut">Kit · Sheets + ChatGPT</span>
+  </div>
+  <div class="grid g2">
+    <div class="card"><div class="card-label">Problema que resolve</div><p class="small mb0">Os dados estão lá, na planilha — mas ninguém tem tempo de interpretar. O relatório manual demora, sai tarde e vira uma tabela que ninguém lê. As decisões acabam no achismo.</p></div>
+    <div class="card"><div class="card-label">Perfil ideal</div><p class="small mb0">Donos de pequenos negócios, gestores, financeiro e e-commerces que têm dados em planilha (vendas, gastos, tráfego) e não têm um analista dedicado.</p></div>
+  </div>
+  <div class="grid g2 mt14">
+    <div class="card"><div class="card-label card-label--cyan">Benefícios esperados</div>
+      <ul class="ul ul--ok mb0"><li>Resumo dos indicadores em linguagem simples.</li><li>Insights e desvios apontados antes de virarem problema.</li><li>Sugestões de ação — não só números, mas o próximo passo.</li></ul>
+    </div>
+    <div class="card"><div class="card-label">Ferramentas recomendadas</div>
+      <div class="tags" style="margin-bottom:10px;"><span class="tag tag--p">Google Sheets</span><span class="tag tag--p">ChatGPT</span><span class="tag tag--p">Make</span><span class="tag tag--p">Looker/Slides</span></div>
+      <p class="small mb0">A planilha é a fonte; o ChatGPT (análise de dados) interpreta; o Make agenda o relatório semanal por e-mail.</p>
+    </div>
+  </div>
+  <div style="position:absolute;left:19mm;right:19mm;bottom:12mm;z-index:1;" class="tiny">MÉTODO AGENTES · A·G·E·N·T·E·S — CONSTRUÍDO PASSO A PASSO NAS PRÓXIMAS DUAS PÁGINAS</div>
+</section>
+
+<!-- ======================= AGENTE 5 · MONTAGEM ======================= -->
+<section class="page" data-p="a5-build">
+  <div class="chaphead"><span class="chapnum mono c-ok">A5</span><h2 class="h2">Analista de Bolso · como montar</h2></div>
+  <div class="card-label card-label--mut">Fluxo de funcionamento</div>
+  <div class="flow" style="padding:20px 16px;margin-bottom:16px;">
+    <div class="flow-row">
+      <div class="node node--trigger"><div class="node-h"><span class="node-tag node-tag--p">DADOS</span></div><div class="node-t">Planilha atualizada</div><div class="node-d">Vendas, gastos, métricas.</div></div>
+      <div class="arrow"><svg viewBox="0 0 38 16"><line x1="0" y1="8" x2="28" y2="8" stroke="#6C5CE7" stroke-width="2" stroke-dasharray="5 5"/><path d="M28 3 L36 8 L28 13" stroke="#6C5CE7" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="node node--cond"><div class="node-h"><span class="node-tag node-tag--a">LÊ</span></div><div class="node-t">Calcula os KPIs</div><div class="node-d">Totais, médias, variações.</div></div>
+      <div class="arrow"><svg viewBox="0 0 38 16"><line x1="0" y1="8" x2="28" y2="8" stroke="#FFA502" stroke-width="2" stroke-dasharray="5 5"/><path d="M28 3 L36 8 L28 13" stroke="#FFA502" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="node"><div class="node-h"><span class="node-tag node-tag--p">INTERPRETA</span></div><div class="node-t">Acha o que importa</div><div class="node-d">Tendências e desvios.</div></div>
+      <div class="arrow"><svg viewBox="0 0 38 16"><line x1="0" y1="8" x2="28" y2="8" stroke="#00F5D4" stroke-width="2" stroke-dasharray="5 5"/><path d="M28 3 L36 8 L28 13" stroke="#00F5D4" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="node node--action"><div class="node-h"><span class="node-tag node-tag--c">RELATÓRIO</span></div><div class="node-t">Resume e sugere</div><div class="node-d">Insights + ações.</div></div>
+    </div>
+  </div>
+  <div class="grid g2" style="align-items:start;">
+    <div>
+      <div class="card-label card-label--mut">Passo a passo de criação</div>
+      <div class="step"><div class="step-n">1</div><div class="step-b"><div class="h4">Organize a planilha</div><p>Colunas com nomes claros e uma linha por registro. Nada de células mescladas.</p></div></div>
+      <div class="step"><div class="step-n">2</div><div class="step-b"><div class="h4">Defina seus KPIs e metas</div><p>Escolha de 3 a 5 números que realmente importam.</p></div></div>
+      <div class="step"><div class="step-n">3</div><div class="step-b"><div class="h4">Cole o prompt de análise</div><p>No ChatGPT, envie os dados e o prompt ao lado.</p></div></div>
+      <div class="step"><div class="step-n">4</div><div class="step-b"><div class="h4">Valide o primeiro relatório</div><p>Confira se os números batem com a realidade.</p></div></div>
+      <div class="step"><div class="step-n">5</div><div class="step-b"><div class="h4">Agende o envio semanal</div><p>Com o Make, receba o relatório pronto toda segunda.</p></div></div>
+    </div>
+    <div>
+      <div class="prompt-h"><span class="card-label card-label--cyan mb0" style="margin:0;">Prompt base pronto</span><span class="copy">copiar</span></div>
+      <div class="prompt">Você é analista de dados da <span class="ph">[EMPRESA]</span>.
+
+<span class="cm"># Contexto</span>
+Negócio: <span class="ph">[O QUE VOCÊ FAZ]</span>.
+KPIs que importam: <span class="ph">[LISTE OS KPIs]</span>.
+Metas: <span class="ph">[METAS DO PERÍODO]</span>.
+
+<span class="cm"># Tarefa</span>
+A partir dos dados abaixo, entregue:
+1. Resumo dos KPIs vs. meta.
+2. 3 insights (o que mudou e por quê).
+3. 3 ações práticas recomendadas.
+
+<span class="cm"># Regras</span>
+- Português simples, sem jargão.
+- Destaque desvios acima de 10%.
+
+Dados: <span class="ph">[COLE A PLANILHA]</span></div>
+      <div class="callout co--dica mt14 mb0" style="padding:11px 14px;"><div class="co-h" style="margin-bottom:5px;">» Campos para preencher</div><p><span class="mono c-ok">[EMPRESA]</span> · <span class="mono c-ok">[KPIs]</span> · <span class="mono c-ok">[METAS]</span> · período · contexto do negócio.</p></div>
+    </div>
+  </div>
+  <div class="foot"><span class="brand"><span class="mono">LEVVL</span> · LABS</span><span>Agente A5 · Analista de Bolso</span><span>32</span></div>
+</section>
+
+<!-- ======================= AGENTE 5 · OPERAÇÃO ======================= -->
+<section class="page" data-p="a5-run">
+  <div class="chaphead"><span class="chapnum mono c-ok">A5</span><h2 class="h2">Analista de Bolso · operar e medir</h2></div>
+  <div class="grid g2" style="align-items:start;">
+    <div class="card"><div class="card-label card-label--cyan">Checklist de configuração</div>
+      <div class="checklist">
+        <div class="check"><span class="box"></span> Planilha limpa, com colunas nomeadas</div>
+        <div class="check"><span class="box"></span> 3–5 KPIs e metas definidos</div>
+        <div class="check"><span class="box"></span> Contexto do negócio no prompt</div>
+        <div class="check"><span class="box"></span> Primeiro relatório conferido manualmente</div>
+        <div class="check"><span class="box"></span> Formato do relatório aprovado</div>
+        <div class="check"><span class="box"></span> Envio semanal agendado</div>
+        <div class="check"><span class="box"></span> Alerta para desvios críticos configurado</div>
+      </div>
+    </div>
+    <div class="callout co--pratica mb0" style="height:100%;">
+      <div class="co-h">◆ Exemplo prático</div>
+      <p>O dono de um e-commerce olhava a planilha de vendas “no sentimento”. O Analista de Bolso passou a mandar toda segunda um resumo: faturamento vs. meta, produtos em queda e sugestões. Numa semana, o agente apontou que um produto campeão estava com margem caindo por causa de frete — algo que passaria batido por semanas.</p>
+    </div>
+  </div>
+  <div class="card-label card-label--mut mt20">Métricas para acompanhar</div>
+  <div class="grid g4">
+    <div class="kpi"><div class="k-l">Tempo p/ gerar relatório</div><div class="k-v">-90<small>%</small></div><div class="k-d up-cyan">de horas a minutos</div></div>
+    <div class="kpi"><div class="k-l">Frequência de análise</div><div class="k-v">1<small>×/sem</small></div><div class="k-d up-cyan">antes: raramente</div></div>
+    <div class="kpi"><div class="k-l">Desvios pegos cedo</div><div class="k-v">↑</div><div class="k-d up-amber">antes de escalar</div></div>
+    <div class="kpi"><div class="k-l">Decisões com dado</div><div class="k-v">+</div><div class="k-d up-purple">menos achismo</div></div>
+  </div>
+  <div class="grid g2 mt20">
+    <div class="callout co--dica mb0"><div class="co-h">» Melhorias futuras</div><p>Gerar gráficos automáticos no relatório; comparar períodos (semana vs. semana); cruzar fontes (vendas + tráfego + anúncios); criar alertas em tempo real quando um KPI furar a meta; montar um painel visual atualizado sozinho.</p></div>
+    <div class="callout co--erro mb0"><div class="co-h">✗ Cuidados e limitações</div><p>A IA pode errar contas em planilhas grandes — sempre confira os números-chave. Dados sujos geram análises erradas: garanta a qualidade da planilha. E lembre: a decisão final é sua, não do agente.</p></div>
+  </div>
+  <div class="foot"><span class="brand"><span class="mono">LEVVL</span> · LABS</span><span>Agente A5 · Analista de Bolso</span><span>33</span></div>
+</section>
+<!-- ============================================================ 08 · TEMPLATES I · PRIORIZAÇÃO (light) ============================================================ -->
+<section class="page page--light page--tight" data-p="tpl1">
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:12px;">
+    <div><div class="chaphead" style="margin-bottom:6px;"><span class="chapnum">08</span><h2 class="h2">Templates · Priorização</h2></div>
+    <p class="small mb0" style="color:rgba(10,10,15,.6)">Qual agente construir primeiro? Liste seus candidatos, pontue e deixe os números decidirem.</p></div>
+    <div class="lockup"><span class="wordmark" style="font-size:16px;color:var(--l-ink)">LEVVL</span><span class="pill-labs">Labs</span></div>
+  </div>
+
+  <div class="card-label" style="color:var(--purple)">Tabela de priorização</div>
+  <table class="table" style="margin-bottom:14px;">
+    <thead><tr><th style="width:6%">#</th><th style="width:40%">Processo / tarefa candidata</th><th style="width:16%">Frequência</th><th style="width:13%">Impacto 1–5</th><th style="width:13%">Esforço 1–5</th><th style="width:12%">Nota*</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">1</td><td style="height:34px;"></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td class="mono">2</td><td style="height:34px;"></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td class="mono">3</td><td style="height:34px;"></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td class="mono">4</td><td style="height:34px;"></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td class="mono">5</td><td style="height:34px;"></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td class="mono">6</td><td style="height:34px;"></td><td></td><td></td><td></td><td></td></tr>
+    </tbody>
+  </table>
+
+  <div class="grid g2" style="align-items:start;">
+    <div class="callout co--dica mb0" style="background:rgba(108,92,231,.06);border-color:rgba(108,92,231,.3);">
+      <div class="co-h" style="color:var(--purple)">» Como pontuar</div>
+      <p style="color:rgba(10,10,15,.72)"><strong>Nota = (Impacto × Frequência) ÷ Esforço.</strong> Quanto maior, mais cedo você deve construir. Comece sempre pela maior nota — é o agente que mais devolve por menos trabalho.</p>
+    </div>
+    <div class="card card--2">
+      <div class="card-label" style="color:var(--purple)">Legenda rápida</div>
+      <ul class="ul mb0" style="color:rgba(10,10,15,.75)">
+        <li><strong>Impacto:</strong> quanto de tempo/receita o agente destrava.</li>
+        <li><strong>Frequência:</strong> quantas vezes a tarefa se repete.</li>
+        <li><strong>Esforço:</strong> dificuldade e tempo de montar.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="foot"><span class="brand"><span class="mono">LEVVL</span> · LABS</span><span>Templates · Priorização</span><span>34</span></div>
+</section>
+
+<!-- ============================================================ 08 · TEMPLATES II · MAPA + FICHA (light) ============================================================ -->
+<section class="page page--light page--tight" data-p="tpl2">
+  <div class="chaphead" style="margin-bottom:6px;"><span class="chapnum">08</span><h2 class="h2">Templates · Mapa &amp; Ficha</h2></div>
+  <p class="small" style="color:rgba(10,10,15,.6)">Escolhido o agente, mapeie o processo dele e preencha a ficha-relâmpago antes de construir.</p>
+
+  <div class="card-label" style="color:var(--purple);margin-top:6px;">Mapa de processo · do gatilho ao resultado</div>
+  <div class="grid" style="grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;">
+    <div class="card" style="padding:13px 15px;"><span class="field-l" style="color:var(--purple)">1 · Gatilho (o que inicia)</span><div class="field-b lines-3" style="margin-top:0;"></div></div>
+    <div class="card" style="padding:13px 15px;"><span class="field-l" style="color:var(--purple)">2 · Passos no meio</span><div class="field-b lines-3" style="margin-top:0;"></div></div>
+    <div class="card" style="padding:13px 15px;"><span class="field-l" style="color:var(--l-success)">3 · Resultado (o que sai)</span><div class="field-b lines-3" style="margin-top:0;"></div></div>
+  </div>
+
+  <div class="card-label" style="color:var(--purple)">Ficha-relâmpago do agente</div>
+  <div class="grid g2" style="gap:12px;">
+    <div class="field mb0"><span class="field-l">Objetivo (1 frase mensurável)</span><div class="field-b"></div></div>
+    <div class="field mb0"><span class="field-l">Público / quem será atendido</span><div class="field-b"></div></div>
+    <div class="field mb0" style="margin-top:12px;"><span class="field-l">Tarefas que ele executa</span><div class="field-b"></div></div>
+    <div class="field mb0" style="margin-top:12px;"><span class="field-l">Ferramentas do kit</span><div class="field-b"></div></div>
+    <div class="field mb0" style="margin-top:12px;"><span class="field-l">Dados / base de conhecimento</span><div class="field-b"></div></div>
+    <div class="field mb0" style="margin-top:12px;"><span class="field-l">Métrica-chave de sucesso</span><div class="field-b"></div></div>
+  </div>
+
+  <div class="callout co--pratica mt20 mb0" style="background:rgba(0,184,156,.07);border-color:rgba(0,184,156,.3);">
+    <div class="co-h" style="color:var(--l-success)">◆ Exercício rápido · 10 minutos</div>
+    <p style="color:rgba(10,10,15,.72)">Preencha esta ficha para o agente de maior nota na sua tabela de priorização. Se você travar em algum campo, é sinal de que precisa de mais clareza <strong>antes</strong> de abrir qualquer ferramenta. Este é o teste que economiza dias de retrabalho.</p>
+  </div>
+
+  <div class="foot"><span class="brand"><span class="mono">LEVVL</span> · LABS</span><span>Templates · Mapa &amp; Ficha</span><span>35</span></div>
+</section>
+<!-- ============================================================ 09 · ROTEIRO 7·14·30 (dark) ============================================================ -->
+<section class="page" data-p="roteiro">
+  <div class="amb" style="opacity:.35;"><div class="amb-glow-top"></div></div>
+  <div class="chaphead"><span class="chapnum">09</span><h2 class="h2">Plano de implementação · 7 · 14 · 30 dias</h2></div>
+  <p class="lead" style="max-width:62ch;">Do zero ao primeiro agente rodando em um mês, sem pressa e sem furos. Três fases, cada uma com uma meta clara. Marque conforme avança.</p>
+
+  <div class="grid g3 mt8" style="align-items:stretch;">
+    <div class="card" style="border-color:rgba(108,92,231,.35);">
+      <div class="metaline" style="margin-bottom:10px;"><span class="pill pill-run"><span class="dot"></span>DIAS 1–7</span></div>
+      <div class="h3">Diagnóstico &amp; escolha</div>
+      <p class="small" style="margin-bottom:12px;">Meta: sair com <strong>um</strong> agente escolhido e planejado.</p>
+      <div class="checklist">
+        <div class="check"><span class="box"></span> Ler os Capítulos 1 a 5</div>
+        <div class="check"><span class="box"></span> Listar tarefas repetitivas</div>
+        <div class="check"><span class="box"></span> Preencher a tabela de priorização</div>
+        <div class="check"><span class="box"></span> Escolher o agente nº 1</div>
+        <div class="check"><span class="box"></span> Preencher o Canvas</div>
+      </div>
+    </div>
+    <div class="card" style="border-color:rgba(255,165,2,.3);">
+      <div class="metaline" style="margin-bottom:10px;"><span class="pill pill-queue">DIAS 8–14</span></div>
+      <div class="h3">Montagem &amp; teste</div>
+      <p class="small" style="margin-bottom:12px;">Meta: agente <strong>funcionando</strong> em modo de teste.</p>
+      <div class="checklist">
+        <div class="check"><span class="box"></span> Criar contas nas ferramentas do kit</div>
+        <div class="check"><span class="box"></span> Montar a base de conhecimento</div>
+        <div class="check"><span class="box"></span> Personalizar o prompt base</div>
+        <div class="check"><span class="box"></span> Conectar entradas e saídas</div>
+        <div class="check"><span class="box"></span> Testar com 10 casos reais</div>
+      </div>
+    </div>
+    <div class="card" style="border-color:rgba(0,245,212,.35);">
+      <div class="metaline" style="margin-bottom:10px;"><span class="pill pill-ok">DIAS 15–30</span></div>
+      <div class="h3">Lançar &amp; otimizar</div>
+      <p class="small" style="margin-bottom:12px;">Meta: agente <strong>no ar</strong> e gerando resultado medido.</p>
+      <div class="checklist">
+        <div class="check"><span class="box"></span> Publicar com humano no circuito</div>
+        <div class="check"><span class="box"></span> Definir as métricas de sucesso</div>
+        <div class="check"><span class="box"></span> Acompanhar por 1 semana</div>
+        <div class="check"><span class="box"></span> Ajustar prompt e base</div>
+        <div class="check"><span class="box"></span> Soltar autonomia e planejar o nº 2</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bar mt20" style="height:10px;"><i style="width:66%"></i></div>
+  <div style="display:flex;justify-content:space-between;margin-top:8px;" class="tiny mono"><span>DIA 1 · DIAGNÓSTICO</span><span>DIA 14 · TESTE</span><span class="up-cyan">DIA 30 · NO AR</span></div>
+
+  <div class="callout co--dica mt20 mb0">
+    <div class="co-h">» Dica de implementação · a regra dos 30 dias</div>
+    <p>Resista à tentação de montar três agentes ao mesmo tempo. Um agente inteiro em 30 dias, com resultado medido, cria a confiança e o aprendizado que tornam o segundo <strong>duas vezes mais rápido</strong>.</p>
+  </div>
+
+  <div class="foot"><span class="brand"><span class="mono">LEVVL</span> · LABS</span><span>Plano de implementação</span><span>36</span></div>
+</section>
+
+<!-- ============================================================ 09 · PLANO DE AÇÃO FINAL (light, fillable) ============================================================ -->
+<section class="page page--light page--tight" data-p="plano">
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:12px;">
+    <div><div class="chaphead" style="margin-bottom:6px;"><span class="chapnum">09</span><h2 class="h2">Meu plano de ação</h2></div>
+    <p class="small mb0" style="color:rgba(10,10,15,.6)">A página mais importante do playbook. Preencha, assine e comece. Um compromisso escrito vira ação.</p></div>
+    <div class="lockup"><span class="wordmark" style="font-size:16px;color:var(--l-ink)">LEVVL</span><span class="pill-labs">Labs</span></div>
+  </div>
+
+  <div class="grid g2" style="gap:12px;">
+    <div class="field mb0"><span class="field-l">O agente que vou construir primeiro</span><div class="field-b"></div></div>
+    <div class="field mb0"><span class="field-l">O resultado que espero (mensurável)</span><div class="field-b"></div></div>
+  </div>
+  <div class="grid g2" style="gap:12px;margin-top:12px;">
+    <div class="field mb0"><span class="field-l">Ferramentas que vou usar</span><div class="field-b"></div></div>
+    <div class="field mb0"><span class="field-l">Responsável por tocar o projeto</span><div class="field-b"></div></div>
+  </div>
+
+  <div class="card-label" style="color:var(--purple);margin-top:16px;">Minhas 3 primeiras ações desta semana</div>
+  <div class="grid" style="grid-template-columns:1fr;gap:10px;">
+    <div style="display:flex;gap:12px;align-items:center;"><div class="step-n" style="background:rgba(108,92,231,.12);">1</div><div class="field-b" style="flex:1;min-height:38px;background-image:none;"></div></div>
+    <div style="display:flex;gap:12px;align-items:center;"><div class="step-n" style="background:rgba(108,92,231,.12);">2</div><div class="field-b" style="flex:1;min-height:38px;background-image:none;"></div></div>
+    <div style="display:flex;gap:12px;align-items:center;"><div class="step-n" style="background:rgba(108,92,231,.12);">3</div><div class="field-b" style="flex:1;min-height:38px;background-image:none;"></div></div>
+  </div>
+
+  <div class="grid" style="grid-template-columns:1fr 1fr 1.4fr;gap:12px;margin-top:16px;">
+    <div class="field mb0"><span class="field-l">Começo em (data)</span><div class="field-b" style="min-height:38px;background-image:none;"></div></div>
+    <div class="field mb0"><span class="field-l">Agente no ar até (data)</span><div class="field-b" style="min-height:38px;background-image:none;"></div></div>
+    <div class="field mb0"><span class="field-l">Assinatura / compromisso</span><div class="field-b" style="min-height:38px;background-image:none;"></div></div>
+  </div>
+
+  <div class="callout co--pratica mt20 mb0" style="background:rgba(0,184,156,.07);border-color:rgba(0,184,156,.3);">
+    <div class="co-h" style="color:var(--l-success)">◆ O compromisso</div>
+    <p style="color:rgba(10,10,15,.72)">Tire uma foto desta página preenchida e cole onde você trabalha. Metas visíveis têm muito mais chance de virar realidade. Daqui a 30 dias, volte e compare o que planejou com o que rodou.</p>
+  </div>
+
+  <div class="foot"><span class="brand"><span class="mono">LEVVL</span> · LABS</span><span>Meu plano de ação</span><span>37</span></div>
+</section>
+<!-- ============================================================ 10 · CHECKLIST FINAL (dark) ============================================================ -->
+<section class="page" data-p="checklist">
+  <div class="chaphead"><span class="chapnum">10</span><h2 class="h2">Checklist final de lançamento</h2></div>
+  <p class="lead" style="max-width:62ch;">Antes de colocar qualquer agente no ar, passe por esta lista. Ela condensa tudo que você aprendeu no Método AGENTES em uma verificação de cinco minutos.</p>
+
+  <div class="grid g2" style="align-items:start;">
+    <div class="card">
+      <div class="card-label">◆ Diagnóstico &amp; objetivo</div>
+      <div class="checklist">
+        <div class="check"><span class="box"></span> A tarefa é repetitiva e baseada em texto</div>
+        <div class="check"><span class="box"></span> O objetivo cabe em uma frase mensurável</div>
+        <div class="check"><span class="box"></span> Sei quanto tempo/dinheiro ele deve economizar</div>
+        <div class="check"><span class="box"></span> Entradas e saídas estão claras</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">◆ Prompt &amp; dados</div>
+      <div class="checklist">
+        <div class="check"><span class="box"></span> Persona, regras e formato definidos no prompt</div>
+        <div class="check"><span class="box"></span> Base de conhecimento montada e revisada</div>
+        <div class="check"><span class="box"></span> O agente responde só a partir da base</div>
+        <div class="check"><span class="box"></span> Todos os campos [ ] foram preenchidos</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label card-label--cyan">◆ Teste &amp; segurança</div>
+      <div class="checklist">
+        <div class="check"><span class="box"></span> Testado com 10+ casos reais</div>
+        <div class="check"><span class="box"></span> Testado com casos difíceis e fora do escopo</div>
+        <div class="check"><span class="box"></span> Existe a saída "falar com humano"</div>
+        <div class="check"><span class="box"></span> Dados pessoais tratados conforme a LGPD</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label card-label--cyan">◆ Lançamento &amp; medição</div>
+      <div class="checklist">
+        <div class="check"><span class="box"></span> Começa com humano no circuito</div>
+        <div class="check"><span class="box"></span> Métricas de sucesso definidas</div>
+        <div class="check"><span class="box"></span> Rotina semanal de revisão marcada</div>
+        <div class="check"><span class="box"></span> Próximo agente já mapeado</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout co--pratica mt20 mb0">
+    <div class="co-h">◆ Regra final</div>
+    <p>Se você marcou todas as caixas, pode lançar com confiança. Se travou em alguma, ela aponta exatamente o que revisar — volte ao capítulo correspondente. Um agente bem verificado erra menos na frente do cliente.</p>
+  </div>
+
+  <div class="foot"><span class="brand"><span class="mono">LEVVL</span> · LABS</span><span>Checklist final</span><span>38</span></div>
+</section>
+
+<!-- ============================================================ 10 · GLOSSÁRIO (dark) ============================================================ -->
+<section class="page" data-p="glossario">
+  <div class="chaphead"><span class="chapnum">10</span><h2 class="h2">Glossário essencial</h2></div>
+  <p class="lead" style="max-width:62ch;">Os termos que você vai encontrar por aí, explicados sem jargão. Corte, cole na parede, consulte quando precisar.</p>
+
+  <div class="grid g2" style="gap:14px 26px;">
+    <div>
+      <div class="glo" style="margin-bottom:11px;"><span class="mono c-purple" style="font-size:13px;">Agente de IA</span><p class="small mb0">Assistente digital que recebe um objetivo, decide e executa tarefas com autonomia.</p></div>
+      <div class="glo" style="margin-bottom:11px;"><span class="mono c-purple" style="font-size:13px;">Prompt</span><p class="small mb0">As instruções em texto que você dá ao agente. O briefing dele.</p></div>
+      <div class="glo" style="margin-bottom:11px;"><span class="mono c-purple" style="font-size:13px;">Contexto</span><p class="small mb0">Tudo que o agente tem "em mente" naquele momento para responder.</p></div>
+      <div class="glo" style="margin-bottom:11px;"><span class="mono c-purple" style="font-size:13px;">Base de conhecimento</span><p class="small mb0">Documentos que você fornece para o agente consultar e não inventar.</p></div>
+      <div class="glo" style="margin-bottom:11px;"><span class="mono c-purple" style="font-size:13px;">Memória</span><p class="small mb0">A capacidade de lembrar o que já foi dito na conversa ou antes.</p></div>
+      <div class="glo" style="margin-bottom:11px;"><span class="mono c-purple" style="font-size:13px;">RAG</span><p class="small mb0">Buscar a informação certa na base antes de responder. Reduz erros.</p></div>
+      <div class="glo" style="margin-bottom:11px;"><span class="mono c-purple" style="font-size:13px;">Trigger (gatilho)</span><p class="small mb0">O evento que dispara o agente: uma mensagem, um formulário, um horário.</p></div>
+      <div class="glo" style="margin-bottom:0;"><span class="mono c-purple" style="font-size:13px;">Workflow</span><p class="small mb0">A sequência de passos automatizados, do gatilho à ação final.</p></div>
+    </div>
+    <div>
+      <div class="glo" style="margin-bottom:11px;"><span class="mono c-purple" style="font-size:13px;">API / integração</span><p class="small mb0">A "tomada" que conecta duas ferramentas para trocarem dados.</p></div>
+      <div class="glo" style="margin-bottom:11px;"><span class="mono c-purple" style="font-size:13px;">No-code / low-code</span><p class="small mb0">Ferramentas para criar sem programar (ou com o mínimo de código).</p></div>
+      <div class="glo" style="margin-bottom:11px;"><span class="mono c-purple" style="font-size:13px;">LLM (modelo de linguagem)</span><p class="small mb0">O "cérebro" que entende e gera texto. Ex.: o motor do ChatGPT.</p></div>
+      <div class="glo" style="margin-bottom:11px;"><span class="mono c-purple" style="font-size:13px;">Alucinação</span><p class="small mb0">Quando a IA responde algo errado com confiança. A base evita isso.</p></div>
+      <div class="glo" style="margin-bottom:11px;"><span class="mono c-purple" style="font-size:13px;">Persona</span><p class="small mb0">O jeito do agente se comunicar: tom, vocabulário e limites.</p></div>
+      <div class="glo" style="margin-bottom:11px;"><span class="mono c-purple" style="font-size:13px;">Humano no circuito</span><p class="small mb0">Um humano aprova a ação do agente antes dela acontecer.</p></div>
+      <div class="glo" style="margin-bottom:11px;"><span class="mono c-purple" style="font-size:13px;">Dados estruturados</span><p class="small mb0">Organizados em linhas e colunas, como planilhas e tabelas.</p></div>
+      <div class="glo" style="margin-bottom:0;"><span class="mono c-purple" style="font-size:13px;">Dados não estruturados</span><p class="small mb0">Texto livre, e-mails, áudios, PDFs — ricos, mas bagunçados.</p></div>
+    </div>
+  </div>
+
+  <div class="foot"><span class="brand"><span class="mono">LEVVL</span> · LABS</span><span>Glossário</span><span>39</span></div>
+</section>
+<!-- ============================================================ CONCLUSÃO (dark) ============================================================ -->
+<section class="page" data-p="conclusao">
+  <div class="amb" style="opacity:.45;"><div class="amb-glow-top"></div></div>
+  <div class="kicker">Conclusão</div>
+  <h2 class="h1" style="max-width:20ch;">O primeiro agente muda <span class="grad">como você enxerga o trabalho.</span></h2>
+
+  <p>Depois que você vê uma tarefa chata sumir da sua semana, não dá mais para desver. Você começa a olhar para cada processo repetitivo e a perguntar: <strong>isso precisa mesmo de uma pessoa?</strong> Essa mudança de lente é o verdadeiro produto deste playbook — mais até do que os cinco agentes.</p>
+
+  <p>Você aprendeu o que é um agente e o que ele não é. Entendeu por que empresas estão correndo para adotá-los. Dominou os conceitos sem precisar de código. Conheceu as ferramentas certas. E, principalmente, saiu com um método — o <strong>AGENTES</strong> — que serve para qualquer processo, hoje e daqui a cinco anos, independente da ferramenta da moda.</p>
+
+  <div class="card" style="background:var(--canvas);border-color:rgba(108,92,231,.3);margin:20px 0;box-shadow:inset 0 0 50px rgba(108,92,231,.06);">
+    <div class="card-label card-label--cyan">◆ O que levar deste playbook</div>
+    <div class="grid g3 mt8">
+      <div><div class="mono c-purple" style="font-size:22px;font-family:var(--f-title);font-weight:700;">1</div><p class="small mb0">Comece por um. Um agente rodando vale mais que dez planejados.</p></div>
+      <div><div class="mono c-purple" style="font-size:22px;font-family:var(--f-title);font-weight:700;">2</div><p class="small mb0">Mostre o resultado antes de pedir setup. Valor primeiro, trabalho depois.</p></div>
+      <div><div class="mono c-purple" style="font-size:22px;font-family:var(--f-title);font-weight:700;">3</div><p class="small mb0">Meça, ajuste, repita. O agente nunca fica pronto — fica melhor.</p></div>
+    </div>
+  </div>
+
+  <p>A tecnologia vai continuar mudando. Novas ferramentas vão aparecer, outras vão desaparecer. Mas a habilidade de <strong>olhar para um problema de negócio e desenhar um agente que o resolve</strong> — essa fica com você. É a competência que separa quem só ouve falar de IA de quem coloca a IA para trabalhar.</p>
+
+  <div class="callout co--dica mt14 mb0">
+    <div class="co-h">» A única coisa que falta</div>
+    <p>Escolher um agente e começar hoje. Não amanhã, não depois de mais um curso. Abra o Canvas na página 17, preencha o plano de ação na página 37, e monte o seu primeiro agente esta semana.</p>
+  </div>
+
+  <div class="foot"><span class="brand"><span class="mono">LEVVL</span> · LABS</span><span>Conclusão</span><span>40</span></div>
+</section>
+
+<!-- ============================================================ PRÓXIMOS PASSOS / CONTRACAPA (dark cover) ============================================================ -->
+<section class="page page--canvas" data-p="fim">
+  <div class="amb"><div class="amb-glow-top"></div><div class="amb-glow-bot"></div></div>
+
+  <div class="lockup" style="margin-bottom:56px;">
+    <svg width="36" height="36" viewBox="0 0 48 48" fill="none" aria-hidden="true"><defs><linearGradient id="lgZ" x1="6" y1="10" x2="42" y2="38" gradientUnits="userSpaceOnUse"><stop stop-color="#6C5CE7"/><stop offset="1" stop-color="#00F5D4"/></linearGradient></defs><path d="M9 13 L21 24 L9 35" stroke="url(#lgZ)" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M24 13 L36 24 L24 35" stroke="url(#lgZ)" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span class="wordmark">LEVVL</span><span class="pill-labs">Labs</span>
+  </div>
+
+  <div class="kicker" style="margin-bottom:22px;">Próximos passos</div>
+  <h1 class="display" style="font-size:52px;max-width:16ch;">Agora é com <span class="grad">você.</span></h1>
+  <p class="lead" style="max-width:44ch;margin-bottom:34px;">Três movimentos para não deixar este playbook virar mais um PDF esquecido na pasta de downloads.</p>
+
+  <div class="grid g3" style="margin-bottom:40px;">
+    <div class="card"><div class="mono c-purple" style="font-size:12px;letter-spacing:2px;">PASSO 01</div><div class="h4 mt8">Escolha 1 agente</div><p class="small mb0">Use a matriz de priorização. O de maior nota. Só um.</p></div>
+    <div class="card"><div class="mono c-purple" style="font-size:12px;letter-spacing:2px;">PASSO 02</div><div class="h4 mt8">Preencha o Canvas</div><p class="small mb0">Desenhe antes de montar. 20 minutos que salvam dias.</p></div>
+    <div class="card"><div class="mono c-purple" style="font-size:12px;letter-spacing:2px;">PASSO 03</div><div class="h4 mt8">Monte em 7 dias</div><p class="small mb0">Siga o passo a passo do agente. Teste. Coloque no ar.</p></div>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+    <span class="btn btn--primary">Comece pelo agente A1 →</span>
+    <span class="small mb0" style="color:var(--tx-45);max-width:34ch;">O Atende 24/7 é o mais rápido de subir e o que dá o retorno mais visível.</span>
+  </div>
+
+  <div style="position:absolute;left:19mm;right:19mm;bottom:16mm;z-index:1;border-top:1px solid var(--line);padding-top:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+    <span class="tiny">SUA EQUIPE INVISÍVEL · PLAYBOOK DE AGENTES DE IA PARA NEGÓCIOS</span>
+    <span class="tiny mono" style="color:var(--purple)">LEVVL LABS · 2026 · » » RUN</span>
+  </div>
+</section>
+<!--PAGES-->
+</body>
+</html>
