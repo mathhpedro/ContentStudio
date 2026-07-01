@@ -149,6 +149,23 @@ strong{color:#fff;font-weight:600;}
 .vbadge{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--tx-70);font-weight:400;
   background:var(--s1);border:1px solid var(--line);border-radius:999px;padding:8px 14px;}
 .vbadge svg{width:15px;height:15px;color:var(--cyan);}
+/* hero · prova social + desconto */
+.hero-proof{display:flex;align-items:center;gap:14px;margin-bottom:28px;}
+.av-stack{display:flex;}
+.av-stack img{width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid var(--canvas);margin-left:-13px;box-shadow:0 0 0 1px rgba(255,255,255,.1);}
+.av-stack img:first-child{margin-left:0;}
+.hero-proof .stars{color:#FFB020;font-size:16px;letter-spacing:2px;line-height:1;}
+.hero-proof .stars b{color:#fff;font-family:var(--f-title);font-weight:700;margin-left:7px;font-size:15px;letter-spacing:0;}
+.hero-proof .pl{font-size:12.5px;color:var(--tx-55);display:block;margin-top:5px;}
+.hero-offer{display:flex;align-items:center;gap:22px;flex-wrap:wrap;margin:0 0 16px;}
+.hero-price{display:flex;align-items:baseline;gap:11px;}
+.hp-off{font-family:var(--f-mono);font-size:12px;font-weight:600;letter-spacing:1px;color:#07070B;background:var(--grad);border-radius:8px;padding:6px 9px;align-self:center;box-shadow:0 0 18px rgba(0,245,212,.3);}
+.hp-old{font-size:18px;color:var(--tx-45);text-decoration:line-through;font-weight:500;font-family:var(--f-title);}
+.hp-now{font-family:var(--f-title);font-weight:700;font-size:42px;letter-spacing:-1.5px;line-height:1;}
+.hero-trust{font-family:var(--f-mono);font-size:12px;color:var(--tx-45);letter-spacing:.5px;}
+.hero-trust .sep{color:var(--cyan);}
+.hero-seelink{color:var(--tx-62);border-bottom:1px solid var(--line-12);padding-bottom:1px;}
+@media (max-width:640px){ .hero-offer{gap:16px;} .hp-now{font-size:36px;} .av-stack img{width:40px;height:40px;} }
 
 /* 3D cover mockup */
 .stage{position:relative;perspective:1400px;min-height:520px;display:flex;align-items:center;justify-content:center;}
@@ -339,20 +356,34 @@ strong{color:#fff;font-weight:600;}
   <div class="wrap">
     <div class="hero-grid">
       <div class="hero-copy">
-        <span class="badge" style="margin-bottom:24px;"><span class="dot"></span>Novo Playbook Prático de IA para Negócios</span>
-        <h1 class="h-hero">Implemente <span class="grad">5 Agentes de IA</span> no seu negócio mesmo sem saber programar</h1>
-        <p class="sub">Um playbook completo para transformar o uso da IA em processos reais de atendimento, vendas, marketing, operações e análise de dados — com arquiteturas prontas, prompts base, fluxos, templates e passo a passo.</p>
-        <div class="hero-cta">
-          <a href="#oferta" class="btn btn--primary btn--lg">Quero acessar o Playbook agora →</a>
-          <a href="#agentes" class="btn btn--ghost btn--lg">Ver os 5 agentes inclusos</a>
+        <!-- PROVA SOCIAL · as fotos são PLACEHOLDERS (assets/avatars/person-N.jpg) — substitua por
+             fotos reais de clientes e confirme a nota 4,7/5 com avaliações reais antes de publicar. -->
+        <div class="hero-proof">
+          <div class="av-stack">
+            <img src="assets/avatars/person-1.jpg" alt="Leitor" width="44" height="44">
+            <img src="assets/avatars/person-2.jpg" alt="Leitora" width="44" height="44">
+            <img src="assets/avatars/person-3.jpg" alt="Leitor" width="44" height="44">
+            <img src="assets/avatars/person-4.jpg" alt="Leitora" width="44" height="44">
+            <img src="assets/avatars/person-5.jpg" alt="Leitor" width="44" height="44">
+          </div>
+          <div>
+            <div class="stars">★★★★★ <b>4,7/5</b></div>
+            <span class="pl">avaliado por centenas de leitores</span>
+          </div>
         </div>
-        <div class="hero-micro">Acesso imediato <b>•</b> Criado para não programadores <b>•</b> Aplicação prática em negócios reais</div>
-        <div class="vbadges">
-          <span class="vbadge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>5 agentes prontos</span>
-          <span class="vbadge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Templates preenchíveis</span>
-          <span class="vbadge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Framework passo a passo</span>
-          <span class="vbadge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Sem programação</span>
+
+        <h1 class="h-hero">Implemente <span class="grad">5 Agentes de IA</span> no seu negócio — sem saber programar</h1>
+        <p class="sub">Atendimento, vendas, marketing, operações e dados. 5 agentes prontos para aplicar.</p>
+
+        <div class="hero-offer">
+          <div class="hero-price">
+            <span class="hp-off">-51% OFF</span>
+            <span class="hp-old">R$ 197</span>
+            <span class="hp-now">R$ 97</span>
+          </div>
+          <a href="#oferta" class="btn btn--primary btn--lg">Garantir com 51% OFF →</a>
         </div>
+        <div class="hero-trust">Acesso imediato <span class="sep">·</span> Sem programar <span class="sep">·</span> <a href="#agentes" class="hero-seelink">ver os 5 agentes</a></div>
       </div>
 
       <div class="stage">
@@ -814,11 +845,11 @@ strong{color:#fff;font-weight:600;}
           </div>
         </div>
         <div class="center">
-          <div class="plabel" style="text-align:center;">Oferta de lançamento <span class="ph">[editar]</span></div>
+          <div class="plabel" style="text-align:center;">Oferta de lançamento · 51% OFF</div>
           <div class="price">
-            <div class="old">De R$ <span class="ph">197</span></div>
-            <div class="now">R$ <span class="ph">97</span></div>
-            <div class="edit">valor editável · entre R$50 e R$119,90</div>
+            <div class="old">De R$ 197</div>
+            <div class="now">R$ 97</div>
+            <div class="edit">pagamento único · acesso imediato</div>
           </div>
           <a href="#" class="btn btn--primary btn--lg" style="width:100%;margin:22px 0 14px;">Quero acessar o Playbook agora →</a>
           <p style="font-size:12.5px;color:var(--tx-55);margin:0 0 4px;">Menos do que <strong>uma hora de consultoria</strong> especializada em IA — com um material que você consulta e aplica sempre que precisar.</p>

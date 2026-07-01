@@ -34,8 +34,12 @@ Três caminhos (do mais simples ao mais flexível):
 Tudo que precisa de dado real está marcado em **laranja** com a classe `.ph` (ou texto
 `[editar]`). Procure por `[` no arquivo. Principais pontos:
 
-- **Preço** (seção Oferta): `De R$ 197` / `R$ 97` → ajuste para o seu valor final
-  (entre R$50 e R$119,90). Placeholders em `<span class="ph">`.
+- **Preço**: definido como **R$ 197 → R$ 97 (−51%)** no hero e na seção Oferta.
+  Para mudar, edite esses valores nos dois pontos.
+- **Prova social do hero (importante)**: a nota **4,7/5** e as **fotos das pessoas**
+  (`assets/avatars/person-1.jpg` … `person-5.jpg`) são **placeholders**. Substitua as
+  fotos por imagens reais de clientes (mesmos nomes de arquivo) e confirme a nota com
+  avaliações reais **antes de publicar** — não use dados/fotos fictícios no ar.
 - **Botões de compra**: os CTAs de compra usam `href="#"` / `href="#oferta"`. Troque o
   CTA final da oferta pela **URL de checkout/produto da Shopify**. Os demais CTAs rolam
   até a oferta (funil) — pode manter.
