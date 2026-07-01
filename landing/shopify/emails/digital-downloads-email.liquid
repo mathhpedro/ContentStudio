@@ -70,18 +70,30 @@
                     <div class="mono" style="color:#00F5D4;font-size:11px;letter-spacing:1px;padding-top:6px;">PRODUTO DIGITAL &middot; PDF</div>
                   </td>
                 </tr>
-                {% if attachment.link %}
+                {% if attachment.name %}
                 <tr>
                   <td colspan="2" class="cta" style="padding:4px 16px 18px;">
                     <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
                       <tr>
                         <td align="center" bgcolor="#6C5CE7" style="border-radius:12px;background:#6C5CE7;background-image:linear-gradient(135deg,#6C5CE7,#00F5D4);">
-                          <a href="{{ attachment.url }}" class="h-title" style="display:inline-block;padding:15px 30px;font-size:16px;font-weight:700;color:#07070B;letter-spacing:.2px;border-radius:12px;">
+                          <a href="{{ attachment.shop_url }}" class="h-title" style="display:inline-block;padding:15px 30px;font-size:16px;font-weight:700;color:#07070B;letter-spacing:.2px;border-radius:12px;">
                             Baixar meu Playbook &rarr;
                           </a>
                         </td>
                       </tr>
                     </table>
+                    <p class="mono" style="margin:12px 0 0;color:rgba(255,255,255,.4);font-size:11px;line-height:1.5;word-break:break-all;">
+                      Se o botão não funcionar, copie o link:<br>
+                      <a href="{{ attachment.shop_url }}" style="color:#00F5D4;">{{ attachment.shop_url }}</a>
+                    </p>
+                  </td>
+                </tr>
+                {% endif %}
+                {% if attachment.link %}
+                <tr>
+                  <td colspan="2" style="padding:0 16px 18px;">
+                    {% if attachment.instructions %}<p class="h-body" style="margin:0 0 10px;color:rgba(255,255,255,.6);font-size:13px;line-height:1.5;">{{ attachment.instructions }}</p>{% endif %}
+                    <a href="{{ attachment.url }}" class="h-title" style="display:inline-block;color:#00F5D4;font-size:14px;font-weight:600;">{% if attachment.cta_text %}{{ attachment.cta_text }}{% else %}Acessar{% endif %} &rarr;</a>
                   </td>
                 </tr>
                 {% endif %}
