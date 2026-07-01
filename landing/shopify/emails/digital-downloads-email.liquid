@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="supported-color-schemes" content="dark">
+<title>{{ shop.name }} — Seu download</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Outfit:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  body{margin:0;padding:0;background:#08080C;}
+  a{text-decoration:none;}
+  .h-title{font-family:'Space Grotesk',Arial,Helvetica,sans-serif;}
+  .h-body{font-family:'Outfit',Arial,Helvetica,sans-serif;}
+  .mono{font-family:'JetBrains Mono','Courier New',monospace;}
+  @media (max-width:620px){
+    .container{width:100% !important;}
+    .px{padding-left:22px !important;padding-right:22px !important;}
+    .cta a{display:block !important;}
+  }
+</style>
+</head>
+<body style="margin:0;padding:0;background:#08080C;">
+  <!-- preheader (hidden) -->
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#08080C;font-size:1px;line-height:1px;">
+    Seu Playbook IA na Prática está pronto para download.
+  </div>
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#08080C;background-image:radial-gradient(1200px 400px at 50% -10%, rgba(108,92,231,.18), transparent 70%);">
+    <tr>
+      <td align="center" style="padding:32px 16px;">
+
+        <!-- ====== CARD ====== -->
+        <table role="presentation" class="container" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:600px;background:#0E0E15;border:1px solid rgba(255,255,255,.08);border-radius:18px;overflow:hidden;">
+
+          <!-- brand bar -->
+          <tr>
+            <td class="px" style="padding:24px 36px 18px;border-bottom:1px solid rgba(255,255,255,.06);">
+              <span class="mono" style="color:#00F5D4;font-size:16px;font-weight:600;letter-spacing:1px;">&raquo;&raquo;</span>
+              <span class="h-title" style="color:#FFFFFF;font-size:17px;font-weight:700;letter-spacing:3px;padding-left:6px;">LEVVL</span>
+              <span class="mono" style="color:rgba(255,255,255,.55);font-size:11px;letter-spacing:2px;padding-left:6px;">LABS</span>
+            </td>
+          </tr>
+
+          <!-- hero -->
+          <tr>
+            <td class="px" style="padding:38px 36px 8px;">
+              <div class="mono" style="color:#00F5D4;font-size:12px;letter-spacing:2px;text-transform:uppercase;padding-bottom:14px;">Pagamento confirmado</div>
+              <h1 class="h-title" style="margin:0;color:#FFFFFF;font-size:30px;line-height:1.2;font-weight:700;letter-spacing:-.5px;">
+                Seu acesso está liberado{% if customer.first_name != blank %}, {{ customer.first_name }}{% endif %}.
+              </h1>
+              <p class="h-body" style="margin:16px 0 0;color:rgba(255,255,255,.66);font-size:15px;line-height:1.6;">
+                Obrigado pela compra. Seu <strong style="color:#fff;">Playbook IA na Prática</strong> está pronto — é só baixar no botão abaixo.
+              </p>
+            </td>
+          </tr>
+
+          <!-- downloads -->
+          {% for attachment in attachments %}
+          <tr>
+            <td class="px" style="padding:22px 36px 6px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#13131A;border:1px solid rgba(255,255,255,.07);border-radius:16px;">
+                <tr>
+                  <td width="88" valign="top" style="padding:16px 0 16px 16px;">
+                    <img src="https://cdn.shopify.com/s/files/1/1025/2343/7350/files/cover.jpg" width="72" alt="{{ attachment.product_name }}" style="display:block;width:72px;height:auto;border-radius:8px;border:1px solid rgba(255,255,255,.1);">
+                  </td>
+                  <td valign="middle" style="padding:16px 16px 16px 14px;">
+                    <div class="h-title" style="color:#FFFFFF;font-size:16px;font-weight:600;line-height:1.35;">{{ attachment.product_name }}</div>
+                    {% if attachment.name %}<div class="mono" style="color:rgba(255,255,255,.5);font-size:11px;letter-spacing:.5px;padding-top:6px;">{{ attachment.name }}</div>{% endif %}
+                    <div class="mono" style="color:#00F5D4;font-size:11px;letter-spacing:1px;padding-top:6px;">PRODUTO DIGITAL &middot; PDF</div>
+                  </td>
+                </tr>
+                {% if attachment.link %}
+                <tr>
+                  <td colspan="2" class="cta" style="padding:4px 16px 18px;">
+                    <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+                      <tr>
+                        <td align="center" bgcolor="#6C5CE7" style="border-radius:12px;background:#6C5CE7;background-image:linear-gradient(135deg,#6C5CE7,#00F5D4);">
+                          <a href="{{ attachment.url }}" class="h-title" style="display:inline-block;padding:15px 30px;font-size:16px;font-weight:700;color:#07070B;letter-spacing:.2px;border-radius:12px;">
+                            Baixar meu Playbook &rarr;
+                          </a>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                {% endif %}
+              </table>
+            </td>
+          </tr>
+          {% endfor %}
+
+          <!-- next steps -->
+          <tr>
+            <td class="px" style="padding:20px 36px 8px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#13131A;border:1px solid rgba(255,255,255,.07);border-radius:14px;">
+                <tr>
+                  <td style="padding:18px 20px;">
+                    <div class="mono" style="color:#B26CF0;font-size:11px;letter-spacing:2px;text-transform:uppercase;padding-bottom:12px;">Por onde começar</div>
+                    <table role="presentation" cellpadding="0" cellspacing="0" class="h-body" style="color:rgba(255,255,255,.72);font-size:14px;line-height:1.5;">
+                      <tr><td valign="top" style="padding:4px 10px 4px 0;color:#00F5D4;font-weight:700;">1.</td><td style="padding:4px 0;">Baixe o Playbook no botão acima e salve no seu dispositivo.</td></tr>
+                      <tr><td valign="top" style="padding:4px 10px 4px 0;color:#00F5D4;font-weight:700;">2.</td><td style="padding:4px 0;">Comece pelo <strong style="color:#fff;">Canvas de criação</strong> e escolha seu primeiro agente.</td></tr>
+                      <tr><td valign="top" style="padding:4px 10px 4px 0;color:#00F5D4;font-weight:700;">3.</td><td style="padding:4px 0;">Siga o método A.G.E.N.T.E. e coloque para rodar.</td></tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- support -->
+          <tr>
+            <td class="px h-body" style="padding:22px 36px 6px;color:rgba(255,255,255,.55);font-size:13px;line-height:1.6;">
+              Precisa de ajuda? Responda este e-mail{% if shop.email %} ou fale com <a href="mailto:{{ shop.email }}" style="color:#00F5D4;">{{ shop.email }}</a>{% endif %}. Estamos por aqui.
+            </td>
+          </tr>
+
+          <!-- footer -->
+          <tr>
+            <td class="px" style="padding:22px 36px 30px;border-top:1px solid rgba(255,255,255,.06);">
+              <div class="h-title" style="color:rgba(255,255,255,.85);font-size:13px;font-weight:600;letter-spacing:2px;">LEVVL LABS</div>
+              <p class="mono" style="margin:8px 0 0;color:rgba(255,255,255,.32);font-size:11px;line-height:1.6;letter-spacing:.3px;">
+                {{ shop.name }} &middot; Produto digital &middot; Pedido {{ order.id }}.<br>
+                Material educativo — não substitui consultoria personalizada.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+        <!-- /CARD -->
+
+        <div class="mono" style="color:rgba(255,255,255,.28);font-size:11px;letter-spacing:.4px;padding-top:18px;">
+          &copy; 2026 LEVVL Labs — a gramática de quem automatiza o trabalho
+        </div>
+
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
