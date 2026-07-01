@@ -72,14 +72,19 @@ body{
   width:210mm;
   height:297mm;
   margin:0 auto;
-  padding:17mm 19mm 16mm;
+  padding:18mm 19mm 17mm;
   background:var(--bg);
   overflow:hidden;
   border-bottom:1px solid var(--line);
+  display:flex;
+  flex-direction:column;
+  justify-content:center;   /* centraliza o conteúdo em fluxo; footer/amb são absolutos */
 }
 .page + .page{margin-top:14px;}
 .page--canvas{background:var(--canvas);}
-.page--tight{padding-top:15mm;padding-bottom:13mm;}
+.page--top{justify-content:flex-start;}   /* capa e contracapa: conteúdo ancorado no topo */
+.page--light{justify-content:flex-start;} /* folhas de trabalho: preenchem de cima para baixo */
+.page--tight{padding-top:15mm;padding-bottom:14mm;}
 /* páginas de trabalho: variante clara sancionada pelo DS p/ densidade de dados */
 .page--light{background:var(--l-bg);color:var(--l-ink);}
 .page--light .kicker{color:var(--purple);}
@@ -105,8 +110,8 @@ body{
 .h3{font-family:var(--f-title);font-weight:600;font-size:19px;letter-spacing:-.3px;margin:0 0 8px;}
 .h4{font-family:var(--f-title);font-weight:600;font-size:15px;margin:0 0 7px;}
 .grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
-.lead{font-size:16.5px;line-height:1.5;color:var(--tx-62);font-weight:300;margin:0 0 15px;}
-p{font-size:13.5px;line-height:1.55;color:var(--tx-70);font-weight:300;margin:0 0 11px;}
+.lead{font-size:16.5px;line-height:1.56;color:var(--tx-62);font-weight:300;margin:0 0 17px;}
+p{font-size:13.5px;line-height:1.62;color:var(--tx-70);font-weight:300;margin:0 0 12px;}
 .page--light p{color:rgba(10,10,15,.72);}
 .page--light .lead{color:rgba(10,10,15,.60);}
 strong{color:#fff;font-weight:500;}
@@ -118,7 +123,7 @@ strong{color:#fff;font-weight:500;}
 a{color:var(--cyan);text-decoration:none;}
 
 /* cabeçalho numerado de capítulo */
-.chaphead{display:flex;align-items:baseline;gap:16px;margin-bottom:10px;}
+.chaphead{display:flex;align-items:baseline;gap:16px;margin-bottom:14px;}
 .chapnum{font-family:var(--f-mono);font-size:14px;color:var(--purple);letter-spacing:1px;}
 .chaphead .h2{margin:0;}
 
@@ -137,13 +142,14 @@ a{color:var(--cyan);text-decoration:none;}
 .page--light .pill-labs{color:rgba(10,10,15,.55);border-color:var(--l-border);}
 
 /* ============ CARDS & GRIDS ============ */
-.grid{display:grid;gap:13px;}
+.grid{display:grid;gap:15px;}
 .g2{grid-template-columns:repeat(2,1fr);}
 .g3{grid-template-columns:repeat(3,1fr);}
 .g4{grid-template-columns:repeat(4,1fr);}
 .g-hairline{gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden;}
 .g-hairline > *{border-radius:0!important;border:none!important;}
-.card{background:var(--s1);border:1px solid var(--line);border-radius:14px;padding:17px 18px;}
+.card{background:var(--s1);border:1px solid var(--line);border-radius:14px;padding:19px 20px;}
+.card--sm{padding:14px 16px;}
 .card--2{background:var(--s2);}
 .card--flush{background:var(--s1);padding:20px;}
 .card-label{font-family:var(--f-mono);font-size:11px;letter-spacing:2px;color:var(--purple);text-transform:uppercase;margin-bottom:10px;}
@@ -180,9 +186,9 @@ a{color:var(--cyan);text-decoration:none;}
 .metaline{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 6px;}
 
 /* ============ CALLOUTS ============ */
-.callout{border-radius:14px;padding:14px 17px;margin:0 0 12px;border:1px solid var(--line);background:var(--s1);}
-.callout .co-h{font-family:var(--f-mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-bottom:7px;display:flex;align-items:center;gap:8px;}
-.callout p{margin:0;color:var(--tx-70);font-size:13px;line-height:1.5;}
+.callout{border-radius:14px;padding:16px 18px;margin:0 0 14px;border:1px solid var(--line);background:var(--s1);}
+.callout .co-h{font-family:var(--f-mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+.callout p{margin:0;color:var(--tx-70);font-size:13px;line-height:1.55;}
 .callout p + p{margin-top:8px;}
 .co--pratica{border-color:rgba(0,245,212,.28);background:rgba(0,245,212,.05);}
 .co--pratica .co-h{color:var(--cyan);}
@@ -196,14 +202,14 @@ a{color:var(--cyan);text-decoration:none;}
 
 /* ============ LISTAS / CHECKLIST ============ */
 .ul{list-style:none;padding:0;margin:0 0 14px;}
-.ul li{position:relative;padding-left:24px;font-size:13px;line-height:1.5;color:var(--tx-70);font-weight:300;margin-bottom:8px;}
+.ul li{position:relative;padding-left:24px;font-size:13px;line-height:1.55;color:var(--tx-70);font-weight:300;margin-bottom:9px;}
 .ul li::before{content:"›";position:absolute;left:6px;top:-1px;color:var(--purple);font-family:var(--f-title);font-weight:700;}
 .ul--ok li::before{content:"✓";color:var(--cyan);font-family:var(--f-body);font-weight:600;left:2px;}
 .page--light .ul li{color:rgba(10,10,15,.75);}
 .page--light .ul--ok li::before{color:var(--l-success);}
 
-.checklist{display:flex;flex-direction:column;gap:11px;}
-.check{display:flex;align-items:flex-start;gap:12px;font-size:14px;line-height:1.45;color:var(--tx-70);font-weight:300;}
+.checklist{display:flex;flex-direction:column;gap:13px;}
+.check{display:flex;align-items:flex-start;gap:12px;font-size:14px;line-height:1.5;color:var(--tx-70);font-weight:300;}
 .check .box{flex:none;width:18px;height:18px;border-radius:5px;border:1.5px solid rgba(108,92,231,.55);margin-top:1px;background:rgba(108,92,231,.06);}
 .page--light .check{color:rgba(10,10,15,.78);}
 .page--light .check .box{border-color:rgba(108,92,231,.55);background:#fff;}
@@ -211,9 +217,10 @@ a{color:var(--cyan);text-decoration:none;}
 /* ============ TABELAS ============ */
 .table{width:100%;border-collapse:separate;border-spacing:0;background:var(--bg);border:1px solid var(--line);border-radius:14px;overflow:hidden;}
 .table th{font-family:var(--f-mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--tx-45);
-  text-align:left;padding:9px 13px;background:var(--s1);border-bottom:1px solid var(--line);font-weight:500;}
-.table td{font-size:12px;line-height:1.4;color:var(--tx-70);padding:9px 13px;border-bottom:1px solid rgba(255,255,255,.05);vertical-align:top;font-weight:300;}
+  text-align:left;padding:10px 13px;background:var(--s1);border-bottom:1px solid var(--line);font-weight:500;}
+.table td{font-size:12px;line-height:1.45;color:var(--tx-70);padding:11px 13px;border-bottom:1px solid rgba(255,255,255,.05);vertical-align:top;font-weight:300;}
 .table tr:last-child td{border-bottom:none;}
+.table--compact td{padding:7px 12px;} .table--compact th{padding:8px 12px;}
 .table td strong{font-weight:500;}
 .table .mono{font-family:var(--f-mono);font-size:12px;color:var(--tx-62);}
 .page--light .table{background:var(--l-surface);border-color:var(--l-border);}
@@ -257,8 +264,8 @@ a{color:var(--cyan);text-decoration:none;}
 .input--focus{border-color:var(--purple);box-shadow:var(--glow-purple);color:#fff;}
 
 /* bloco de prompt / código */
-.prompt{background:var(--canvas);border:1px solid rgba(108,92,231,.3);border-radius:14px;padding:18px 20px;
-  font-family:var(--f-mono);font-size:12.5px;line-height:1.7;color:rgba(255,255,255,.82);white-space:pre-wrap;
+.prompt{background:var(--canvas);border:1px solid rgba(108,92,231,.3);border-radius:14px;padding:17px 19px;
+  font-family:var(--f-mono);font-size:11px;line-height:1.62;color:rgba(255,255,255,.82);white-space:pre-wrap;
   box-shadow:inset 0 0 40px rgba(108,92,231,.05);}
 .prompt .ph{color:var(--cyan);}          /* placeholder que o leitor preenche */
 .prompt .cm{color:var(--tx-35);}          /* comentário */
@@ -280,7 +287,7 @@ a{color:var(--cyan);text-decoration:none;}
 
 /* divisor */
 .hr{height:1px;background:var(--line);border:none;margin:22px 0;}
-.mt0{margin-top:0;} .mb0{margin-bottom:0!important;} .mt8{margin-top:7px;} .mt14{margin-top:11px;} .mt20{margin-top:15px;} .mt28{margin-top:20px;} .mt36{margin-top:26px;}
+.mt0{margin-top:0;} .mb0{margin-bottom:0!important;} .mt8{margin-top:8px;} .mt14{margin-top:13px;} .mt20{margin-top:18px;} .mt28{margin-top:24px;} .mt36{margin-top:30px;}
 .center{text-align:center;} .right{text-align:right;}
 
 /* número gigante do agente (separador) */
@@ -288,7 +295,7 @@ a{color:var(--cyan);text-decoration:none;}
   background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;opacity:.9;}
 
 /* passo numerado */
-.step{display:flex;gap:14px;margin-bottom:13px;}
+.step{display:flex;gap:14px;margin-bottom:17px;}
 .step-n{flex:none;width:30px;height:30px;border-radius:9px;background:rgba(108,92,231,.14);border:1px solid rgba(108,92,231,.4);
   display:flex;align-items:center;justify-content:center;font-family:var(--f-mono);font-size:13px;color:var(--purple);font-weight:600;}
 .step-b{flex:1;}
@@ -317,7 +324,7 @@ a{color:var(--cyan);text-decoration:none;}
 </head>
 <body>
 <!-- ============================================================ 01 · CAPA PRINCIPAL ============================================================ -->
-<section class="page page--canvas" data-p="capa">
+<section class="page page--canvas page--top" data-p="capa">
   <div class="amb"><div class="amb-glow-top"></div><div class="amb-glow-bot"></div></div>
 
   <div class="lockup" style="margin-bottom:64px;">
@@ -339,22 +346,22 @@ a{color:var(--cyan);text-decoration:none;}
     5 agentes prontos para aplicar · a metodologia <span class="mono" style="color:var(--cyan)">AGENTES</span> · canvas, templates e um plano de implementação em 30 dias.
   </p>
 
-  <div class="grid g3 g-hairline">
-    <div style="background:var(--s1);padding:22px 24px;">
+  <div class="grid g3 g-hairline" style="margin-top:auto;">
+    <div style="background:var(--s1);padding:24px 26px;">
       <div class="tiny up" style="margin-bottom:10px;">Formato</div>
       <div class="h4" style="margin:0;">Playbook acionável</div>
     </div>
-    <div style="background:var(--s1);padding:22px 24px;">
+    <div style="background:var(--s1);padding:24px 26px;">
       <div class="tiny up" style="margin-bottom:10px;">Nível</div>
       <div class="h4" style="margin:0;">Zero código · iniciante</div>
     </div>
-    <div style="background:var(--s1);padding:22px 24px;">
+    <div style="background:var(--s1);padding:24px 26px;">
       <div class="tiny up" style="margin-bottom:10px;">Para quem</div>
       <div class="h4" style="margin:0;">Gestão · Ops · Founders</div>
     </div>
   </div>
 
-  <div style="position:absolute;left:22mm;right:22mm;bottom:20mm;z-index:1;display:flex;justify-content:space-between;align-items:center;">
+  <div style="position:absolute;left:19mm;right:19mm;bottom:11mm;z-index:1;display:flex;justify-content:space-between;align-items:center;">
     <span class="tiny">LEVVL LABS · A GRAMÁTICA DE QUEM AUTOMATIZA O TRABALHO</span>
     <span class="tiny mono" style="color:var(--purple)">» » RUN</span>
   </div>
@@ -575,9 +582,9 @@ a{color:var(--cyan);text-decoration:none;}
 <!-- ============================================================ CAP 1 · (pg2) comparativo + aplicações ============================================================ -->
 <section class="page" data-p="cap1b">
   <div class="chaphead"><span class="chapnum">01</span><h2 class="h2">Chatbot, automação, assistente ou agente?</h2></div>
-  <p class="lead" style="max-width:62ch;">Esses quatro termos são usados como sinônimos — e não são. Entender a diferença evita frustração e ajuda a escolher a ferramenta certa.</p>
+  <p class="lead" style="max-width:62ch;">Esses quatro termos são usados como sinônimos — e não são. Entender a diferença ajuda a escolher a ferramenta certa.</p>
 
-  <table class="table mt8">
+  <table class="table table--compact mt8">
     <thead><tr><th style="width:20%">Tipo</th><th style="width:30%">O que faz</th><th style="width:28%">Limite</th><th style="width:22%">Analogia</th></tr></thead>
     <tbody>
       <tr><td><strong>Chatbot de regras</strong></td><td>Responde a partir de botões e respostas fixas pré-programadas.</td><td>Quebra fora do roteiro. Não entende o que não foi previsto.</td><td>Uma URA de telefone (“digite 1 para…”).</td></tr>
@@ -587,27 +594,27 @@ a{color:var(--cyan);text-decoration:none;}
     </tbody>
   </table>
 
-  <div class="callout co--pratica mt20">
+  <div class="callout co--pratica mt14">
     <div class="co-h">◆ Na prática · a mesma pergunta, quatro respostas</div>
     <p><strong>Cliente:</strong> “Vocês entregam em Curitiba e quanto custa para o CEP 80010-000?”</p>
-    <p><span class="mono c-err">Chatbot:</span> mostra um menu. <span class="mono c-amber">Automação:</span> não sabe responder, abre um ticket. <span class="mono c-info">Assistente:</span> explica a política de frete genérica. <span class="mono c-ok">Agente:</span> consulta a tabela de frete pelo CEP, confirma a cobertura e responde o valor e o prazo exatos.</p>
+    <p><span class="mono c-err">Chatbot:</span> mostra um menu. <span class="mono c-amber">Automação:</span> abre um ticket. <span class="mono c-info">Assistente:</span> explica a política genérica. <span class="mono c-ok">Agente:</span> consulta a tabela de frete pelo CEP e responde o valor e o prazo exatos.</p>
   </div>
 
-  <h3 class="h3 mt20">Onde aplicar em um negócio real</h3>
-  <p class="small">Agentes brilham em tarefas <strong>repetitivas, baseadas em texto e com regras claras</strong>. Um mapa rápido por área:</p>
+  <h3 class="h3 mt14">Onde aplicar em um negócio real</h3>
+  <p class="small mb0" style="margin-bottom:12px;">Agentes brilham em tarefas <strong>repetitivas, baseadas em texto e com regras claras</strong>. Um mapa por área:</p>
 
-  <div class="grid g3 mt14" style="gap:14px;">
-    <div class="card card--2"><div class="card-label">Atendimento</div><p class="small mb0">Triagem, dúvidas frequentes, status de pedido, primeiro nível de suporte.</p></div>
-    <div class="card card--2"><div class="card-label">Vendas</div><p class="small mb0">Qualificação de leads, respostas iniciais, follow-up, scripts de abordagem.</p></div>
-    <div class="card card--2"><div class="card-label">Marketing</div><p class="small mb0">Ideias de conteúdo, calendário editorial, roteiros, adaptação por canal.</p></div>
-    <div class="card card--2"><div class="card-label">Operações</div><p class="small mb0">Checklists, padronização de processos, organização de tarefas.</p></div>
-    <div class="card card--2"><div class="card-label">Dados</div><p class="small mb0">Resumo de planilhas, indicadores, alertas e insights simples.</p></div>
-    <div class="card card--2"><div class="card-label">Financeiro / Admin</div><p class="small mb0">Classificação de despesas, conferência de documentos, lembretes.</p></div>
+  <div class="grid g3 mt14" style="gap:12px;">
+    <div class="card card--2 card--sm"><div class="card-label" style="margin-bottom:7px;">Atendimento</div><p class="small mb0">Triagem, dúvidas frequentes, status de pedido, 1º nível de suporte.</p></div>
+    <div class="card card--2 card--sm"><div class="card-label" style="margin-bottom:7px;">Vendas</div><p class="small mb0">Qualificação de leads, respostas iniciais, follow-up, scripts.</p></div>
+    <div class="card card--2 card--sm"><div class="card-label" style="margin-bottom:7px;">Marketing</div><p class="small mb0">Ideias de conteúdo, calendário editorial, roteiros por canal.</p></div>
+    <div class="card card--2 card--sm"><div class="card-label" style="margin-bottom:7px;">Operações</div><p class="small mb0">Checklists, padronização de processos, organização de tarefas.</p></div>
+    <div class="card card--2 card--sm"><div class="card-label" style="margin-bottom:7px;">Dados</div><p class="small mb0">Resumo de planilhas, indicadores, alertas e insights simples.</p></div>
+    <div class="card card--2 card--sm"><div class="card-label" style="margin-bottom:7px;">Financeiro / Admin</div><p class="small mb0">Classificação de despesas, conferência de documentos, lembretes.</p></div>
   </div>
 
-  <div class="callout co--erro mt20 mb0">
+  <div class="callout co--erro mt14 mb0">
     <div class="co-h">✗ Erro comum</div>
-    <p>Querer que o agente faça tudo. Os melhores agentes são <strong>especialistas em uma tarefa</strong>. “Um agente que cuida do negócio inteiro” não funciona — “um agente que qualifica leads de anúncio” funciona muito bem.</p>
+    <p>Querer que o agente faça tudo. Os melhores agentes são <strong>especialistas em uma tarefa</strong>: “um agente que cuida do negócio inteiro” não funciona — “um agente que qualifica leads de anúncio” funciona muito bem.</p>
   </div>
 
   <div class="foot"><span class="brand"><span class="mono">LEVVL</span> · LABS</span><span>Cap. 01 · O que são Agentes de IA</span><span>07</span></div>
@@ -847,15 +854,15 @@ a{color:var(--cyan);text-decoration:none;}
   <div class="chaphead"><span class="chapnum">04</span><h2 class="h2">Ferramentas para criar seus agentes</h2></div>
   <p class="lead" style="max-width:62ch;">Nenhuma ferramenta faz tudo. Elas se combinam. Entenda as quatro famílias e depois escolha a peça certa para cada função do seu agente.</p>
 
-  <div class="grid g4" style="margin:14px 0;gap:12px;">
-    <div class="card" style="padding:13px 15px;"><div class="card-label" style="margin-bottom:6px;">1 · Cérebro</div><p class="small mb0">Onde pensa e conversa. Ex.: ChatGPT, Custom GPTs.</p></div>
-    <div class="card" style="padding:13px 15px;"><div class="card-label" style="margin-bottom:6px;">2 · Automação</div><p class="small mb0">Conecta apps e ações. Ex.: Make, Zapier, n8n.</p></div>
-    <div class="card" style="padding:13px 15px;"><div class="card-label" style="margin-bottom:6px;">3 · Dados</div><p class="small mb0">Guarda e organiza. Ex.: Sheets, Airtable, Notion.</p></div>
-    <div class="card" style="padding:13px 15px;"><div class="card-label" style="margin-bottom:6px;">4 · Construtores</div><p class="small mb0">Montam o agente. Ex.: Voiceflow, Relevance AI.</p></div>
+  <div class="grid g4" style="margin:13px 0;gap:12px;">
+    <div class="card card--sm"><div class="card-label" style="margin-bottom:6px;">1 · Cérebro</div><p class="small mb0">Onde pensa e conversa. Ex.: ChatGPT, Custom GPTs.</p></div>
+    <div class="card card--sm"><div class="card-label" style="margin-bottom:6px;">2 · Automação</div><p class="small mb0">Conecta apps e ações. Ex.: Make, Zapier, n8n.</p></div>
+    <div class="card card--sm"><div class="card-label" style="margin-bottom:6px;">3 · Dados</div><p class="small mb0">Guarda e organiza. Ex.: Sheets, Airtable, Notion.</p></div>
+    <div class="card card--sm"><div class="card-label" style="margin-bottom:6px;">4 · Construtores</div><p class="small mb0">Montam o agente. Ex.: Voiceflow, Relevance AI.</p></div>
   </div>
 
   <h3 class="h3">O comparativo completo</h3>
-  <table class="table mt8">
+  <table class="table table--compact mt8">
     <thead><tr><th style="width:15%">Ferramenta</th><th style="width:14%">Família</th><th style="width:12%">Dificuldade</th><th style="width:31%">Melhor aplicação</th><th style="width:28%">Exemplo de uso</th></tr></thead>
     <tbody>
       <tr><td><strong>ChatGPT</strong></td><td>Cérebro</td><td><span class="pill pill-ok">Fácil</span></td><td>Rascunhar, resumir e reescrever textos.</td><td>10 ideias de post a partir de um tema.</td></tr>
@@ -936,13 +943,13 @@ a{color:var(--cyan);text-decoration:none;}
   <div class="chaphead"><span class="chapnum">05</span><h2 class="h2">A metodologia AGENTES</h2></div>
   <p class="lead" style="max-width:60ch;">Um método para desenhar qualquer agente — do mais simples ao mais robusto — sempre na mesma ordem. Sete passos, uma sigla que você nunca esquece: ela é a própria palavra <strong>AGENTES</strong>.</p>
 
-  <div class="card" style="background:var(--canvas);padding:30px 32px;border-color:rgba(108,92,231,.3);box-shadow:inset 0 0 60px rgba(108,92,231,.06);">
+  <div class="card" style="background:var(--canvas);padding:24px 30px;border-color:rgba(108,92,231,.3);box-shadow:inset 0 0 60px rgba(108,92,231,.06);">
     <div style="display:flex;align-items:baseline;gap:14px;margin-bottom:6px;">
       <span class="mono" style="font-size:12px;letter-spacing:3px;color:var(--cyan)">FRAMEWORK · 7 PASSOS</span>
     </div>
-    <div style="font-family:var(--f-title);font-weight:700;font-size:46px;letter-spacing:6px;line-height:1;" class="grad">A·G·E·N·T·E·S</div>
+    <div style="font-family:var(--f-title);font-weight:700;font-size:44px;letter-spacing:6px;line-height:1;" class="grad">A·G·E·N·T·E·S</div>
 
-    <div style="margin-top:26px;display:flex;flex-direction:column;gap:0;">
+    <div style="margin-top:20px;display:flex;flex-direction:column;gap:0;">
       <!-- step row template -->
       <div class="step" style="align-items:center;margin-bottom:0;padding:9px 0;border-bottom:1px solid var(--line);">
         <div class="step-n" style="width:38px;height:38px;font-size:18px;font-family:var(--f-title);">A</div>
@@ -1741,12 +1748,13 @@ Dados: <span class="ph">[COLE A PLANILHA]</span></div>
   <table class="table" style="margin-bottom:14px;">
     <thead><tr><th style="width:6%">#</th><th style="width:40%">Processo / tarefa candidata</th><th style="width:16%">Frequência</th><th style="width:13%">Impacto 1–5</th><th style="width:13%">Esforço 1–5</th><th style="width:12%">Nota*</th></tr></thead>
     <tbody>
-      <tr><td class="mono">1</td><td style="height:34px;"></td><td></td><td></td><td></td><td></td></tr>
-      <tr><td class="mono">2</td><td style="height:34px;"></td><td></td><td></td><td></td><td></td></tr>
-      <tr><td class="mono">3</td><td style="height:34px;"></td><td></td><td></td><td></td><td></td></tr>
-      <tr><td class="mono">4</td><td style="height:34px;"></td><td></td><td></td><td></td><td></td></tr>
-      <tr><td class="mono">5</td><td style="height:34px;"></td><td></td><td></td><td></td><td></td></tr>
-      <tr><td class="mono">6</td><td style="height:34px;"></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td class="mono">1</td><td style="height:44px;"></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td class="mono">2</td><td style="height:44px;"></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td class="mono">3</td><td style="height:44px;"></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td class="mono">4</td><td style="height:44px;"></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td class="mono">5</td><td style="height:44px;"></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td class="mono">6</td><td style="height:44px;"></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td class="mono">7</td><td style="height:44px;"></td><td></td><td></td><td></td><td></td></tr>
     </tbody>
   </table>
 
@@ -1781,16 +1789,16 @@ Dados: <span class="ph">[COLE A PLANILHA]</span></div>
   </div>
 
   <div class="card-label" style="color:var(--purple)">Ficha-relâmpago do agente</div>
-  <div class="grid g2" style="gap:12px;">
-    <div class="field mb0"><span class="field-l">Objetivo (1 frase mensurável)</span><div class="field-b"></div></div>
-    <div class="field mb0"><span class="field-l">Público / quem será atendido</span><div class="field-b"></div></div>
-    <div class="field mb0" style="margin-top:12px;"><span class="field-l">Tarefas que ele executa</span><div class="field-b"></div></div>
-    <div class="field mb0" style="margin-top:12px;"><span class="field-l">Ferramentas do kit</span><div class="field-b"></div></div>
-    <div class="field mb0" style="margin-top:12px;"><span class="field-l">Dados / base de conhecimento</span><div class="field-b"></div></div>
-    <div class="field mb0" style="margin-top:12px;"><span class="field-l">Métrica-chave de sucesso</span><div class="field-b"></div></div>
+  <div class="grid g2" style="gap:16px;">
+    <div class="field mb0"><span class="field-l">Objetivo (1 frase mensurável)</span><div class="field-b" style="min-height:52px;"></div></div>
+    <div class="field mb0"><span class="field-l">Público / quem será atendido</span><div class="field-b" style="min-height:52px;"></div></div>
+    <div class="field mb0" style="margin-top:16px;"><span class="field-l">Tarefas que ele executa</span><div class="field-b" style="min-height:52px;"></div></div>
+    <div class="field mb0" style="margin-top:16px;"><span class="field-l">Ferramentas do kit</span><div class="field-b" style="min-height:52px;"></div></div>
+    <div class="field mb0" style="margin-top:16px;"><span class="field-l">Dados / base de conhecimento</span><div class="field-b" style="min-height:52px;"></div></div>
+    <div class="field mb0" style="margin-top:16px;"><span class="field-l">Métrica-chave de sucesso</span><div class="field-b" style="min-height:52px;"></div></div>
   </div>
 
-  <div class="callout co--pratica mt20 mb0" style="background:rgba(0,184,156,.07);border-color:rgba(0,184,156,.3);">
+  <div class="callout co--pratica mt28 mb0" style="background:rgba(0,184,156,.07);border-color:rgba(0,184,156,.3);">
     <div class="co-h" style="color:var(--l-success)">◆ Exercício rápido · 10 minutos</div>
     <p style="color:rgba(10,10,15,.72)">Preencha esta ficha para o agente de maior nota na sua tabela de priorização. Se você travar em algum campo, é sinal de que precisa de mais clareza <strong>antes</strong> de abrir qualquer ferramenta. Este é o teste que economiza dias de retrabalho.</p>
   </div>
@@ -1861,29 +1869,29 @@ Dados: <span class="ph">[COLE A PLANILHA]</span></div>
     <div class="lockup"><span class="wordmark" style="font-size:16px;color:var(--l-ink)">LEVVL</span><span class="pill-labs">Labs</span></div>
   </div>
 
-  <div class="grid g2" style="gap:12px;">
-    <div class="field mb0"><span class="field-l">O agente que vou construir primeiro</span><div class="field-b"></div></div>
-    <div class="field mb0"><span class="field-l">O resultado que espero (mensurável)</span><div class="field-b"></div></div>
+  <div class="grid g2" style="gap:18px;">
+    <div class="field mb0"><span class="field-l">O agente que vou construir primeiro</span><div class="field-b lines-3" style="min-height:64px;"></div></div>
+    <div class="field mb0"><span class="field-l">O resultado que espero (mensurável)</span><div class="field-b lines-3" style="min-height:64px;"></div></div>
   </div>
-  <div class="grid g2" style="gap:12px;margin-top:12px;">
-    <div class="field mb0"><span class="field-l">Ferramentas que vou usar</span><div class="field-b"></div></div>
-    <div class="field mb0"><span class="field-l">Responsável por tocar o projeto</span><div class="field-b"></div></div>
-  </div>
-
-  <div class="card-label" style="color:var(--purple);margin-top:16px;">Minhas 3 primeiras ações desta semana</div>
-  <div class="grid" style="grid-template-columns:1fr;gap:10px;">
-    <div style="display:flex;gap:12px;align-items:center;"><div class="step-n" style="background:rgba(108,92,231,.12);">1</div><div class="field-b" style="flex:1;min-height:38px;background-image:none;"></div></div>
-    <div style="display:flex;gap:12px;align-items:center;"><div class="step-n" style="background:rgba(108,92,231,.12);">2</div><div class="field-b" style="flex:1;min-height:38px;background-image:none;"></div></div>
-    <div style="display:flex;gap:12px;align-items:center;"><div class="step-n" style="background:rgba(108,92,231,.12);">3</div><div class="field-b" style="flex:1;min-height:38px;background-image:none;"></div></div>
+  <div class="grid g2" style="gap:18px;margin-top:18px;">
+    <div class="field mb0"><span class="field-l">Ferramentas que vou usar</span><div class="field-b lines-3" style="min-height:64px;"></div></div>
+    <div class="field mb0"><span class="field-l">Responsável por tocar o projeto</span><div class="field-b lines-3" style="min-height:64px;"></div></div>
   </div>
 
-  <div class="grid" style="grid-template-columns:1fr 1fr 1.4fr;gap:12px;margin-top:16px;">
-    <div class="field mb0"><span class="field-l">Começo em (data)</span><div class="field-b" style="min-height:38px;background-image:none;"></div></div>
-    <div class="field mb0"><span class="field-l">Agente no ar até (data)</span><div class="field-b" style="min-height:38px;background-image:none;"></div></div>
-    <div class="field mb0"><span class="field-l">Assinatura / compromisso</span><div class="field-b" style="min-height:38px;background-image:none;"></div></div>
+  <div class="card-label" style="color:var(--purple);margin-top:22px;">Minhas 3 primeiras ações desta semana</div>
+  <div class="grid" style="grid-template-columns:1fr;gap:13px;">
+    <div style="display:flex;gap:12px;align-items:center;"><div class="step-n" style="background:rgba(108,92,231,.12);">1</div><div class="field-b" style="flex:1;min-height:46px;background-image:none;"></div></div>
+    <div style="display:flex;gap:12px;align-items:center;"><div class="step-n" style="background:rgba(108,92,231,.12);">2</div><div class="field-b" style="flex:1;min-height:46px;background-image:none;"></div></div>
+    <div style="display:flex;gap:12px;align-items:center;"><div class="step-n" style="background:rgba(108,92,231,.12);">3</div><div class="field-b" style="flex:1;min-height:46px;background-image:none;"></div></div>
   </div>
 
-  <div class="callout co--pratica mt20 mb0" style="background:rgba(0,184,156,.07);border-color:rgba(0,184,156,.3);">
+  <div class="grid" style="grid-template-columns:1fr 1fr 1.4fr;gap:18px;margin-top:22px;">
+    <div class="field mb0"><span class="field-l">Começo em (data)</span><div class="field-b" style="min-height:46px;background-image:none;"></div></div>
+    <div class="field mb0"><span class="field-l">Agente no ar até (data)</span><div class="field-b" style="min-height:46px;background-image:none;"></div></div>
+    <div class="field mb0"><span class="field-l">Assinatura / compromisso</span><div class="field-b" style="min-height:46px;background-image:none;"></div></div>
+  </div>
+
+  <div class="callout co--pratica mt28 mb0" style="background:rgba(0,184,156,.07);border-color:rgba(0,184,156,.3);">
     <div class="co-h" style="color:var(--l-success)">◆ O compromisso</div>
     <p style="color:rgba(10,10,15,.72)">Tire uma foto desta página preenchida e cole onde você trabalha. Metas visíveis têm muito mais chance de virar realidade. Daqui a 30 dias, volte e compare o que planejou com o que rodou.</p>
   </div>
@@ -2002,7 +2010,7 @@ Dados: <span class="ph">[COLE A PLANILHA]</span></div>
 </section>
 
 <!-- ============================================================ PRÓXIMOS PASSOS / CONTRACAPA (dark cover) ============================================================ -->
-<section class="page page--canvas" data-p="fim">
+<section class="page page--canvas page--top" data-p="fim">
   <div class="amb"><div class="amb-glow-top"></div><div class="amb-glow-bot"></div></div>
 
   <div class="lockup" style="margin-bottom:56px;">
@@ -2014,18 +2022,18 @@ Dados: <span class="ph">[COLE A PLANILHA]</span></div>
   <h1 class="display" style="font-size:52px;max-width:16ch;">Agora é com <span class="grad">você.</span></h1>
   <p class="lead" style="max-width:44ch;margin-bottom:34px;">Três movimentos para não deixar este playbook virar mais um PDF esquecido na pasta de downloads.</p>
 
-  <div class="grid g3" style="margin-bottom:40px;">
+  <div class="grid g3" style="margin-top:auto;margin-bottom:26px;">
     <div class="card"><div class="mono c-purple" style="font-size:12px;letter-spacing:2px;">PASSO 01</div><div class="h4 mt8">Escolha 1 agente</div><p class="small mb0">Use a matriz de priorização. O de maior nota. Só um.</p></div>
     <div class="card"><div class="mono c-purple" style="font-size:12px;letter-spacing:2px;">PASSO 02</div><div class="h4 mt8">Preencha o Canvas</div><p class="small mb0">Desenhe antes de montar. 20 minutos que salvam dias.</p></div>
     <div class="card"><div class="mono c-purple" style="font-size:12px;letter-spacing:2px;">PASSO 03</div><div class="h4 mt8">Monte em 7 dias</div><p class="small mb0">Siga o passo a passo do agente. Teste. Coloque no ar.</p></div>
   </div>
 
-  <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+  <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:34px;">
     <span class="btn btn--primary">Comece pelo agente A1 →</span>
     <span class="small mb0" style="color:var(--tx-45);max-width:34ch;">O Atende 24/7 é o mais rápido de subir e o que dá o retorno mais visível.</span>
   </div>
 
-  <div style="position:absolute;left:19mm;right:19mm;bottom:16mm;z-index:1;border-top:1px solid var(--line);padding-top:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+  <div style="position:absolute;left:19mm;right:19mm;bottom:11mm;z-index:1;border-top:1px solid var(--line);padding-top:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
     <span class="tiny">SUA EQUIPE INVISÍVEL · PLAYBOOK DE AGENTES DE IA PARA NEGÓCIOS</span>
     <span class="tiny mono" style="color:var(--purple)">LEVVL LABS · 2026 · » » RUN</span>
   </div>
