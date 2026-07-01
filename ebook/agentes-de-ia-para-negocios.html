@@ -109,7 +109,10 @@ body{
 .h2{font-family:var(--f-title);font-weight:700;font-size:27px;letter-spacing:-1px;margin:0 0 12px;}
 .h3{font-family:var(--f-title);font-weight:600;font-size:19px;letter-spacing:-.3px;margin:0 0 8px;}
 .h4{font-family:var(--f-title);font-weight:600;font-size:15px;margin:0 0 7px;}
-.grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+/* Acentos de título em cor sólida (robusto em qualquer leitor de PDF; background-clip:text
+   quebra no Apple Preview/leitores móveis). O gradiente segue presente em logo, botões,
+   fluxos, anéis e nos heróis renderizados em SVG. */
+.grad{color:#00F5D4;}
 .lead{font-size:16.5px;line-height:1.56;color:var(--tx-62);font-weight:300;margin:0 0 17px;}
 p{font-size:13.5px;line-height:1.62;color:var(--tx-70);font-weight:300;margin:0 0 12px;}
 .page--light p{color:rgba(10,10,15,.72);}
@@ -290,9 +293,9 @@ a{color:var(--cyan);text-decoration:none;}
 .mt0{margin-top:0;} .mb0{margin-bottom:0!important;} .mt8{margin-top:8px;} .mt14{margin-top:13px;} .mt20{margin-top:18px;} .mt28{margin-top:24px;} .mt36{margin-top:30px;}
 .center{text-align:center;} .right{text-align:right;}
 
-/* número gigante do agente (separador) */
-.bignum{font-family:var(--f-title);font-weight:700;font-size:150px;line-height:.8;letter-spacing:-6px;
-  background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;opacity:.9;}
+/* número gigante do agente (separador) — SVG com gradiente (robusto em qualquer leitor) */
+.bignum{display:block;height:132px;width:auto;filter:drop-shadow(0 0 30px rgba(0,245,212,.16));}
+.bignum text{font-family:var(--f-title);font-weight:700;font-size:150px;letter-spacing:-6px;}
 
 /* passo numerado */
 .step{display:flex;gap:14px;margin-bottom:17px;}
@@ -1129,7 +1132,7 @@ a{color:var(--cyan);text-decoration:none;}
   <div style="display:flex;align-items:flex-start;justify-content:space-between;">
     <div>
       <div class="kicker" style="margin-bottom:10px;">Agente 01 · de 05</div>
-      <div class="bignum">A1</div>
+      <svg class="bignum" viewBox="0 0 210 132" role="img" aria-label="A1"><defs><linearGradient id="bnA1" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#6C5CE7"/><stop offset="1" stop-color="#00F5D4"/></linearGradient></defs><text x="0" y="112" fill="url(#bnA1)">A1</text></svg>
     </div>
     <div class="lockup" style="margin-top:6px;"><span class="wordmark" style="font-size:15px;">LEVVL</span><span class="pill-labs">Labs</span></div>
   </div>
@@ -1279,7 +1282,7 @@ Respostas curtas, no máximo 4 linhas.</div>
 <section class="page page--canvas" data-p="a2-sep">
   <div class="amb"><div class="amb-glow-top"></div><div class="amb-glow-bot"></div></div>
   <div style="display:flex;align-items:flex-start;justify-content:space-between;">
-    <div><div class="kicker" style="margin-bottom:10px;">Agente 02 · de 05</div><div class="bignum">A2</div></div>
+    <div><div class="kicker" style="margin-bottom:10px;">Agente 02 · de 05</div><svg class="bignum" viewBox="0 0 210 132" role="img" aria-label="A2"><defs><linearGradient id="bnA2" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#6C5CE7"/><stop offset="1" stop-color="#00F5D4"/></linearGradient></defs><text x="0" y="112" fill="url(#bnA2)">A2</text></svg></div>
     <div class="lockup" style="margin-top:6px;"><span class="wordmark" style="font-size:15px;">LEVVL</span><span class="pill-labs">Labs</span></div>
   </div>
 
@@ -1397,7 +1400,7 @@ Lead: <span class="ph">[DADOS DO FORMULÁRIO]</span></div>
 <section class="page page--canvas" data-p="a3-sep">
   <div class="amb"><div class="amb-glow-top"></div><div class="amb-glow-bot"></div></div>
   <div style="display:flex;align-items:flex-start;justify-content:space-between;">
-    <div><div class="kicker" style="margin-bottom:10px;">Agente 03 · de 05</div><div class="bignum">A3</div></div>
+    <div><div class="kicker" style="margin-bottom:10px;">Agente 03 · de 05</div><svg class="bignum" viewBox="0 0 210 132" role="img" aria-label="A3"><defs><linearGradient id="bnA3" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#6C5CE7"/><stop offset="1" stop-color="#00F5D4"/></linearGradient></defs><text x="0" y="112" fill="url(#bnA3)">A3</text></svg></div>
     <div class="lockup" style="margin-top:6px;"><span class="wordmark" style="font-size:15px;">LEVVL</span><span class="pill-labs">Labs</span></div>
   </div>
   <h1 class="h1" style="font-size:44px;margin-top:14px;margin-bottom:6px;">Máquina de <span class="grad">Conteúdo</span></h1>
@@ -1512,7 +1515,7 @@ o post pedido e adapte para cada canal.
 <section class="page page--canvas" data-p="a4-sep">
   <div class="amb"><div class="amb-glow-top"></div><div class="amb-glow-bot"></div></div>
   <div style="display:flex;align-items:flex-start;justify-content:space-between;">
-    <div><div class="kicker" style="margin-bottom:10px;">Agente 04 · de 05</div><div class="bignum">A4</div></div>
+    <div><div class="kicker" style="margin-bottom:10px;">Agente 04 · de 05</div><svg class="bignum" viewBox="0 0 210 132" role="img" aria-label="A4"><defs><linearGradient id="bnA4" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#6C5CE7"/><stop offset="1" stop-color="#00F5D4"/></linearGradient></defs><text x="0" y="112" fill="url(#bnA4)">A4</text></svg></div>
     <div class="lockup" style="margin-top:6px;"><span class="wordmark" style="font-size:15px;">LEVVL</span><span class="pill-labs">Labs</span></div>
   </div>
   <h1 class="h1" style="font-size:44px;margin-top:14px;margin-bottom:6px;">Copiloto de <span class="grad">Operações</span></h1>
@@ -1625,7 +1628,7 @@ Processo: <span class="ph">[DESCREVA O PROCESSO]</span></div>
 <section class="page page--canvas" data-p="a5-sep">
   <div class="amb"><div class="amb-glow-top"></div><div class="amb-glow-bot"></div></div>
   <div style="display:flex;align-items:flex-start;justify-content:space-between;">
-    <div><div class="kicker" style="margin-bottom:10px;">Agente 05 · de 05</div><div class="bignum">A5</div></div>
+    <div><div class="kicker" style="margin-bottom:10px;">Agente 05 · de 05</div><svg class="bignum" viewBox="0 0 210 132" role="img" aria-label="A5"><defs><linearGradient id="bnA5" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#6C5CE7"/><stop offset="1" stop-color="#00F5D4"/></linearGradient></defs><text x="0" y="112" fill="url(#bnA5)">A5</text></svg></div>
     <div class="lockup" style="margin-top:6px;"><span class="wordmark" style="font-size:15px;">LEVVL</span><span class="pill-labs">Labs</span></div>
   </div>
   <h1 class="h1" style="font-size:44px;margin-top:14px;margin-bottom:6px;">Analista de <span class="grad">Bolso</span></h1>
