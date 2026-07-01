@@ -1,0 +1,11 @@
+{
+  "sections": {
+    "main": {
+      "type": "playbook-landing",
+      "settings": {}
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

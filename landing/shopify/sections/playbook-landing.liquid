@@ -1,0 +1,991 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ===================================================================
+   PLAYBOOK IA NA PRÁTICA — Landing · LEVVL Labs Design System
+   =================================================================== */
+:root{
+  --canvas:#08080C; --bg:#0A0A0F; --s1:#0E0E15; --s2:#13131A; --s3:#1A1A24;
+  --purple:#6C5CE7; --cyan:#00F5D4; --accent:#00F5D4;
+  --grad:linear-gradient(135deg,#6C5CE7,#00F5D4);
+  --amber:#FFA502; --error:#FF4757; --info:#5B8DEF; --accent2:#B26CF0;
+  --tx:#fff; --tx-70:rgba(255,255,255,.70); --tx-62:rgba(255,255,255,.62);
+  --tx-55:rgba(255,255,255,.55); --tx-45:rgba(255,255,255,.45); --tx-35:rgba(255,255,255,.35);
+  --line:rgba(255,255,255,.08); --line-12:rgba(255,255,255,.12);
+  --f-title:'Space Grotesk',sans-serif; --f-body:'Outfit',sans-serif; --f-mono:'JetBrains Mono',monospace;
+  --glow-p:0 0 24px rgba(108,92,231,.35); --glow-c:0 0 24px rgba(0,245,212,.30);
+  --wrap:1200px;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{margin:0;background:var(--canvas);color:var(--tx);font-family:var(--f-body);font-weight:400;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;line-height:1.6;}
+::selection{background:rgba(108,92,231,.35);color:#fff;}
+img{max-width:100%;display:block;}
+a{color:inherit;text-decoration:none;}
+
+/* ambient bg */
+body::before{content:"";position:fixed;inset:0;z-index:-2;
+  background-image:radial-gradient(circle, rgba(108,92,231,0.07) 1px, transparent 1px);background-size:30px 30px;}
+body::after{content:"";position:fixed;top:-280px;left:50%;transform:translateX(-50%);width:1100px;height:700px;z-index:-2;
+  background:radial-gradient(ellipse at center, rgba(108,92,231,0.18), transparent 68%);filter:blur(40px);pointer-events:none;}
+
+.wrap{max-width:var(--wrap);margin:0 auto;padding:0 24px;}
+.sec{padding:88px 0;position:relative;}
+.sec--tight{padding:60px 0;}
+
+/* ---------- typography ---------- */
+.kicker{font-family:var(--f-mono);font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--purple);margin:0 0 16px;display:flex;align-items:center;gap:8px;}
+.kicker .ar{color:var(--cyan);}
+h1,h2,h3{font-family:var(--f-title);letter-spacing:-1px;line-height:1.05;margin:0;}
+.h-hero{font-weight:700;font-size:clamp(38px,5.4vw,66px);letter-spacing:-2px;line-height:1.02;}
+.h-sec{font-weight:700;font-size:clamp(28px,3.6vw,44px);letter-spacing:-1.5px;line-height:1.08;margin:0 0 18px;max-width:20ch;}
+.h-sec.center{margin-left:auto;margin-right:auto;text-align:center;}
+.h3{font-family:var(--f-title);font-weight:600;font-size:19px;letter-spacing:-.3px;}
+.grad{color:var(--cyan);}   /* robusto: cor sólida, nunca background-clip:text */
+.lead{font-size:clamp(16px,1.7vw,19px);line-height:1.6;color:var(--tx-62);font-weight:300;}
+.lead.center{text-align:center;margin-left:auto;margin-right:auto;max-width:62ch;}
+p{margin:0 0 14px;color:var(--tx-70);font-weight:300;}
+strong{color:#fff;font-weight:600;}
+.mono{font-family:var(--f-mono);}
+.eyebrow{font-family:var(--f-mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--tx-45);}
+.center{text-align:center;}
+
+/* ---------- buttons ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;font-family:var(--f-title);font-weight:700;
+  font-size:16px;border-radius:999px;padding:15px 28px;border:none;cursor:pointer;transition:transform .2s cubic-bezier(.2,.7,.3,1),box-shadow .2s;text-align:center;}
+.btn--primary{color:#07070B;background:var(--grad);box-shadow:inset 0 1px 0 rgba(255,255,255,.32),0 0 26px rgba(0,245,212,.22);}
+.btn--primary:hover{transform:translateY(-2px);box-shadow:inset 0 1px 0 rgba(255,255,255,.32),0 0 40px rgba(0,245,212,.4);}
+.btn--ghost{color:#fff;background:transparent;border:1px solid var(--line-12);}
+.btn--ghost:hover{border-color:var(--purple);box-shadow:var(--glow-p);}
+.btn--lg{font-size:17px;padding:17px 34px;}
+.btn--sm{font-size:13px;padding:10px 18px;}
+
+/* ---------- header ---------- */
+.hdr{position:sticky;top:0;z-index:100;backdrop-filter:blur(14px);background:rgba(8,8,12,.72);border-bottom:1px solid var(--line);}
+.hdr-in{display:flex;align-items:center;justify-content:space-between;height:66px;}
+.lockup{display:flex;align-items:center;gap:11px;}
+.wordmark{font-family:var(--f-title);font-weight:700;letter-spacing:4px;font-size:19px;}
+.pill-labs{font-family:var(--f-mono);font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--tx-55);border:1px solid var(--line-12);border-radius:999px;padding:4px 10px;}
+.nav{display:flex;align-items:center;gap:26px;}
+.nav a{font-size:14px;color:var(--tx-62);font-weight:400;transition:color .2s;}
+.nav a:hover{color:#fff;}
+.hdr .btn{padding:11px 20px;font-size:14px;}
+
+/* ---------- badges / pills / tags ---------- */
+.badge{display:inline-flex;align-items:center;gap:8px;font-family:var(--f-mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--cyan);background:rgba(0,245,212,.08);border:1px solid rgba(0,245,212,.35);border-radius:999px;padding:8px 15px;}
+.badge .dot{width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan);}
+.tag{display:inline-flex;align-items:center;gap:6px;font-family:var(--f-mono);font-size:11px;letter-spacing:1px;color:var(--tx-62);
+  background:rgba(255,255,255,.04);border:1px solid var(--line-12);border-radius:999px;padding:5px 12px;}
+.tag--p{color:var(--purple);border-color:rgba(108,92,231,.4);background:rgba(108,92,231,.1);}
+.tag--c{color:var(--cyan);border-color:rgba(0,245,212,.35);background:rgba(0,245,212,.08);}
+.tag--easy{color:var(--cyan);border-color:rgba(0,245,212,.3);}
+.tag--mid{color:var(--amber);border-color:rgba(255,165,2,.35);background:rgba(255,165,2,.08);}
+.tags{display:flex;flex-wrap:wrap;gap:9px;}
+
+/* ---------- cards / grid ---------- */
+.card{background:var(--s1);border:1px solid var(--line);border-radius:16px;padding:26px;transition:transform .25s cubic-bezier(.2,.7,.3,1),border-color .25s,box-shadow .25s;}
+.card--hover:hover{transform:translateY(-3px);border-color:rgba(108,92,231,.45);box-shadow:0 0 30px rgba(108,92,231,.12);}
+.card--2{background:var(--s2);}
+.grid{display:grid;gap:18px;}
+.g2{grid-template-columns:repeat(2,1fr);}
+.g3{grid-template-columns:repeat(3,1fr);}
+.g4{grid-template-columns:repeat(4,1fr);}
+.g5{grid-template-columns:repeat(5,1fr);}
+.card-ico{width:44px;height:44px;border-radius:12px;background:rgba(108,92,231,.14);border:1px solid rgba(108,92,231,.3);
+  display:flex;align-items:center;justify-content:center;margin-bottom:16px;}
+.card-ico svg{width:22px;height:22px;}
+.card-ico--c{background:rgba(0,245,212,.12);border-color:rgba(0,245,212,.3);}
+.card h3,.card .h3{margin:0 0 8px;}
+.card p{font-size:14px;margin:0;line-height:1.55;}
+.hl{color:var(--purple);} .hl-c{color:var(--cyan);}
+
+/* section head */
+.sec-head{max-width:760px;margin:0 0 44px;}
+.sec-head.center{margin-left:auto;margin-right:auto;text-align:center;}
+
+/* checks / lists */
+.ul{list-style:none;padding:0;margin:0;}
+.ul li{position:relative;padding-left:28px;font-size:15px;line-height:1.5;color:var(--tx-70);font-weight:300;margin-bottom:12px;}
+.ul li::before{content:"✓";position:absolute;left:2px;top:0;color:var(--cyan);font-weight:700;}
+.ul--x li::before{content:"✕";color:var(--error);}
+
+/* eyebrow flow chip row (trigger->agent->action) */
+.flowrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.fchip{display:inline-flex;align-items:center;gap:9px;font-family:var(--f-mono);font-size:12px;letter-spacing:1px;
+  border:1px solid var(--line-12);border-radius:12px;padding:12px 16px;background:var(--s2);}
+.fchip--t{border-color:rgba(0,245,212,.4);color:var(--cyan);}
+.fchip--a{border-color:rgba(108,92,231,.5);color:#fff;box-shadow:var(--glow-p);}
+.fchip--x{border-color:rgba(108,92,231,.4);color:var(--purple);}
+.farrow{color:var(--purple);font-weight:700;}
+
+/* ---------- reveal on scroll ---------- */
+.rv{opacity:0;transform:translateY(22px);transition:opacity .7s cubic-bezier(.2,.7,.3,1),transform .7s cubic-bezier(.2,.7,.3,1);}
+.rv.in{opacity:1;transform:none;}
+
+/* ===================================================================
+   HERO
+   =================================================================== */
+.hero{position:relative;padding:56px 0 40px;overflow:hidden;}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center;}
+.hero h1{margin:0 0 22px;max-width:16ch;}
+.hero .sub{font-size:clamp(15px,1.7vw,18px);color:var(--tx-62);font-weight:300;max-width:52ch;margin:0 0 28px;line-height:1.6;}
+.hero-cta{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px;}
+.hero-micro{font-family:var(--f-mono);font-size:12px;letter-spacing:.5px;color:var(--tx-45);margin-bottom:26px;}
+.hero-micro b{color:var(--cyan);font-weight:500;}
+.vbadges{display:flex;flex-wrap:wrap;gap:10px;}
+.vbadge{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--tx-70);font-weight:400;
+  background:var(--s1);border:1px solid var(--line);border-radius:999px;padding:8px 14px;}
+.vbadge svg{width:15px;height:15px;color:var(--cyan);}
+/* hero · prova social + desconto */
+.hero-proof{display:flex;align-items:center;gap:14px;margin-bottom:28px;}
+.av-stack{display:flex;}
+.av-stack img{width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid var(--canvas);margin-left:-13px;box-shadow:0 0 0 1px rgba(255,255,255,.1);}
+.av-stack img:first-child{margin-left:0;}
+.hero-proof .stars{color:#FFB020;font-size:16px;letter-spacing:2px;line-height:1;}
+.hero-proof .stars b{color:#fff;font-family:var(--f-title);font-weight:700;margin-left:7px;font-size:15px;letter-spacing:0;}
+.hero-proof .pl{font-size:12.5px;color:var(--tx-55);display:block;margin-top:5px;}
+.hero-offer{display:flex;align-items:center;gap:22px;flex-wrap:wrap;margin:0 0 16px;}
+.hero-price{display:flex;align-items:baseline;gap:11px;}
+.hp-off{font-family:var(--f-mono);font-size:12px;font-weight:600;letter-spacing:1px;color:#07070B;background:var(--grad);border-radius:8px;padding:6px 9px;align-self:center;box-shadow:0 0 18px rgba(0,245,212,.3);}
+.hp-old{font-size:18px;color:var(--tx-45);text-decoration:line-through;font-weight:500;font-family:var(--f-title);}
+.hp-now{font-family:var(--f-title);font-weight:700;font-size:42px;letter-spacing:-1.5px;line-height:1;}
+.hero-trust{font-family:var(--f-mono);font-size:12px;color:var(--tx-45);letter-spacing:.5px;}
+.hero-trust .sep{color:var(--cyan);}
+.hero-seelink{color:var(--tx-62);border-bottom:1px solid var(--line-12);padding-bottom:1px;}
+@media (max-width:640px){ .hero-offer{gap:16px;} .av-stack img{width:40px;height:40px;} }
+/* headline com palavras coloridas (gradiente aproximado, robusto) */
+.w1{color:#7B6CF0;} .w2{color:#4CA9E8;} .w3{color:#00F5D4;}
+/* card de preço com destaque */
+.hero-offer{flex-direction:column;align-items:flex-start;}
+.price-card{display:inline-flex;align-items:center;gap:18px;background:linear-gradient(135deg,rgba(108,92,231,.14),rgba(0,245,212,.09));border:1px solid rgba(0,245,212,.4);border-radius:16px;padding:16px 22px;box-shadow:0 0 44px rgba(0,245,212,.18);}
+.hp-off{font-size:15px;padding:9px 12px;letter-spacing:0;align-self:center;}
+.price-line{display:flex;align-items:baseline;gap:12px;}
+.hp-now{font-size:52px;}
+.hp-sub{font-family:var(--f-mono);font-size:12px;color:var(--tx-55);margin-top:3px;letter-spacing:.3px;}
+.hp-sub b{color:var(--cyan);font-weight:600;}
+.hero-cta-main{width:100%;max-width:440px;font-size:18px;padding:19px 32px;}
+@media (max-width:640px){ .price-card{width:100%;} .hp-now{font-size:44px;} .hero-cta-main{max-width:none;} }
+
+/* 3D cover mockup */
+.stage{position:relative;perspective:1400px;min-height:520px;display:flex;align-items:center;justify-content:center;}
+.book{position:relative;width:300px;transform:rotateY(-20deg) rotateX(4deg);transform-style:preserve-3d;
+  filter:drop-shadow(0 40px 60px rgba(0,0,0,.6));animation:float 6s ease-in-out infinite;}
+.book img{width:100%;border-radius:6px 10px 10px 6px;border:1px solid rgba(255,255,255,.1);}
+.book::before{content:"";position:absolute;left:-14px;top:2px;bottom:2px;width:14px;transform:translateZ(-6px) rotateY(0);
+  background:linear-gradient(180deg,#1a1a24,#0a0a0f);border-radius:4px 0 0 4px;box-shadow:inset -2px 0 6px rgba(0,0,0,.6);}
+.book::after{content:"";position:absolute;inset:0;border-radius:6px 10px 10px 6px;
+  background:linear-gradient(115deg,rgba(255,255,255,.14),transparent 42%);pointer-events:none;}
+.book-glow{position:absolute;width:360px;height:360px;border-radius:50%;
+  background:radial-gradient(circle,rgba(0,245,212,.18),transparent 66%);filter:blur(20px);z-index:-1;}
+@keyframes float{0%,100%{transform:rotateY(-20deg) rotateX(4deg) translateY(0);}50%{transform:rotateY(-20deg) rotateX(4deg) translateY(-14px);}}
+/* floating agent chips around book */
+.fcard{position:absolute;background:rgba(19,19,26,.92);border:1px solid var(--line-12);border-radius:12px;padding:10px 13px;
+  display:flex;align-items:center;gap:9px;font-size:12px;backdrop-filter:blur(6px);box-shadow:0 12px 30px rgba(0,0,0,.5);animation:float 7s ease-in-out infinite;}
+.fcard .fi{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;background:rgba(108,92,231,.16);}
+.fcard .fi svg{width:15px;height:15px;color:var(--cyan);}
+.fcard b{font-family:var(--f-title);font-weight:600;font-size:12.5px;color:#fff;}
+.fcard span{font-family:var(--f-mono);font-size:10px;color:var(--tx-45);}
+.fc1{top:24px;left:-6px;animation-delay:.4s;} .fc2{top:150px;right:-18px;animation-delay:1.1s;}
+.fc3{bottom:40px;left:-24px;animation-delay:.7s;}
+.stage-tag{position:absolute;bottom:-4px;right:12px;}
+
+/* ===================================================================
+   CREDIBILITY BAR
+   =================================================================== */
+.credbar{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:rgba(14,14,21,.5);}
+.cred-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:0;}
+.cred{display:flex;align-items:center;gap:12px;padding:22px 20px;border-right:1px solid var(--line);}
+.cred:last-child{border-right:none;}
+.cred svg{width:22px;height:22px;color:var(--cyan);flex:none;}
+.cred span{font-size:13.5px;color:var(--tx-70);line-height:1.35;font-weight:400;}
+
+/* ===================================================================
+   SCROLL CLIPS
+   =================================================================== */
+.clip-frame{position:relative;border-radius:18px;padding:1.5px;background:linear-gradient(135deg,rgba(108,92,231,.5),rgba(0,245,212,.4));
+  box-shadow:0 20px 50px rgba(0,0,0,.5);}
+.clip-inner{background:var(--canvas);border-radius:17px;overflow:hidden;height:420px;position:relative;}
+.clip-strip{display:flex;flex-direction:column;gap:10px;padding:10px;animation:clipscroll 20s linear infinite alternate;}
+.clip-strip img{border-radius:6px;border:1px solid var(--line);}
+@keyframes clipscroll{from{transform:translateY(0);}to{transform:translateY(calc(-100% + 400px));}}
+.clip-frame:hover .clip-strip{animation-play-state:paused;}
+.clip-cap{position:absolute;left:0;right:0;bottom:0;padding:16px 18px;z-index:2;
+  background:linear-gradient(180deg,transparent,rgba(8,8,12,.96) 55%);}
+.clip-cap b{font-family:var(--f-title);font-weight:600;font-size:15px;display:block;margin-bottom:3px;}
+.clip-cap span{font-size:12.5px;color:var(--tx-55);}
+.clip-tag{position:absolute;top:12px;left:12px;z-index:2;}
+
+/* ===================================================================
+   METHOD TIMELINE
+   =================================================================== */
+.timeline{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;position:relative;}
+.tl-line{position:absolute;top:26px;left:5%;right:5%;height:2px;background:linear-gradient(90deg,var(--purple),var(--cyan));opacity:.5;z-index:0;}
+.tl-step{position:relative;z-index:1;}
+.tl-dot{width:52px;height:52px;border-radius:14px;background:var(--s2);border:1px solid rgba(108,92,231,.5);
+  display:flex;align-items:center;justify-content:center;font-family:var(--f-title);font-weight:700;font-size:22px;color:var(--cyan);margin-bottom:16px;box-shadow:var(--glow-p);}
+.tl-step h3{font-size:15px;margin:0 0 6px;}
+.tl-step p{font-size:12.5px;line-height:1.5;margin:0;}
+
+/* ===================================================================
+   COMPARISON
+   =================================================================== */
+.cmp{border:1px solid var(--line);border-radius:18px;overflow:hidden;}
+.cmp-head{display:grid;grid-template-columns:1fr 1fr;}
+.cmp-head>div{padding:20px 24px;font-family:var(--f-title);font-weight:600;font-size:16px;}
+.cmp-head .bad{background:rgba(255,71,87,.06);color:var(--tx-70);border-bottom:1px solid var(--line);}
+.cmp-head .good{background:rgba(0,245,212,.07);color:var(--cyan);border-bottom:1px solid var(--line);border-left:1px solid var(--line);}
+.cmp-row{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--line);}
+.cmp-row>div{padding:16px 24px;font-size:14px;display:flex;align-items:center;gap:10px;}
+.cmp-row .good{border-left:1px solid var(--line);color:#fff;}
+.cmp-row .bad{color:var(--tx-55);}
+.cmp-row .good::before{content:"✓";color:var(--cyan);font-weight:700;}
+.cmp-row .bad::before{content:"✕";color:var(--error);font-weight:700;}
+.cmp-block-label{display:none;}
+
+/* ===================================================================
+   OFFER
+   =================================================================== */
+.offer{border-radius:22px;padding:2px;background:linear-gradient(135deg,#6C5CE7,#00F5D4);box-shadow:0 0 60px rgba(108,92,231,.25);}
+.offer-in{background:var(--s1);border-radius:20px;padding:44px;display:grid;grid-template-columns:1.2fr 1fr;gap:40px;align-items:center;}
+.price{font-family:var(--f-title);}
+.price .old{font-size:18px;color:var(--tx-45);text-decoration:line-through;font-weight:500;}
+.price .now{font-size:56px;font-weight:700;letter-spacing:-2px;line-height:1;}
+.price .now small{font-size:22px;color:var(--tx-55);}
+.price .edit{font-family:var(--f-mono);font-size:11px;color:var(--amber);letter-spacing:1px;}
+.plabel{font-family:var(--f-mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--cyan);margin-bottom:10px;}
+
+/* ---------- FAQ ---------- */
+.faq{max-width:820px;margin:0 auto;}
+.faq details{border:1px solid var(--line);border-radius:14px;background:var(--s1);margin-bottom:12px;overflow:hidden;}
+.faq summary{list-style:none;cursor:pointer;padding:20px 24px;font-family:var(--f-title);font-weight:600;font-size:16px;
+  display:flex;justify-content:space-between;align-items:center;gap:16px;}
+.faq summary::-webkit-details-marker{display:none;}
+.faq summary::after{content:"+";font-size:24px;color:var(--purple);font-weight:400;transition:transform .2s;flex:none;}
+.faq details[open] summary::after{transform:rotate(45deg);}
+.faq .fa{padding:0 24px 22px;color:var(--tx-62);font-size:14.5px;line-height:1.6;font-weight:300;}
+
+/* ---------- guarantee ---------- */
+.guarantee{display:grid;grid-template-columns:auto 1fr;gap:28px;align-items:center;background:var(--s1);border:1px solid rgba(0,245,212,.25);border-radius:18px;padding:34px;}
+.seal{width:110px;height:110px;border-radius:50%;border:2px solid rgba(0,245,212,.4);display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:radial-gradient(circle,rgba(0,245,212,.08),transparent);box-shadow:var(--glow-c);flex:none;}
+.seal b{font-family:var(--f-title);font-weight:700;font-size:26px;color:var(--cyan);line-height:1;}
+.seal span{font-family:var(--f-mono);font-size:9px;letter-spacing:1px;color:var(--tx-55);text-transform:uppercase;margin-top:4px;}
+
+/* ---------- placeholder marker ---------- */
+.ph{color:var(--amber);font-family:var(--f-mono);font-size:.9em;}
+
+/* ---------- footer ---------- */
+.ftr{border-top:1px solid var(--line);padding:48px 0 36px;margin-top:40px;}
+.ftr-grid{display:flex;justify-content:space-between;gap:30px;flex-wrap:wrap;align-items:flex-start;}
+.ftr p{font-size:13px;color:var(--tx-45);max-width:40ch;}
+.ftr a{color:var(--tx-55);font-size:13px;}
+.ftr-links{display:flex;flex-direction:column;gap:9px;}
+.ftr-note{margin-top:26px;padding-top:20px;border-top:1px solid var(--line);font-family:var(--f-mono);font-size:11px;color:var(--tx-35);letter-spacing:.5px;}
+
+/* ===================================================================
+   RESPONSIVE
+   =================================================================== */
+@media (max-width:980px){
+  .hero-grid{grid-template-columns:1fr;gap:20px;}
+  .stage{min-height:440px;order:2;}
+  .g3,.g4,.g5{grid-template-columns:repeat(2,1fr);}
+  .timeline{grid-template-columns:repeat(3,1fr);row-gap:26px;}
+  .tl-line{display:none;}
+  .offer-in{grid-template-columns:1fr;gap:28px;text-align:center;}
+  .offer-in .btn{width:100%;}
+  .cred-grid{grid-template-columns:repeat(2,1fr);}
+  .cred{border-bottom:1px solid var(--line);}
+  .nav{display:none;}
+}
+@media (max-width:640px){
+  .sec{padding:60px 0;}
+  .wrap{padding:0 18px;}
+  .g2,.g3,.g4,.g5{grid-template-columns:1fr;}
+  .timeline{grid-template-columns:1fr;}
+  .hero-cta{flex-direction:column;}
+  .hero-cta .btn{width:100%;}
+  .btn{width:100%;}
+  .hdr .btn{width:auto;}
+  .book{width:230px;}
+  .cred-grid{grid-template-columns:1fr;}
+  .cred{border-right:none;}
+  /* comparison -> stacked blocks */
+  .cmp-head{display:none;}
+  .cmp{border:none;border-radius:0;overflow:visible;}
+  .cmp-row{grid-template-columns:1fr;border:1px solid var(--line);border-radius:14px;margin-bottom:12px;overflow:hidden;}
+  .cmp-row>div{border-left:none!important;}
+  .cmp-row .bad{background:rgba(255,71,87,.04);border-bottom:1px solid var(--line);}
+  .cmp-row .good{background:rgba(0,245,212,.05);}
+  .cmp-block-label{display:inline;font-family:var(--f-mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--tx-45);margin-right:6px;}
+  .price .now{font-size:46px;}
+  .offer{border-radius:18px;} .offer-in{padding:28px 22px;}
+  .guarantee{grid-template-columns:1fr;text-align:center;justify-items:center;}
+  .clip-inner{height:360px;}
+  @keyframes clipscroll{from{transform:translateY(0);}to{transform:translateY(calc(-100% + 340px));}}
+}
+@media (prefers-reduced-motion: reduce){
+  .clip-strip{animation:none;} .book,.fcard{animation:none;}
+  .rv{opacity:1;transform:none;transition:none;}
+  html{scroll-behavior:auto;}
+}
+</style>
+<style>
+/* Embed the landing full-bleed inside the theme layout, hide theme chrome on the home only */
+#header-group{display:none !important;}
+.page-wrapper > footer{display:none !important;}
+#MainContent, main#MainContent{padding:0 !important; margin:0 !important; max-width:none !important;}
+.page-wrapper{max-width:none !important; margin:0 !important; padding:0 !important;}
+.shopify-section{margin:0 !important;}
+body{--header-group-height:0px !important; --header-height:0px !important;}
+</style>
+<!-- ============ HEADER ============ -->
+<header class="hdr">
+  <div class="wrap hdr-in">
+    <a class="lockup" href="#top" aria-label="LEVVL Labs">
+      <svg width="30" height="30" viewBox="0 0 48 48" fill="none" aria-hidden="true"><defs><linearGradient id="lgH" x1="6" y1="10" x2="42" y2="38" gradientUnits="userSpaceOnUse"><stop stop-color="#6C5CE7"/><stop offset="1" stop-color="#00F5D4"/></linearGradient></defs><path d="M9 13 L21 24 L9 35" stroke="url(#lgH)" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M24 13 L36 24 L24 35" stroke="url(#lgH)" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="wordmark">LEVVL</span><span class="pill-labs">Labs</span>
+    </a>
+    <nav class="nav">
+      <a href="#agentes">Os 5 agentes</a>
+      <a href="#dentro">Por dentro</a>
+      <a href="#metodo">Método</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <a href="#oferta" class="btn btn--primary">Garantir 51% OFF</a>
+  </div>
+</header>
+
+<main id="top">
+<style>
+/* HERO refinado — texto enxuto, desconto + preço em destaque, prova social com iniciais */
+.hero{padding:44px 0 36px;}
+.h-hero{font-size:clamp(29px,3.3vw,43px);letter-spacing:-1px;line-height:1.13;max-width:17ch;}
+.hero .sub{display:none;}
+.hero-proof{display:flex;align-items:center;gap:14px;margin-bottom:24px;}
+.av-stack{display:flex;}
+.av-stack .av{width:42px;height:42px;border-radius:50%;border:2px solid var(--canvas);margin-left:-12px;object-fit:cover;background:#13131A;box-shadow:0 2px 8px rgba(0,0,0,.45);display:block;}
+.av-stack .av:first-child{margin-left:0;}
+.av1{background:linear-gradient(135deg,#00C2FF,#5B6BFF);} .av2{background:linear-gradient(135deg,#5B6BFF,#8A5CF0);}
+.av3{background:linear-gradient(135deg,#E23BD0,#8A5CF0);} .av4{background:linear-gradient(135deg,#B24BF0,#E23B8A);}
+.av5{background:linear-gradient(135deg,#00E0C2,#00A8E0);}
+.hero-proof .stars{color:#FFC93C;font-size:15px;letter-spacing:2px;line-height:1;}
+.hero-proof .stars b{color:#fff;font-family:var(--f-title);font-weight:700;font-size:16px;margin-left:7px;letter-spacing:0;}
+.hero-proof .pl{font-size:13px;color:var(--tx-55);display:block;margin-top:5px;}
+.hero-offer{display:flex;flex-direction:column;align-items:flex-start;gap:15px;margin:26px 0 14px;}
+.off-badge{display:inline-flex;align-items:center;font-family:var(--f-title);font-weight:700;font-size:16px;letter-spacing:.5px;
+  color:#07070B;background:linear-gradient(135deg,#6C5CE7,#00F5D4);border-radius:10px;padding:10px 18px;box-shadow:0 0 32px rgba(0,245,212,.5);}
+.price-row{display:flex;align-items:baseline;gap:14px;}
+.price-old{font-family:var(--f-title);font-size:24px;color:var(--tx-45);text-decoration:line-through;font-weight:500;}
+.price-now{font-family:var(--f-title);font-weight:700;font-size:66px;letter-spacing:-2px;line-height:.9;}
+.price-eco{font-family:var(--f-mono);font-size:12.5px;color:var(--cyan);letter-spacing:.3px;}
+.hero-cta-main{width:100%;max-width:440px;font-size:18px;padding:19px 32px;}
+.hero-trust{font-family:var(--f-mono);font-size:12px;color:var(--tx-45);letter-spacing:.5px;}
+.hero-trust .sep{color:var(--cyan);}
+.hero-seelink{color:var(--tx-62);border-bottom:1px solid var(--line-12);}
+@media(max-width:640px){ .price-now{font-size:54px;} .hero-cta-main{max-width:none;} .av-stack .av{width:38px;height:38px;font-size:12px;} }
+</style>
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-grid">
+      <div class="hero-copy">
+        <!-- PROVA SOCIAL · nota e nº de pessoas são editáveis — confirme com dados reais antes de publicar -->
+        <div class="hero-proof">
+          <div class="av-stack">
+            <img class="av" src="{{ 'person-1.jpg' | asset_url }}" alt="Cliente" width="42" height="42">
+            <img class="av" src="{{ 'person-2.jpg' | asset_url }}" alt="Cliente" width="42" height="42">
+            <img class="av" src="{{ 'person-3.jpg' | asset_url }}" alt="Cliente" width="42" height="42">
+            <img class="av" src="{{ 'person-4.jpg' | asset_url }}" alt="Cliente" width="42" height="42">
+            <img class="av" src="{{ 'person-5.jpg' | asset_url }}" alt="Cliente" width="42" height="42">
+          </div>
+          <div>
+            <div class="stars">★★★★★ <b>4,7</b></div>
+            <span class="pl">+2.000 profissionais já aplicam o método</span>
+          </div>
+        </div>
+
+        <h1 class="h-hero">Tenha 5 Agentes de IA trabalhando 24h para <span class="w1">vender,</span> <span class="w2">atender</span> <span class="w3">e escalar</span> o seu negócio</h1>
+
+        <div class="hero-offer">
+          <span class="off-badge">51% OFF</span>
+          <div class="price-row"><span class="price-old">R$ 197</span><span class="price-now">R$ 97</span></div>
+          <div class="price-eco">pagamento único · você economiza R$ 100 · acesso imediato</div>
+          <a href="#oferta" class="btn btn--primary btn--lg hero-cta-main">Quero meus 5 agentes por R$ 97 →</a>
+        </div>
+        <div class="hero-trust">Sem programar <span class="sep">·</span> Garantia de 7 dias <span class="sep">·</span> <a href="#agentes" class="hero-seelink">ver os 5 agentes</a></div>
+      </div>
+
+      <div class="stage">
+        <div class="book-glow"></div>
+        <div class="book"><img src="{{ 'cover.jpg' | asset_url }}" alt="Capa do e-book Playbook IA na Prática — 5 Agentes Prontos para Negócios" fetchpriority="high"></div>
+        <div class="fcard fc1"><span class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1v-5h3zM3 19a2 2 0 0 0 2 2h1v-5H3z"/></svg></span><span><b>Atendimento</b><br><span>Suporte 24/7</span></span></div>
+        <div class="fcard fc2"><span class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54z"/></svg></span><span><b>Vendas</b><br><span>Qualifica leads</span></span></div>
+        <div class="fcard fc3"><span class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 8l-5 5-3-3-4 4"/></svg></span><span><b>Dados</b><br><span>Insights</span></span></div>
+        <span class="badge stage-tag"><span class="dot"></span>5 arquiteturas incluídas</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CREDIBILITY BAR ============ -->
+<section class="credbar">
+  <div class="wrap">
+    <div class="cred-grid">
+      <div class="cred"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v4H4zM4 12h10v8H4zM18 12h2v8h-2z"/></svg><span>Framework prático de implementação</span></div>
+      <div class="cred"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="12" r="2.5"/><circle cx="6" cy="18" r="2.5"/><path d="M8.3 7.2 15.7 10.8M15.7 13.2 8.3 16.8"/></svg><span>5 arquiteturas de agentes prontas</span></div>
+      <div class="cred"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg><span>Prompts e fluxos reutilizáveis</span></div>
+      <div class="cred"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h5M8 12h8M8 16h6"/></svg><span>Templates e checklists preenchíveis</span></div>
+      <div class="cred"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>Criado para quem não programa</span></div>
+    </div>
+  </div>
+</section>
+<!-- ============ 7 · SCROLL CLIPS ============ -->
+<section class="sec" id="preview">
+  <div class="wrap">
+    <div class="sec-head center rv">
+      <div class="kicker" style="justify-content:center;">Por dentro do playbook</div>
+      <h2 class="h-sec center">Veja como o playbook foi pensado para ser <span class="grad">usado, não apenas lido</span></h2>
+      <p class="lead center">Páginas reais do material — passe o mouse para pausar a rolagem.</p>
+    </div>
+
+    <div class="grid g3 rv">
+      <div>
+        <div class="clip-frame">
+          <div class="clip-inner">
+            <span class="tag tag--p clip-tag">Canvas do Agente</span>
+            <div class="clip-strip">
+              <img src="{{ 'canvas.jpg' | asset_url }}" alt="Canvas de criação do agente" loading="lazy">
+              <img src="{{ 'ficha.jpg' | asset_url }}" alt="Ficha do agente" loading="lazy">
+              <img src="{{ 'priorizacao.jpg' | asset_url }}" alt="Tabela de priorização" loading="lazy">
+            </div>
+            <div class="clip-cap"><b>Canvas de Criação do Agente</b><span>Planeje cada agente antes de implementar.</span></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="clip-frame">
+          <div class="clip-inner">
+            <span class="tag tag--c clip-tag">Arquitetura</span>
+            <div class="clip-strip">
+              <img src="{{ 'agent-cover.jpg' | asset_url }}" alt="Capa do agente" loading="lazy">
+              <img src="{{ 'agent-build.jpg' | asset_url }}" alt="Fluxo e prompt do agente" loading="lazy">
+              <img src="{{ 'agent-run.jpg' | asset_url }}" alt="Métricas do agente" loading="lazy">
+              <img src="{{ 'method.jpg' | asset_url }}" alt="Método AGENTES" loading="lazy">
+            </div>
+            <div class="clip-cap"><b>Arquitetura dos 5 Agentes</b><span>Entenda a lógica por trás de cada agente pronto.</span></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="clip-frame">
+          <div class="clip-inner">
+            <span class="tag tag--p clip-tag">Implementação</span>
+            <div class="clip-strip">
+              <img src="{{ 'checklist.jpg' | asset_url }}" alt="Checklist de configuração" loading="lazy">
+              <img src="{{ 'roteiro.jpg' | asset_url }}" alt="Plano de implementação 7-14-30 dias" loading="lazy">
+              <img src="{{ 'plano.jpg' | asset_url }}" alt="Plano de ação" loading="lazy">
+            </div>
+            <div class="clip-cap"><b>Checklist e Plano de Implementação</b><span>Siga os passos e tire a IA da teoria.</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- ============ 4 · TRANSFORMAÇÃO ============ -->
+<section class="sec" style="background:linear-gradient(180deg,transparent,rgba(14,14,21,.5),transparent);">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div class="kicker">Da teoria à execução</div>
+      <h2 class="h-sec">Saia da teoria e comece a montar <span class="grad">agentes que trabalham com você.</span></h2>
+      <p class="lead">O playbook ensina a planejar, configurar e aplicar agentes com lógica clara: função definida, dados de entrada, fluxo de resposta, ferramentas recomendadas e métricas de acompanhamento.</p>
+    </div>
+
+    <!-- diagram: prompt solto -> agente estruturado -->
+    <div class="card rv" style="background:var(--canvas);padding:30px 24px;margin-bottom:26px;background-image:radial-gradient(circle, rgba(108,92,231,0.06) 1px, transparent 1px);background-size:24px 24px;">
+      <div style="display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;">
+        <span class="fchip" style="opacity:.7;">Prompt solto</span>
+        <span class="farrow" style="font-size:20px;">»</span>
+        <span class="fchip fchip--t">Entrada</span>
+        <span class="farrow" style="font-size:20px;">»</span>
+        <span class="fchip fchip--x">Processamento</span>
+        <span class="farrow" style="font-size:20px;">»</span>
+        <span class="fchip fchip--x">Ferramentas</span>
+        <span class="farrow" style="font-size:20px;">»</span>
+        <span class="fchip fchip--a">Agente estruturado</span>
+      </div>
+      <p class="center" style="font-size:12.5px;color:var(--tx-45);font-family:var(--f-mono);margin:18px 0 0;letter-spacing:.5px;">DE UM PEDIDO IMPROVISADO A UM FLUXO COM ENTRADA, PROCESSAMENTO, FERRAMENTAS E SAÍDA</p>
+    </div>
+
+    <div class="grid g2 rv">
+      <div class="card" style="border-color:rgba(255,71,87,.22);">
+        <div class="tag" style="color:var(--error);border-color:rgba(255,71,87,.35);background:rgba(255,71,87,.06);margin-bottom:16px;">ANTES</div>
+        <ul class="ul ul--x">
+          <li>Uso solto do ChatGPT</li>
+          <li>Prompts improvisados</li>
+          <li>Tarefas manuais repetitivas</li>
+          <li>Falta de padrão</li>
+          <li>Nenhuma métrica</li>
+        </ul>
+      </div>
+      <div class="card" style="border-color:rgba(0,245,212,.28);box-shadow:0 0 40px rgba(0,245,212,.06);">
+        <div class="tag tag--c" style="margin-bottom:16px;">DEPOIS</div>
+        <ul class="ul">
+          <li>Agentes com função clara</li>
+          <li>Fluxos estruturados</li>
+          <li>Templates prontos</li>
+          <li>Aplicação em áreas-chave</li>
+          <li>Otimização contínua</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 5 · O QUE VOCÊ VAI RECEBER ============ -->
+<section class="sec" id="dentro">
+  <div class="wrap">
+    <div class="sec-head center rv">
+      <div class="kicker" style="justify-content:center;">O que está incluído</div>
+      <h2 class="h-sec center">Tudo que você precisa para começar a aplicar <span class="grad">Agentes de IA no seu negócio</span></h2>
+    </div>
+
+    <!-- highlighted 5-architectures block -->
+    <div class="offer rv" style="margin-bottom:26px;box-shadow:0 0 50px rgba(0,245,212,.18);">
+      <div class="offer-in" style="grid-template-columns:1fr auto;padding:30px 36px;">
+        <div>
+          <div class="badge" style="margin-bottom:14px;"><span class="dot"></span>Diferencial incluso</div>
+          <h3 style="font-size:clamp(22px,2.6vw,30px);letter-spacing:-1px;margin:0 0 8px;">5 arquiteturas de agentes desenvolvidas para aplicar no negócio</h3>
+          <p style="margin:0;color:var(--tx-62);font-size:15px;">Você não recebe só teoria — recebe a estrutura completa de 5 agentes: objetivo, fluxo, prompt base, ferramentas, checklist e métricas. Basta adaptar.</p>
+        </div>
+        <a href="#agentes" class="btn btn--primary" style="white-space:nowrap;">Ver os 5 agentes</a>
+      </div>
+    </div>
+
+    <div class="grid g3 rv" style="gap:14px;">
+      <div class="card card--2" style="padding:18px 20px;"><div class="dl">E-book / playbook completo sobre Agentes de IA</div></div>
+      <div class="card card--2" style="padding:18px 20px;"><div class="dl">Conceitos essenciais explicados de forma simples</div></div>
+      <div class="card card--2" style="padding:18px 20px;"><div class="dl">Guia de ferramentas no-code e low-code</div></div>
+      <div class="card card--2" style="padding:18px 20px;"><div class="dl">Framework prático de criação de agentes</div></div>
+      <div class="card card--2" style="padding:18px 20px;"><div class="dl">Canvas de planejamento do agente</div></div>
+      <div class="card card--2" style="padding:18px 20px;"><div class="dl">Checklists de implementação</div></div>
+      <div class="card card--2" style="padding:18px 20px;"><div class="dl">Templates práticos preenchíveis</div></div>
+      <div class="card card--2" style="padding:18px 20px;"><div class="dl">Prompts base prontos para adaptar</div></div>
+      <div class="card card--2" style="padding:18px 20px;"><div class="dl">Fluxos visuais de funcionamento</div></div>
+      <div class="card card--2" style="padding:18px 20px;"><div class="dl">Plano de ação para implementação</div></div>
+      <div class="card card--2" style="padding:18px 20px;"><div class="dl">Métricas para acompanhar resultados</div></div>
+      <div class="card card--2" style="padding:18px 20px;border-color:rgba(0,245,212,.3);"><div class="dl" style="color:var(--cyan);">Arquitetura de 5 agentes de IA prontos</div></div>
+    </div>
+    <style>.dl{position:relative;padding-left:26px;font-size:14px;color:var(--tx-70);font-weight:400;line-height:1.4;}
+    .dl::before{content:"✓";position:absolute;left:0;top:0;color:var(--cyan);font-weight:700;}</style>
+  </div>
+</section>
+<!-- ============ 3 · PROBLEMA ============ -->
+<section class="sec" id="problema">
+  <div class="wrap">
+    <div class="sec-head center rv">
+      <div class="kicker" style="justify-content:center;">O ponto que trava a maioria</div>
+      <h2 class="h-sec center">Você sabe que precisa usar IA. O problema é <span class="grad">transformar isso em resultado.</span></h2>
+      <p class="lead center">A maioria usa IA de forma superficial — prompts soltos, sem método, sem fluxo e sem integração com os processos reais do negócio. O resultado some, não vira rotina e não escala.</p>
+    </div>
+    <div class="grid g3 rv">
+      <div class="card card--hover"><div class="card-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#6C5CE7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div><h3 class="h3">Ferramentas demais, clareza de menos</h3><p>Cada semana surge um app novo e você não sabe por onde começar nem o que realmente resolve.</p></div>
+      <div class="card card--hover"><div class="card-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#6C5CE7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h10M4 17h6"/></svg></div><h3 class="h3">Prompts genéricos que não viram processo</h3><p>Você digita, copia a resposta e pronto — nada fica salvo, nada se repete, nada roda sozinho.</p></div>
+      <div class="card card--hover"><div class="card-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#6C5CE7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div><h3 class="h3">Aplicar IA sem conhecimento técnico</h3><p>As soluções “de verdade” parecem exigir um programador, um projeto e um orçamento que você não tem.</p></div>
+      <div class="card card--hover"><div class="card-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#6C5CE7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v6l4 2"/><circle cx="12" cy="12" r="9"/></svg></div><h3 class="h3">Tarefas repetitivas consumindo o time</h3><p>Horas por dia respondendo o mesmo, copiando dados e montando o mesmo relatório de sempre.</p></div>
+      <div class="card card--hover"><div class="card-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#6C5CE7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg></div><h3 class="h3">Falta de método para criar agentes úteis</h3><p>Sem um passo a passo, cada tentativa vira improviso — e improviso não escala nem padroniza.</p></div>
+      <div class="card card--hover"><div class="card-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#6C5CE7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg></div><h3 class="h3">Medo de começar errado</h3><p>O receio de perder tempo testando faz você adiar — e a concorrência sai na frente.</p></div>
+    </div>
+    <div class="rv" style="margin-top:36px;text-align:center;max-width:760px;margin-left:auto;margin-right:auto;">
+      <p style="font-size:17px;color:var(--tx-70);"><strong>O Playbook IA na Prática foi criado para resolver exatamente esse ponto:</strong> transformar IA em agentes simples, aplicáveis e úteis para o seu negócio.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 6 · OS 5 AGENTES ============ -->
+<section class="sec" id="agentes" style="background:linear-gradient(180deg,transparent,rgba(14,14,21,.55),transparent);">
+  <div class="wrap">
+    <div class="sec-head center rv">
+      <div class="kicker" style="justify-content:center;">A arquitetura completa</div>
+      <h2 class="h-sec center">Você recebe a arquitetura de <span class="grad">5 Agentes de IA</span> prontos para adaptar e aplicar</h2>
+      <p class="lead center">Cada agente vem com objetivo, problema que resolve, ferramentas sugeridas, prompt base, fluxo visual, checklist, exemplo prático e métricas de acompanhamento.</p>
+    </div>
+
+    <div class="grid g3 rv agents-grid">
+      <!-- A1 -->
+      <div class="card card--hover ag">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div class="card-ico card-ico--c"><svg viewBox="0 0 24 24" fill="none" stroke="#00F5D4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1v-5h3zM3 19a2 2 0 0 0 2 2h1v-5H3z"/></svg></div>
+          <span class="tag tag--easy">Fácil</span>
+        </div>
+        <h3 class="h3" style="font-size:18px;">Atendimento e Triagem Inteligente</h3>
+        <p style="margin-bottom:12px;">Responde dúvidas frequentes, qualifica solicitações e direciona clientes para o canal certo.</p>
+        <div class="ag-meta"><b>Benefício</b> Reduz tempo de resposta e organiza o atendimento.</div>
+        <div class="ag-meta"><b>Onde aplicar</b> WhatsApp, formulário, site, suporte.</div>
+        <div class="ag-foot"><span class="tag tag--c">Pronto para adaptar</span><a href="#oferta" class="ag-cta">Ver arquitetura inclusa →</a></div>
+      </div>
+      <!-- A2 -->
+      <div class="card card--hover ag">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div class="card-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#6C5CE7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54z"/></svg></div>
+          <span class="tag tag--easy">Intermediário</span>
+        </div>
+        <h3 class="h3" style="font-size:18px;">Vendas e Qualificação de Leads</h3>
+        <p style="margin-bottom:12px;">Analisa leads, identifica intenção de compra, sugere abordagem e gera scripts comerciais.</p>
+        <div class="ag-meta"><b>Benefício</b> Ajuda o time a priorizar as melhores oportunidades.</div>
+        <div class="ag-meta"><b>Onde aplicar</b> CRM, planilhas, formulários, WhatsApp, e-mail.</div>
+        <div class="ag-foot"><span class="tag tag--c">Pronto para adaptar</span><a href="#oferta" class="ag-cta">Ver arquitetura inclusa →</a></div>
+      </div>
+      <!-- A3 -->
+      <div class="card card--hover ag">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div class="card-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#6C5CE7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v2a1 1 0 0 0 1 1h3l4 4V6L7 10H4a1 1 0 0 0-1 1z"/><path d="M16 8a5 5 0 0 1 0 8"/></svg></div>
+          <span class="tag tag--easy">Fácil</span>
+        </div>
+        <h3 class="h3" style="font-size:18px;">Conteúdo e Marketing</h3>
+        <p style="margin-bottom:12px;">Cria ideias de conteúdo, calendários editoriais, roteiros e campanhas com base no público-alvo.</p>
+        <div class="ag-meta"><b>Benefício</b> Acelera a produção com mais consistência estratégica.</div>
+        <div class="ag-meta"><b>Onde aplicar</b> Instagram, LinkedIn, blog, e-mail, anúncios.</div>
+        <div class="ag-foot"><span class="tag tag--c">Pronto para adaptar</span><a href="#oferta" class="ag-cta">Ver arquitetura inclusa →</a></div>
+      </div>
+      <!-- A4 -->
+      <div class="card card--hover ag">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div class="card-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#6C5CE7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 6.7 19.4l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.6 1.6 0 0 0 3 15H3a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 4.6 9.3l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.6 1.6 0 0 0 9 6.6V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 2.7 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0 1.1 2.7H21a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"/></svg></div>
+          <span class="tag tag--easy">Fácil</span>
+        </div>
+        <h3 class="h3" style="font-size:18px;">Operações e Processos Internos</h3>
+        <p style="margin-bottom:12px;">Organiza tarefas, cria checklists, padroniza rotinas e documenta processos internos.</p>
+        <div class="ag-meta"><b>Benefício</b> Reduz retrabalho e melhora a execução da equipe.</div>
+        <div class="ag-meta"><b>Onde aplicar</b> Notion, ClickUp, Trello, Google Docs.</div>
+        <div class="ag-foot"><span class="tag tag--c">Pronto para adaptar</span><a href="#oferta" class="ag-cta">Ver arquitetura inclusa →</a></div>
+      </div>
+      <!-- A5 -->
+      <div class="card card--hover ag">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div class="card-ico card-ico--c"><svg viewBox="0 0 24 24" fill="none" stroke="#00F5D4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l3-4 3 3 4-6"/></svg></div>
+          <span class="tag tag--easy">Intermediário</span>
+        </div>
+        <h3 class="h3" style="font-size:18px;">Análise de Dados e Relatórios</h3>
+        <p style="margin-bottom:12px;">Interpreta dados simples, resume indicadores, identifica padrões e sugere ações de melhoria.</p>
+        <div class="ag-meta"><b>Benefício</b> Transforma planilhas e números em decisões claras.</div>
+        <div class="ag-meta"><b>Onde aplicar</b> Google Sheets, Airtable, relatórios, dashboards.</div>
+        <div class="ag-foot"><span class="tag tag--c">Pronto para adaptar</span><a href="#oferta" class="ag-cta">Ver arquitetura inclusa →</a></div>
+      </div>
+      <!-- CTA card -->
+      <div class="card ag" style="display:flex;flex-direction:column;justify-content:center;align-items:flex-start;background:linear-gradient(135deg,rgba(108,92,231,.12),rgba(0,245,212,.08));border-color:rgba(108,92,231,.3);">
+        <h3 class="h3" style="font-size:20px;margin-bottom:10px;">Os 5 agentes, prontos para o seu negócio</h3>
+        <p style="margin-bottom:18px;">Objetivo, fluxo, prompt, ferramentas, checklist e métricas — é só adaptar e aplicar.</p>
+        <a href="#oferta" class="btn btn--primary btn--sm">Quero os 5 agentes por R$ 97 →</a>
+      </div>
+    </div>
+    <style>
+      .ag-meta{font-size:12.5px;color:var(--tx-55);line-height:1.4;margin-bottom:8px;padding-left:0;}
+      .ag-meta b{display:block;font-family:var(--f-mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--purple);margin-bottom:2px;}
+      .ag-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line);flex-wrap:wrap;}
+      .ag-cta{font-family:var(--f-title);font-weight:600;font-size:12.5px;color:var(--cyan);}
+    </style>
+  </div>
+</section>
+
+<!-- ============ 8 · MÉTODO A.G.E.N.T.E. ============ -->
+<section class="sec" id="metodo">
+  <div class="wrap">
+    <div class="sec-head center rv">
+      <div class="kicker" style="justify-content:center;">O framework</div>
+      <h2 class="h-sec center">O método simples para criar agentes de IA <span class="grad">sem programação</span></h2>
+      <p class="lead center">Seis passos que transformam qualquer processo em um agente. A sigla é a própria palavra: <strong>A.G.E.N.T.E.</strong></p>
+    </div>
+
+    <div class="timeline rv">
+      <div class="tl-line"></div>
+      <div class="tl-step"><div class="tl-dot">A</div><h3>Avaliar o processo</h3><p>Identifique tarefas repetitivas, gargalos e oportunidades de automação.</p></div>
+      <div class="tl-step"><div class="tl-dot">G</div><h3>Gerar o objetivo</h3><p>Defina exatamente o que o agente deve fazer e qual resultado entregar.</p></div>
+      <div class="tl-step"><div class="tl-dot">E</div><h3>Estruturar E/S</h3><p>Mapeie quais informações o agente recebe e que resposta deve produzir.</p></div>
+      <div class="tl-step"><div class="tl-dot">N</div><h3>Nutrir com contexto</h3><p>Forneça instruções, exemplos, documentos, políticas e dados do negócio.</p></div>
+      <div class="tl-step"><div class="tl-dot">T</div><h3>Testar no real</h3><p>Valide o agente com situações reais antes de aplicar na rotina.</p></div>
+      <div class="tl-step"><div class="tl-dot" style="border-color:rgba(0,245,212,.5);box-shadow:var(--glow-c);">E</div><h3>Evoluir com métricas</h3><p>Acompanhe resultados, ajuste prompts e refine o desempenho.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 9 · APLICAÇÃO PRÁTICA ============ -->
+<section class="sec" style="background:linear-gradient(180deg,transparent,rgba(14,14,21,.5),transparent);">
+  <div class="wrap">
+    <div class="grid g2 rv" style="align-items:center;gap:44px;">
+      <div>
+        <div class="kicker">Feito para aplicar</div>
+        <h2 class="h-sec">Você não precisa entender de programação. Você precisa <span class="grad">seguir um método.</span></h2>
+        <p class="lead" style="margin-bottom:24px;">O playbook foi feito para quem quer aplicar IA no negócio de forma prática, com orientação clara e recursos preenchíveis — não mais um curso teórico.</p>
+        <div class="grid g2" style="gap:12px;">
+          <div class="ap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h5"/></svg>Campos preenchíveis</div>
+          <div class="ap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg>Exercícios guiados</div>
+          <div class="ap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>Canvas de criação</div>
+          <div class="ap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Checklists de config.</div>
+          <div class="ap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h9"/></svg>Templates de prompts</div>
+          <div class="ap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg>Exemplos práticos</div>
+          <div class="ap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg>Plano de implementação</div>
+          <div class="ap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 3 4-6"/></svg>Métricas de acompanham.</div>
+        </div>
+      </div>
+      <div class="rv">
+        <div class="clip-frame" style="max-width:420px;margin:0 auto;">
+          <div style="background:var(--canvas);border-radius:17px;overflow:hidden;padding:10px;">
+            <img src="{{ 'cover.jpg' | asset_url }}" alt="Capa do Playbook IA na Prática — 5 Agentes Prontos para Negócios" style="border-radius:8px;border:1px solid var(--line);" loading="lazy">
+          </div>
+        </div>
+      </div>
+    </div>
+    <style>.ap{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--tx-70);font-weight:400;}.ap svg{width:20px;height:20px;color:var(--cyan);flex:none;}</style>
+  </div>
+</section>
+<!-- ============ 10 · BENEFÍCIOS ============ -->
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-head center rv">
+      <div class="kicker" style="justify-content:center;">Resultado, não só recurso</div>
+      <h2 class="h-sec center">O que muda quando você começa a usar agentes de IA <span class="grad">com estrutura</span></h2>
+    </div>
+    <div class="grid g5 rv" style="gap:14px;">
+      <div class="card card--2 bf"><span class="bfi">⏱</span><b>Economize tempo</b><span>Menos horas em tarefas repetitivas.</span></div>
+      <div class="card card--2 bf"><span class="bfi">◎</span><b>Melhore o atendimento</b><span>Resposta rápida e consistente.</span></div>
+      <div class="card card--2 bf"><span class="bfi">▲</span><b>Qualifique leads</b><span>Priorize quem tem real chance de compra.</span></div>
+      <div class="card card--2 bf"><span class="bfi">✎</span><b>Conteúdo consistente</b><span>Produção com ritmo e estratégia.</span></div>
+      <div class="card card--2 bf"><span class="bfi">⚙</span><b>Padronize processos</b><span>Menos retrabalho, mais execução.</span></div>
+      <div class="card card--2 bf"><span class="bfi">▦</span><b>Dados em decisões</b><span>Números viram ações claras.</span></div>
+      <div class="card card--2 bf"><span class="bfi">↺</span><b>Reduza tentativa e erro</b><span>Siga um caminho testado.</span></div>
+      <div class="card card--2 bf"><span class="bfi">{ }</span><b>Sem programar</b><span>Aplique IA sem depender de código.</span></div>
+      <div class="card card--2 bf"><span class="bfi">◈</span><b>Mapa claro de IA</b><span>Saiba exatamente por onde começar.</span></div>
+      <div class="card card--2 bf"><span class="bfi">✦</span><b>Vantagem competitiva</b><span>Automação inteligente que escala.</span></div>
+    </div>
+    <style>.bf{padding:18px;display:flex;flex-direction:column;}.bfi{font-size:20px;color:var(--cyan);margin-bottom:12px;line-height:1;font-family:var(--f-mono);}
+    .bf b{font-family:var(--f-title);font-weight:600;font-size:15px;margin-bottom:5px;}.bf span{font-size:12.5px;color:var(--tx-55);line-height:1.45;}</style>
+  </div>
+</section>
+
+<!-- ============ 11 · PROVA SOCIAL ============ -->
+<section class="sec" style="background:linear-gradient(180deg,transparent,rgba(14,14,21,.5),transparent);">
+  <div class="wrap">
+    <div class="sec-head center rv">
+      <div class="kicker" style="justify-content:center;">Para quem é</div>
+      <h2 class="h-sec center">Feito para profissionais que querem sair do <span class="grad">uso básico da IA</span></h2>
+    </div>
+
+    <div class="grid g4 rv" style="gap:14px;margin-bottom:34px;">
+      <div class="card card--2 center" style="padding:22px;"><div class="metric">+2.000</div><div class="metric-l">profissionais usando o método</div></div>
+      <div class="card card--2 center" style="padding:22px;"><div class="metric">+5.000</div><div class="metric-l">agentes implementados com o playbook</div></div>
+      <div class="card card--2 center" style="padding:22px;"><div class="metric">40%</div><div class="metric-l">de ganho de produtividade identificado</div></div>
+      <div class="card card--2 center" style="padding:22px;"><div class="metric">+5</div><div class="metric-l">áreas de negócio contempladas</div></div>
+    </div>
+    <div class="grid g3 rv">
+      <div class="card tst">
+        <div class="stars">★★★★★</div>
+        <p>“Eu já usava IA para responder perguntas soltas, mas não sabia como transformar isso em um processo. Com o playbook, consegui estruturar um agente de atendimento e reduzir bastante o tempo de triagem.”</p>
+        <div class="tst-by"><img class="av" src="{{ 'person-2.jpg' | asset_url }}" alt="Mariana Costa" width="44" height="44"><div><b>Mariana Costa</b><span>CEO &amp; Fundadora · E-commerce de Moda</span></div></div>
+      </div>
+      <div class="card tst">
+        <div class="stars">★★★★★</div>
+        <p>“O agente de conteúdo me ajudou a organizar campanhas, calendário editorial e ideias de posts em uma lógica muito mais clara. O material é direto e aplicável.”</p>
+        <div class="tst-by"><img class="av" src="{{ 'person-1.jpg' | asset_url }}" alt="Bruno Almeida" width="44" height="44"><div><b>Bruno Almeida</b><span>Head de Marketing · Agência Digital</span></div></div>
+      </div>
+      <div class="card tst">
+        <div class="stars">★★★★★</div>
+        <p>“A arquitetura do agente de qualificação de leads foi o ponto mais valioso para mim. Consegui adaptar o fluxo para minha operação comercial sem precisar programar.”</p>
+        <div class="tst-by"><img class="av" src="{{ 'person-5.jpg' | asset_url }}" alt="Renata Vieira" width="44" height="44"><div><b>Renata Vieira</b><span>Diretora Comercial · B2B SaaS</span></div></div>
+      </div>
+    </div>
+
+    <style>
+      .metric{font-family:var(--f-title);font-weight:700;font-size:38px;letter-spacing:-1px;line-height:1;}
+      .metric-l{font-size:12.5px;color:var(--tx-55);margin-top:8px;line-height:1.4;}
+      .tst{display:flex;flex-direction:column;}
+      .tst .stars{color:var(--cyan);font-size:15px;letter-spacing:2px;margin-bottom:14px;}
+      .tst p{font-size:14.5px;color:var(--tx-70);line-height:1.6;flex:1;font-style:italic;}
+      .tst-by{display:flex;align-items:center;gap:12px;margin-top:16px;}
+      .tst-by .av{width:44px;height:44px;border-radius:50%;object-fit:cover;flex:none;border:2px solid rgba(255,255,255,.1);box-shadow:0 2px 10px rgba(0,0,0,.4);background:#13131A;}
+      .tst-by b{font-family:var(--f-title);font-weight:600;font-size:14px;display:block;}
+      .tst-by span{font-size:12px;color:var(--tx-45);}
+      .tst-tag{margin-top:12px;font-family:var(--f-mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--amber);}
+    </style>
+  </div>
+</section>
+<!-- ============ 12 · COMPARAÇÃO ============ -->
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-head center rv">
+      <div class="kicker" style="justify-content:center;">A diferença</div>
+      <h2 class="h-sec center">Existe uma grande diferença entre <span style="color:var(--tx-55)">usar IA</span> e <span class="grad">aplicar IA com método</span></h2>
+    </div>
+    <div class="cmp rv">
+      <div class="cmp-head">
+        <div class="bad">Usar IA sem método</div>
+        <div class="good">Usar o Playbook IA na Prática</div>
+      </div>
+      <div class="cmp-row"><div class="bad"><span class="cmp-block-label">Sem método:</span>Prompts soltos</div><div class="good"><span class="cmp-block-label">Playbook:</span>Agentes estruturados</div></div>
+      <div class="cmp-row"><div class="bad"><span class="cmp-block-label">Sem método:</span>Tentativa e erro</div><div class="good"><span class="cmp-block-label">Playbook:</span>Passo a passo guiado</div></div>
+      <div class="cmp-row"><div class="bad"><span class="cmp-block-label">Sem método:</span>Ferramentas confusas</div><div class="good"><span class="cmp-block-label">Playbook:</span>Stack recomendada</div></div>
+      <div class="cmp-row"><div class="bad"><span class="cmp-block-label">Sem método:</span>Respostas genéricas</div><div class="good"><span class="cmp-block-label">Playbook:</span>Contexto aplicado ao negócio</div></div>
+      <div class="cmp-row"><div class="bad"><span class="cmp-block-label">Sem método:</span>Sem métricas</div><div class="good"><span class="cmp-block-label">Playbook:</span>Acompanhamento de desempenho</div></div>
+      <div class="cmp-row"><div class="bad"><span class="cmp-block-label">Sem método:</span>Aplicação superficial</div><div class="good"><span class="cmp-block-label">Playbook:</span>Processos reais</div></div>
+      <div class="cmp-row"><div class="bad"><span class="cmp-block-label">Sem método:</span>Dependência técnica</div><div class="good"><span class="cmp-block-label">Playbook:</span>Implementação sem programação</div></div>
+      <div class="cmp-row"><div class="bad"><span class="cmp-block-label">Sem método:</span>Ideias soltas</div><div class="good"><span class="cmp-block-label">Playbook:</span>Arquitetura pronta para aplicar</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 13 · OFERTA ============ -->
+<section class="sec" id="oferta">
+  <div class="wrap">
+    <div class="sec-head center rv">
+      <div class="kicker" style="justify-content:center;">A oferta</div>
+      <h2 class="h-sec center">Leve agora o Playbook IA na Prática e comece a montar seus <span class="grad">agentes de IA com clareza</span></h2>
+      <p class="lead center">Você poderia passar semanas testando ferramentas, copiando prompts soltos e tentando entender como aplicar IA. Ou pode seguir um playbook estruturado, com <strong>5 arquiteturas de agentes prontas para adaptar.</strong></p>
+    </div>
+
+    <div class="offer rv">
+      <div class="offer-in">
+        <div>
+          <div class="plabel">Tudo que está incluso</div>
+          <div class="grid g2" style="gap:8px 18px;">
+            <div class="dl">Playbook completo em formato digital</div>
+            <div class="dl">Conceitos essenciais de AI Agents</div>
+            <div class="dl">Ferramentas no-code recomendadas</div>
+            <div class="dl">Método A.G.E.N.T.E.</div>
+            <div class="dl">Canvas de planejamento</div>
+            <div class="dl">Templates e checklists</div>
+            <div class="dl">Prompts base prontos</div>
+            <div class="dl">Fluxos visuais</div>
+            <div class="dl">Plano de implementação</div>
+            <div class="dl">Exemplos práticos de aplicação</div>
+            <div class="dl">Métricas para acompanhamento</div>
+            <div class="dl" style="color:var(--cyan);">5 arquiteturas de agentes prontas</div>
+          </div>
+        </div>
+        <div class="center">
+          <div class="plabel" style="text-align:center;">Oferta de lançamento · 51% OFF</div>
+          <div class="price">
+            <div class="old">De R$ 197</div>
+            <div class="now">R$ 97</div>
+            <div class="edit">pagamento único · acesso imediato</div>
+          </div>
+          <a href="#" class="btn btn--primary btn--lg" style="width:100%;margin:22px 0 14px;">Sim! Quero meus 5 agentes por R$ 97 →</a>
+          <p style="font-size:12.5px;color:var(--tx-55);margin:0 0 4px;">Menos do que <strong>uma hora de consultoria</strong> especializada em IA — com um material que você consulta e aplica sempre que precisar.</p>
+          <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:14px;font-family:var(--f-mono);font-size:11px;color:var(--tx-45);letter-spacing:.5px;">
+            <span>✓ Acesso imediato</span><span>✓ Compra segura</span><span>✓ Sem programar</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- ============ 14 · GARANTIA ============ -->
+<section class="sec--tight">
+  <div class="wrap">
+    <div class="guarantee rv">
+      <div class="seal"><b>7</b><span>dias</span></div>
+      <div>
+        <div class="kicker" style="margin-bottom:10px;">Comece com segurança</div>
+        <h3 style="font-size:22px;letter-spacing:-.5px;margin:0 0 10px;">Risco reduzido para você começar hoje</h3>
+        <p style="margin:0 0 14px;font-size:14.5px;">Este é um material digital prático, criado para orientar sua implementação passo a passo. Você conta com <strong>7 dias de garantia incondicional</strong>: se sentir que o conteúdo não é para você, é só solicitar dentro do prazo e devolvemos 100% do valor — sem burocracia e sem perguntas.</p>
+        <div class="tags">
+          <span class="tag tag--c">Acesso imediato</span>
+          <span class="tag tag--c">Material prático</span>
+          <span class="tag tag--c">Conteúdo digital</span>
+          <span class="tag tag--c">Passo a passo guiado</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 15 · FAQ ============ -->
+<section class="sec" id="faq">
+  <div class="wrap">
+    <div class="sec-head center rv">
+      <div class="kicker" style="justify-content:center;">Perguntas frequentes</div>
+      <h2 class="h-sec center">Tudo que você precisa saber <span class="grad">antes de começar</span></h2>
+    </div>
+    <div class="faq rv">
+      <details><summary>Preciso saber programar para usar o playbook?</summary><div class="fa">Não. O material foi criado para pessoas não programadoras. Ele usa ferramentas acessíveis, lógica de processos, prompts, templates e um passo a passo simples.</div></details>
+      <details><summary>O e-book é mais teórico ou prático?</summary><div class="fa">Ele é um playbook prático. Além dos conceitos essenciais, você recebe canvas, checklists, prompts, fluxos e arquiteturas de agentes prontas para adaptar.</div></details>
+      <details><summary>Os 5 agentes já vêm prontos?</summary><div class="fa">Você recebe a arquitetura completa dos 5 agentes, incluindo objetivo, fluxo, prompt base, ferramentas sugeridas, checklist e métricas. Basta adaptar ao seu negócio.</div></details>
+      <details><summary>Posso aplicar em qualquer segmento?</summary><div class="fa">Sim. Os agentes foram pensados para áreas comuns em muitos negócios: atendimento, vendas, marketing, operações e análise de dados.</div></details>
+      <details><summary>Preciso pagar ferramentas extras?</summary><div class="fa">O playbook apresenta opções de ferramentas gratuitas, pagas, no-code e low-code. A escolha depende do nível de implementação que você deseja.</div></details>
+      <details><summary>Posso usar com ChatGPT?</summary><div class="fa">Sim. O material pode ser usado com ChatGPT e também com ferramentas de automação, bases de conhecimento, planilhas e plataformas no-code.</div></details>
+      <details><summary>Serve para pequenos negócios?</summary><div class="fa">Sim. O conteúdo foi criado para ser aplicável tanto em pequenos negócios quanto em equipes que desejam estruturar melhor o uso de IA.</div></details>
+      <details><summary>Recebo acesso imediato?</summary><div class="fa">Sim, após a compra o acesso ao material digital deve ser liberado imediatamente, conforme a plataforma de pagamento utilizada.</div></details>
+      <details><summary>O playbook substitui uma consultoria?</summary><div class="fa">Ele não substitui uma consultoria personalizada, mas oferece um caminho estruturado para implementar agentes de IA com clareza e autonomia.</div></details>
+      <details><summary>É indicado para equipes?</summary><div class="fa">Sim. O material pode ser usado por equipes de vendas, marketing, atendimento, operações e gestão para padronizar a aplicação da IA.</div></details>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 16 · CTA FINAL ============ -->
+<section class="sec" style="position:relative;overflow:hidden;">
+  <div style="position:absolute;top:-120px;left:50%;transform:translateX(-50%);width:900px;height:500px;background:radial-gradient(ellipse at center,rgba(0,245,212,.12),transparent 66%);filter:blur(40px);z-index:-1;"></div>
+  <div class="wrap">
+    <div class="grid g2 rv" style="align-items:center;gap:44px;">
+      <div>
+        <h2 class="h-sec" style="max-width:18ch;">Pare de usar IA apenas para testar prompts. <span class="grad">Comece a criar agentes que trabalham pelo seu negócio.</span></h2>
+        <p class="lead" style="margin-bottom:28px;">Com o Playbook IA na Prática, você recebe o método, os templates e a arquitetura de 5 agentes para aplicar IA com clareza, mesmo sem programar.</p>
+        <a href="#oferta" class="btn btn--primary btn--lg">Quero começar agora por R$ 97 →</a>
+        <div style="margin-top:16px;font-family:var(--f-mono);font-size:12px;color:var(--tx-45);letter-spacing:.5px;">Acesso imediato <span style="color:var(--cyan)">•</span> Produto digital <span style="color:var(--cyan)">•</span> Aplicação prática</div>
+      </div>
+      <div class="stage" style="min-height:400px;">
+        <div class="book-glow"></div>
+        <div class="book" style="width:250px;"><img src="{{ 'cover.jpg' | asset_url }}" alt="Playbook IA na Prática — 5 Agentes Prontos para Negócios" loading="lazy"></div>
+        <div class="fcard fc1" style="top:10px;"><span class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 6 9 17l-5-5"/></svg></span><span><b>5 agentes</b><br><span>prontos p/ adaptar</span></span></div>
+        <div class="fcard fc3" style="bottom:20px;"><span class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 6 9 17l-5-5"/></svg></span><span><b>Templates</b><br><span>preenchíveis</span></span></div>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="ftr">
+  <div class="wrap">
+    <div class="ftr-grid">
+      <div>
+        <div class="lockup" style="margin-bottom:14px;">
+          <svg width="26" height="26" viewBox="0 0 48 48" fill="none" aria-hidden="true"><defs><linearGradient id="lgF" x1="6" y1="10" x2="42" y2="38" gradientUnits="userSpaceOnUse"><stop stop-color="#6C5CE7"/><stop offset="1" stop-color="#00F5D4"/></linearGradient></defs><path d="M9 13 L21 24 L9 35" stroke="url(#lgF)" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M24 13 L36 24 L24 35" stroke="url(#lgF)" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span class="wordmark" style="font-size:16px;">LEVVL</span><span class="pill-labs">Labs</span>
+        </div>
+        <p>Playbook IA na Prática — 5 Agentes Prontos para Negócios. Produto digital de aplicação prática de Inteligência Artificial em negócios.</p>
+      </div>
+      <div class="ftr-links">
+        <span class="eyebrow" style="margin-bottom:4px;">Navegar</span>
+        <a href="#agentes">Os 5 agentes</a>
+        <a href="#dentro">Por dentro do playbook</a>
+        <a href="#metodo">Método A.G.E.N.T.E.</a>
+        <a href="#oferta">Oferta</a>
+        <a href="#faq">Perguntas frequentes</a>
+      </div>
+      <div class="ftr-links">
+        <span class="eyebrow" style="margin-bottom:4px;">Legal</span>
+        <a href="#">Termos de uso</a>
+        <a href="#">Política de privacidade</a>
+        <a href="#">Contato / suporte</a>
+        <a href="#">Reembolso</a>
+      </div>
+    </div>
+    <div class="ftr-note">
+      PRODUTO DIGITAL · ACESSO IMEDIATO APÓS A COMPRA · © 2026 LEVVL LABS · Este material é educativo e não substitui consultoria personalizada.
+    </div>
+  </div>
+</footer>
+
+<script>
+/* reveal on scroll */
+(function(){
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const io = new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.12});
+  document.querySelectorAll('.rv').forEach(el=>io.observe(el));
+})();
+</script>
+{% schema %}
+{ "name": "Playbook Landing", "settings": [] }
+{% endschema %}
