@@ -165,7 +165,19 @@ strong{color:#fff;font-weight:600;}
 .hero-trust{font-family:var(--f-mono);font-size:12px;color:var(--tx-45);letter-spacing:.5px;}
 .hero-trust .sep{color:var(--cyan);}
 .hero-seelink{color:var(--tx-62);border-bottom:1px solid var(--line-12);padding-bottom:1px;}
-@media (max-width:640px){ .hero-offer{gap:16px;} .hp-now{font-size:36px;} .av-stack img{width:40px;height:40px;} }
+@media (max-width:640px){ .hero-offer{gap:16px;} .av-stack img{width:40px;height:40px;} }
+/* headline com palavras coloridas (gradiente aproximado, robusto) */
+.w1{color:#7B6CF0;} .w2{color:#4CA9E8;} .w3{color:#00F5D4;}
+/* card de preço com destaque */
+.hero-offer{flex-direction:column;align-items:flex-start;}
+.price-card{display:inline-flex;align-items:center;gap:18px;background:linear-gradient(135deg,rgba(108,92,231,.14),rgba(0,245,212,.09));border:1px solid rgba(0,245,212,.4);border-radius:16px;padding:16px 22px;box-shadow:0 0 44px rgba(0,245,212,.18);}
+.hp-off{font-size:15px;padding:9px 12px;letter-spacing:0;align-self:center;}
+.price-line{display:flex;align-items:baseline;gap:12px;}
+.hp-now{font-size:52px;}
+.hp-sub{font-family:var(--f-mono);font-size:12px;color:var(--tx-55);margin-top:3px;letter-spacing:.3px;}
+.hp-sub b{color:var(--cyan);font-weight:600;}
+.hero-cta-main{width:100%;max-width:440px;font-size:18px;padding:19px 32px;}
+@media (max-width:640px){ .price-card{width:100%;} .hp-now{font-size:44px;} .hero-cta-main{max-width:none;} }
 
 /* 3D cover mockup */
 .stage{position:relative;perspective:1400px;min-height:520px;display:flex;align-items:center;justify-content:center;}
@@ -346,7 +358,7 @@ strong{color:#fff;font-weight:600;}
       <a href="#metodo">Método</a>
       <a href="#faq">FAQ</a>
     </nav>
-    <a href="#oferta" class="btn btn--primary">Quero o Playbook</a>
+    <a href="#oferta" class="btn btn--primary">Garantir 51% OFF</a>
   </div>
 </header>
 
@@ -372,18 +384,20 @@ strong{color:#fff;font-weight:600;}
           </div>
         </div>
 
-        <h1 class="h-hero">Implemente <span class="grad">5 Agentes de IA</span> no seu negócio — sem saber programar</h1>
-        <p class="sub">Atendimento, vendas, marketing, operações e dados. 5 agentes prontos para aplicar.</p>
+        <h1 class="h-hero">Tenha 5 Agentes de IA trabalhando 24h para <span class="w1">vender,</span> <span class="w2">atender</span> <span class="w3">e escalar</span> o seu negócio</h1>
+        <p class="sub">Sem saber programar. 5 agentes prontos para atendimento, vendas, marketing, operações e dados.</p>
 
         <div class="hero-offer">
-          <div class="hero-price">
-            <span class="hp-off">-51% OFF</span>
-            <span class="hp-old">R$ 197</span>
-            <span class="hp-now">R$ 97</span>
+          <div class="price-card">
+            <span class="hp-off">−51%</span>
+            <div>
+              <div class="price-line"><span class="hp-old">R$ 197</span><span class="hp-now">R$ 97</span></div>
+              <div class="hp-sub">pagamento único · <b>você economiza R$ 100</b></div>
+            </div>
           </div>
-          <a href="#oferta" class="btn btn--primary btn--lg">Garantir com 51% OFF →</a>
+          <a href="#oferta" class="btn btn--primary btn--lg hero-cta-main">Quero meus 5 agentes por R$ 97 →</a>
         </div>
-        <div class="hero-trust">Acesso imediato <span class="sep">·</span> Sem programar <span class="sep">·</span> <a href="#agentes" class="hero-seelink">ver os 5 agentes</a></div>
+        <div class="hero-trust">Acesso imediato <span class="sep">·</span> Garantia de 7 dias <span class="sep">·</span> <a href="#agentes" class="hero-seelink">ver os 5 agentes</a></div>
       </div>
 
       <div class="stage">
@@ -408,6 +422,97 @@ strong{color:#fff;font-weight:600;}
       <div class="cred"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h5M8 12h8M8 16h6"/></svg><span>Templates e checklists preenchíveis</span></div>
       <div class="cred"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>Criado para quem não programa</span></div>
     </div>
+  </div>
+</section>
+<!-- ============ 7 · SCROLL CLIPS ============ -->
+<section class="sec" id="preview">
+  <div class="wrap">
+    <div class="sec-head center rv">
+      <div class="kicker" style="justify-content:center;">Por dentro do playbook</div>
+      <h2 class="h-sec center">Veja como o playbook foi pensado para ser <span class="grad">usado, não apenas lido</span></h2>
+      <p class="lead center">Páginas reais do material — passe o mouse para pausar a rolagem.</p>
+    </div>
+
+    <div class="grid g3 rv">
+      <div>
+        <div class="clip-frame">
+          <div class="clip-inner">
+            <span class="tag tag--p clip-tag">Canvas do Agente</span>
+            <div class="clip-strip">
+              <img src="assets/canvas.jpg" alt="Canvas de criação do agente" loading="lazy">
+              <img src="assets/ficha.jpg" alt="Ficha do agente" loading="lazy">
+              <img src="assets/priorizacao.jpg" alt="Tabela de priorização" loading="lazy">
+            </div>
+            <div class="clip-cap"><b>Canvas de Criação do Agente</b><span>Planeje cada agente antes de implementar.</span></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="clip-frame">
+          <div class="clip-inner">
+            <span class="tag tag--c clip-tag">Arquitetura</span>
+            <div class="clip-strip">
+              <img src="assets/agent-cover.jpg" alt="Capa do agente" loading="lazy">
+              <img src="assets/agent-build.jpg" alt="Fluxo e prompt do agente" loading="lazy">
+              <img src="assets/agent-run.jpg" alt="Métricas do agente" loading="lazy">
+              <img src="assets/method.jpg" alt="Método AGENTES" loading="lazy">
+            </div>
+            <div class="clip-cap"><b>Arquitetura dos 5 Agentes</b><span>Entenda a lógica por trás de cada agente pronto.</span></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="clip-frame">
+          <div class="clip-inner">
+            <span class="tag tag--p clip-tag">Implementação</span>
+            <div class="clip-strip">
+              <img src="assets/checklist.jpg" alt="Checklist de configuração" loading="lazy">
+              <img src="assets/roteiro.jpg" alt="Plano de implementação 7-14-30 dias" loading="lazy">
+              <img src="assets/plano.jpg" alt="Plano de ação" loading="lazy">
+            </div>
+            <div class="clip-cap"><b>Checklist e Plano de Implementação</b><span>Siga os passos e tire a IA da teoria.</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- ============ 5 · O QUE VOCÊ VAI RECEBER ============ -->
+<section class="sec" id="dentro">
+  <div class="wrap">
+    <div class="sec-head center rv">
+      <div class="kicker" style="justify-content:center;">O que está incluído</div>
+      <h2 class="h-sec center">Tudo que você precisa para começar a aplicar <span class="grad">Agentes de IA no seu negócio</span></h2>
+    </div>
+
+    <!-- highlighted 5-architectures block -->
+    <div class="offer rv" style="margin-bottom:26px;box-shadow:0 0 50px rgba(0,245,212,.18);">
+      <div class="offer-in" style="grid-template-columns:1fr auto;padding:30px 36px;">
+        <div>
+          <div class="badge" style="margin-bottom:14px;"><span class="dot"></span>Diferencial incluso</div>
+          <h3 style="font-size:clamp(22px,2.6vw,30px);letter-spacing:-1px;margin:0 0 8px;">5 arquiteturas de agentes desenvolvidas para aplicar no negócio</h3>
+          <p style="margin:0;color:var(--tx-62);font-size:15px;">Você não recebe só teoria — recebe a estrutura completa de 5 agentes: objetivo, fluxo, prompt base, ferramentas, checklist e métricas. Basta adaptar.</p>
+        </div>
+        <a href="#agentes" class="btn btn--primary" style="white-space:nowrap;">Ver os 5 agentes</a>
+      </div>
+    </div>
+
+    <div class="grid g3 rv" style="gap:14px;">
+      <div class="card card--2" style="padding:18px 20px;"><div class="dl">E-book / playbook completo sobre Agentes de IA</div></div>
+      <div class="card card--2" style="padding:18px 20px;"><div class="dl">Conceitos essenciais explicados de forma simples</div></div>
+      <div class="card card--2" style="padding:18px 20px;"><div class="dl">Guia de ferramentas no-code e low-code</div></div>
+      <div class="card card--2" style="padding:18px 20px;"><div class="dl">Framework prático de criação de agentes</div></div>
+      <div class="card card--2" style="padding:18px 20px;"><div class="dl">Canvas de planejamento do agente</div></div>
+      <div class="card card--2" style="padding:18px 20px;"><div class="dl">Checklists de implementação</div></div>
+      <div class="card card--2" style="padding:18px 20px;"><div class="dl">Templates práticos preenchíveis</div></div>
+      <div class="card card--2" style="padding:18px 20px;"><div class="dl">Prompts base prontos para adaptar</div></div>
+      <div class="card card--2" style="padding:18px 20px;"><div class="dl">Fluxos visuais de funcionamento</div></div>
+      <div class="card card--2" style="padding:18px 20px;"><div class="dl">Plano de ação para implementação</div></div>
+      <div class="card card--2" style="padding:18px 20px;"><div class="dl">Métricas para acompanhar resultados</div></div>
+      <div class="card card--2" style="padding:18px 20px;border-color:rgba(0,245,212,.3);"><div class="dl" style="color:var(--cyan);">Arquitetura de 5 agentes de IA prontos</div></div>
+    </div>
+    <style>.dl{position:relative;padding-left:26px;font-size:14px;color:var(--tx-70);font-weight:400;line-height:1.4;}
+    .dl::before{content:"✓";position:absolute;left:0;top:0;color:var(--cyan);font-weight:700;}</style>
   </div>
 </section>
 <!-- ============ 3 · PROBLEMA ============ -->
@@ -482,44 +587,6 @@ strong{color:#fff;font-weight:600;}
   </div>
 </section>
 
-<!-- ============ 5 · O QUE VOCÊ VAI RECEBER ============ -->
-<section class="sec" id="dentro">
-  <div class="wrap">
-    <div class="sec-head center rv">
-      <div class="kicker" style="justify-content:center;">O que está incluído</div>
-      <h2 class="h-sec center">Tudo que você precisa para começar a aplicar <span class="grad">Agentes de IA no seu negócio</span></h2>
-    </div>
-
-    <!-- highlighted 5-architectures block -->
-    <div class="offer rv" style="margin-bottom:26px;box-shadow:0 0 50px rgba(0,245,212,.18);">
-      <div class="offer-in" style="grid-template-columns:1fr auto;padding:30px 36px;">
-        <div>
-          <div class="badge" style="margin-bottom:14px;"><span class="dot"></span>Diferencial incluso</div>
-          <h3 style="font-size:clamp(22px,2.6vw,30px);letter-spacing:-1px;margin:0 0 8px;">5 arquiteturas de agentes desenvolvidas para aplicar no negócio</h3>
-          <p style="margin:0;color:var(--tx-62);font-size:15px;">Você não recebe só teoria — recebe a estrutura completa de 5 agentes: objetivo, fluxo, prompt base, ferramentas, checklist e métricas. Basta adaptar.</p>
-        </div>
-        <a href="#agentes" class="btn btn--primary" style="white-space:nowrap;">Ver os 5 agentes</a>
-      </div>
-    </div>
-
-    <div class="grid g3 rv" style="gap:14px;">
-      <div class="card card--2" style="padding:18px 20px;"><div class="dl">E-book / playbook completo sobre Agentes de IA</div></div>
-      <div class="card card--2" style="padding:18px 20px;"><div class="dl">Conceitos essenciais explicados de forma simples</div></div>
-      <div class="card card--2" style="padding:18px 20px;"><div class="dl">Guia de ferramentas no-code e low-code</div></div>
-      <div class="card card--2" style="padding:18px 20px;"><div class="dl">Framework prático de criação de agentes</div></div>
-      <div class="card card--2" style="padding:18px 20px;"><div class="dl">Canvas de planejamento do agente</div></div>
-      <div class="card card--2" style="padding:18px 20px;"><div class="dl">Checklists de implementação</div></div>
-      <div class="card card--2" style="padding:18px 20px;"><div class="dl">Templates práticos preenchíveis</div></div>
-      <div class="card card--2" style="padding:18px 20px;"><div class="dl">Prompts base prontos para adaptar</div></div>
-      <div class="card card--2" style="padding:18px 20px;"><div class="dl">Fluxos visuais de funcionamento</div></div>
-      <div class="card card--2" style="padding:18px 20px;"><div class="dl">Plano de ação para implementação</div></div>
-      <div class="card card--2" style="padding:18px 20px;"><div class="dl">Métricas para acompanhar resultados</div></div>
-      <div class="card card--2" style="padding:18px 20px;border-color:rgba(0,245,212,.3);"><div class="dl" style="color:var(--cyan);">Arquitetura de 5 agentes de IA prontos</div></div>
-    </div>
-    <style>.dl{position:relative;padding-left:26px;font-size:14px;color:var(--tx-70);font-weight:400;line-height:1.4;}
-    .dl::before{content:"✓";position:absolute;left:0;top:0;color:var(--cyan);font-weight:700;}</style>
-  </div>
-</section>
 <!-- ============ 6 · OS 5 AGENTES ============ -->
 <section class="sec" id="agentes" style="background:linear-gradient(180deg,transparent,rgba(14,14,21,.55),transparent);">
   <div class="wrap">
@@ -594,7 +661,7 @@ strong{color:#fff;font-weight:600;}
       <div class="card ag" style="display:flex;flex-direction:column;justify-content:center;align-items:flex-start;background:linear-gradient(135deg,rgba(108,92,231,.12),rgba(0,245,212,.08));border-color:rgba(108,92,231,.3);">
         <h3 class="h3" style="font-size:20px;margin-bottom:10px;">Os 5 agentes, prontos para o seu negócio</h3>
         <p style="margin-bottom:18px;">Objetivo, fluxo, prompt, ferramentas, checklist e métricas — é só adaptar e aplicar.</p>
-        <a href="#oferta" class="btn btn--primary btn--sm">Quero o Playbook agora →</a>
+        <a href="#oferta" class="btn btn--primary btn--sm">Quero os 5 agentes por R$ 97 →</a>
       </div>
     </div>
     <style>
@@ -606,59 +673,6 @@ strong{color:#fff;font-weight:600;}
   </div>
 </section>
 
-<!-- ============ 7 · SCROLL CLIPS ============ -->
-<section class="sec" id="preview">
-  <div class="wrap">
-    <div class="sec-head center rv">
-      <div class="kicker" style="justify-content:center;">Por dentro do playbook</div>
-      <h2 class="h-sec center">Veja como o playbook foi pensado para ser <span class="grad">usado, não apenas lido</span></h2>
-      <p class="lead center">Páginas reais do material — passe o mouse para pausar a rolagem.</p>
-    </div>
-
-    <div class="grid g3 rv">
-      <div>
-        <div class="clip-frame">
-          <div class="clip-inner">
-            <span class="tag tag--p clip-tag">Canvas do Agente</span>
-            <div class="clip-strip">
-              <img src="assets/canvas.jpg" alt="Canvas de criação do agente" loading="lazy">
-              <img src="assets/ficha.jpg" alt="Ficha do agente" loading="lazy">
-              <img src="assets/priorizacao.jpg" alt="Tabela de priorização" loading="lazy">
-            </div>
-            <div class="clip-cap"><b>Canvas de Criação do Agente</b><span>Planeje cada agente antes de implementar.</span></div>
-          </div>
-        </div>
-      </div>
-      <div>
-        <div class="clip-frame">
-          <div class="clip-inner">
-            <span class="tag tag--c clip-tag">Arquitetura</span>
-            <div class="clip-strip">
-              <img src="assets/agent-cover.jpg" alt="Capa do agente" loading="lazy">
-              <img src="assets/agent-build.jpg" alt="Fluxo e prompt do agente" loading="lazy">
-              <img src="assets/agent-run.jpg" alt="Métricas do agente" loading="lazy">
-              <img src="assets/method.jpg" alt="Método AGENTES" loading="lazy">
-            </div>
-            <div class="clip-cap"><b>Arquitetura dos 5 Agentes</b><span>Entenda a lógica por trás de cada agente pronto.</span></div>
-          </div>
-        </div>
-      </div>
-      <div>
-        <div class="clip-frame">
-          <div class="clip-inner">
-            <span class="tag tag--p clip-tag">Implementação</span>
-            <div class="clip-strip">
-              <img src="assets/checklist.jpg" alt="Checklist de configuração" loading="lazy">
-              <img src="assets/roteiro.jpg" alt="Plano de implementação 7-14-30 dias" loading="lazy">
-              <img src="assets/plano.jpg" alt="Plano de ação" loading="lazy">
-            </div>
-            <div class="clip-cap"><b>Checklist e Plano de Implementação</b><span>Siga os passos e tire a IA da teoria.</span></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
 <!-- ============ 8 · MÉTODO A.G.E.N.T.E. ============ -->
 <section class="sec" id="metodo">
   <div class="wrap">
@@ -851,7 +865,7 @@ strong{color:#fff;font-weight:600;}
             <div class="now">R$ 97</div>
             <div class="edit">pagamento único · acesso imediato</div>
           </div>
-          <a href="#" class="btn btn--primary btn--lg" style="width:100%;margin:22px 0 14px;">Quero acessar o Playbook agora →</a>
+          <a href="#" class="btn btn--primary btn--lg" style="width:100%;margin:22px 0 14px;">Sim! Quero meus 5 agentes por R$ 97 →</a>
           <p style="font-size:12.5px;color:var(--tx-55);margin:0 0 4px;">Menos do que <strong>uma hora de consultoria</strong> especializada em IA — com um material que você consulta e aplica sempre que precisar.</p>
           <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:14px;font-family:var(--f-mono);font-size:11px;color:var(--tx-45);letter-spacing:.5px;">
             <span>✓ Acesso imediato</span><span>✓ Compra segura</span><span>✓ Sem programar</span>
@@ -911,7 +925,7 @@ strong{color:#fff;font-weight:600;}
       <div>
         <h2 class="h-sec" style="max-width:18ch;">Pare de usar IA apenas para testar prompts. <span class="grad">Comece a criar agentes que trabalham pelo seu negócio.</span></h2>
         <p class="lead" style="margin-bottom:28px;">Com o Playbook IA na Prática, você recebe o método, os templates e a arquitetura de 5 agentes para aplicar IA com clareza, mesmo sem programar.</p>
-        <a href="#oferta" class="btn btn--primary btn--lg">Quero meu Playbook de Agentes de IA →</a>
+        <a href="#oferta" class="btn btn--primary btn--lg">Quero começar agora por R$ 97 →</a>
         <div style="margin-top:16px;font-family:var(--f-mono);font-size:12px;color:var(--tx-45);letter-spacing:.5px;">Acesso imediato <span style="color:var(--cyan)">•</span> Produto digital <span style="color:var(--cyan)">•</span> Aplicação prática</div>
       </div>
       <div class="stage" style="min-height:400px;">
