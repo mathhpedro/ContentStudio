@@ -36,10 +36,10 @@ Tudo que precisa de dado real está marcado em **laranja** com a classe `.ph` (o
 
 - **Preço**: definido como **R$ 197 → R$ 97 (−51%)** no hero e na seção Oferta.
   Para mudar, edite esses valores nos dois pontos.
-- **Prova social do hero (importante)**: a nota **4,7/5** e as **fotos das pessoas**
-  (`assets/avatars/person-1.jpg` … `person-5.jpg`) são **placeholders**. Substitua as
-  fotos por imagens reais de clientes (mesmos nomes de arquivo) e confirme a nota com
-  avaliações reais **antes de publicar** — não use dados/fotos fictícios no ar.
+- **Prova social do hero (importante)**: usa avatares com **iniciais em gradiente**
+  (sem depender de fotos). A **nota 4,7** e o **"+2.000 profissionais já aplicam o
+  método"** são **editáveis** — ajuste para números reais **antes de publicar** e não
+  veicule dados fictícios. Para trocar as iniciais, edite os `<span class="av …">`.
 - **Botões de compra**: os CTAs de compra usam `href="#"` / `href="#oferta"`. Troque o
   CTA final da oferta pela **URL de checkout/produto da Shopify**. Os demais CTAs rolam
   até a oferta (funil) — pode manter.
